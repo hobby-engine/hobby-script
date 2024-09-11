@@ -1,0 +1,18 @@
+struct Person {
+  var name;
+  var age;
+
+  static fn new(name, age) => Person{
+    .name = name,
+    .age = age,
+  };
+
+  fn introduce() {
+    io:print(
+      "Hello! My name is " .. self.name
+      .. " and I am " .. self.age .. " years old.");
+  }
+}
+
+var me = Person:new("Xander", 18);
+me.introduce();

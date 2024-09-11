@@ -1,0 +1,8 @@
+struct Foo {
+  var bar;
+}
+
+var foo = Foo {};
+foo.bar = "not function";
+
+foo.bar(); // expect runtime error: 'string' is not callable

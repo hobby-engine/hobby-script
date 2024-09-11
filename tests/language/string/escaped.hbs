@@ -1,0 +1,10 @@
+io:print("\""); // expect: "
+io:print('\"'); // expect: "
+io:print("\'"); // expect: '
+io:print('\''); // expect: '
+
+// expect: a
+// expect: b
+io:print("a\nb");
+
+io:print("\\"); // expect: \

@@ -1,0 +1,6 @@
+global var a = "outer";
+{
+  var a = a; // expect error
+  io:print(a);
+}
+io:print(a);

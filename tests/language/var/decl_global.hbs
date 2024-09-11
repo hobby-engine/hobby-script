@@ -1,0 +1,7 @@
+global var x = "abc";
+{
+  global var y = "abcd";
+}
+
+io:print(x); // expect: abc
+io:print(y); // expect: abcd

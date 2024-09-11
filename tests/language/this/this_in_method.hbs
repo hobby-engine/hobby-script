@@ -1,0 +1,6 @@
+struct Foo {
+  fn bar() => self;
+  fn baz() => "baz";
+}
+
+io:print(Foo {}.bar().baz()); // expect: baz

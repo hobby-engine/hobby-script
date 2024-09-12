@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include "arr.h"
 #include "chunk.h"
 #include "compiler.h"
 #include "common.h"
@@ -554,7 +555,7 @@ static hbs_InterpretResult run(hbs_State* h) {
       case bc_array_item: {
         // Compiler ensures this is an array
         GcArr* arr = as_arr(peek(h, 1));
-        push_valarr(h, &arr->arr, peek(h, 0));
+        push_varr(h, &arr->arr, peek(h, 0));
         pop(h);
         break;
       }

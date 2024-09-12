@@ -17,7 +17,7 @@ void init_map(Map* map) {
 }
 
 void free_map(hbs_State* h, Map* map) {
-  free_arr(h, MapItem, map->items, map->cap);
+  release_arr(h, MapItem, map->items, map->cap);
   init_map(map);
 }
 
@@ -63,7 +63,7 @@ static void adjust_cap(hbs_State* h, Map* map, int cap) {
     map->count++;
   }
 
-  free_arr(h, MapItem, map->items, map->cap);
+  release_arr(h, MapItem, map->items, map->cap);
   map->items = items;
   map->cap = cap;
 }

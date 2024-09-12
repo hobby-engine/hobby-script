@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "tostr.h"
+#include "arr.h"
 #include "val.h"
 #include "mem.h"
 #include "map.h"
@@ -96,7 +97,7 @@ GcEnum* create_enum(hbs_State* h, GcStr* name) {
 
 GcArr* create_arr(hbs_State* h) {
   GcArr* arr = alloc_obj(h, GcArr, obj_arr);
-  init_valarr(&arr->arr);
+  init_varr(&arr->arr);
   return arr;
 }
 
@@ -138,7 +139,7 @@ GcStr* take_str(hbs_State* h, char* chars, int len) {
   u32 hash = hash_str(chars, len);
   GcStr* interned = find_str_map(&h->strs, chars, len, hash);
   if (interned != NULL) {
-    free_arr(h, char, chars, len + 1);
+    release_arr(h, char, chars, len + 1);
     return interned;
   }
   return alloc_str(h, chars, len, hash);

@@ -88,7 +88,7 @@ hbs_api void hbs_instance(hbs_State* h); // TODO
 
 hbs_api const char* hbs_typestr(hbs_ValueType type, size_t* len_out);
 hbs_api void hbs_tostr(hbs_State* h, int index);
-hbs_api void hbs_len(hbs_State* h, int index); // TODO
+hbs_api int hbs_len(hbs_State* h, int index);
 
 hbs_api void hbs_call(hbs_State* h, int argc);
 hbs_api void hbs_pcall(hbs_State* h, int argc); // TODO
@@ -113,15 +113,15 @@ hbs_api void hbs_add_enum(hbs_State* h, const char* name, int _enum);
 #define hbs_is_cfunction(h, index)    (hbs_get_type(h, index) == hbs_type_cfunction)
 #define hbs_is_array(h, index)        (hbs_get_type(h, index) == hbs_type_array)
 
-#define hbs_check_num(h, index)       hbs_expect_type(h, index, hbs_type_number);
-#define hbs_check_bool(h, index)      hbs_expect_type(h, index, hbs_type_bool);
-#define hbs_check_null(h, index)      hbs_expect_type(h, index, hbs_type_null);
-#define hbs_check_string(h, index)    hbs_expect_type(h, index, hbs_type_string);
-#define hbs_check_instance(h, index)  hbs_expect_type(h, index, hbs_type_instance);
-#define hbs_check_struct(h, index)    hbs_expect_type(h, index, hbs_type_struct);
-#define hbs_check_enum(h, index)      hbs_expect_type(h, index, hbs_type_enum);
-#define hbs_check_function(h, index)  hbs_expect_type(h, index, hbs_type_function);
-#define hbs_check_cfunction(h, index) hbs_expect_type(h, index, hbs_type_cfunction);
-#define hbs_check_array(h, index)     hbs_expect_type(h, index, hbs_type_array);
+#define hbs_expect_num(h, index)       hbs_expect_type(h, index, hbs_type_number);
+#define hbs_expect_bool(h, index)      hbs_expect_type(h, index, hbs_type_bool);
+#define hbs_expect_null(h, index)      hbs_expect_type(h, index, hbs_type_null);
+#define hbs_expect_string(h, index)    hbs_expect_type(h, index, hbs_type_string);
+#define hbs_expect_instance(h, index)  hbs_expect_type(h, index, hbs_type_instance);
+#define hbs_expect_struct(h, index)    hbs_expect_type(h, index, hbs_type_struct);
+#define hbs_expect_enum(h, index)      hbs_expect_type(h, index, hbs_type_enum);
+#define hbs_expect_function(h, index)  hbs_expect_type(h, index, hbs_type_function);
+#define hbs_expect_cfunction(h, index) hbs_expect_type(h, index, hbs_type_cfunction);
+#define hbs_expect_array(h, index)     hbs_expect_type(h, index, hbs_type_array);
 
 #endif // __HBS_H

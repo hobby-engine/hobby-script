@@ -10,7 +10,7 @@
 #define grow_cap(cap) ((cap) < 8 ? 8 : (cap) * 2)
 #define grow_arr(h, T, ptr, plen, len) \
   (T*)reallocate(h, ptr, sizeof(T) * (plen), sizeof(T) * len)
-#define free_arr(h, T, ptr, plen) \
+#define release_arr(h, T, ptr, plen) \
   reallocate(h, ptr, sizeof(T) * (plen), 0)
 
 void* reallocate(hbs_State* h, void* ptr, size_t plen, size_t len);

@@ -10,13 +10,13 @@ void init_chunk(Chunk* c) {
   c->code = NULL;
   c->lines = NULL;
 
-  init_valarr(&c->consts);
+  init_varr(&c->consts);
 }
 
 void free_chunk(hbs_State* h, Chunk* c) {
-  free_arr(h, u8, c->code, c->cap);
-  free_arr(h, int, c->lines, c->cap);
-  free_valarr(h, &c->consts);
+  release_arr(h, u8, c->code, c->cap);
+  release_arr(h, int, c->lines, c->cap);
+  free_varr(h, &c->consts);
   init_chunk(c);
 }
 
@@ -35,7 +35,7 @@ void write_chunk(hbs_State* h, Chunk* c, Bc bc, int line) {
 
 int add_const_chunk(hbs_State* h, Chunk* c, Val val) {
   push(h, val);
-  push_valarr(h, &c->consts, val);
+  push_varr(h, &c->consts, val);
   pop(h);
   return c->consts.len - 1;
 }

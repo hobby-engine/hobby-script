@@ -3,7 +3,8 @@
 
 #include "common.h"
 #include "val.h"
-#include "state.h"
+#include "arr.h"
+#include "hbs.h"
 
 typedef enum {
   bc_pop,
@@ -66,7 +67,7 @@ typedef struct {
   int cap;
   u8* code;
   int* lines;
-  ValArr consts;
+  VArr consts;
 } Chunk;
 
 void init_chunk(Chunk* c);

@@ -1,64 +1,94 @@
+#include "arr.h"
 #include "errmsg.h"
 #include "hbs.h"
 #include "lib.h"
 #include "map.h"
-#include "val.h"
 #include "obj.h"
+#include "val.h"
 
 // TODO: Make all of this better. It sucks and doesn't use the C API well
 
-static bool arr_len(hbs_State* h, int argc) {
-  hbs_check_array(h, 0);
+static GcArr* self(hbs_State* h) {
+  return as_arr(*(h->frame->base));
+}
 
-  Val val = *(h->frame->base);
-  hbs_push_num(h, as_arr(val)->arr.len);
+static bool arr_len(hbs_State* h, int argc) {
+  hbs_expect_array(h, 0);
+  hbs_push_num(h, hbs_len(h, 0));
   return true;
 }
 
 static bool arr_push(hbs_State* h, int argc) {
-  hbs_check_array(h, 0);
+  hbs_expect_array(h, 0);
 
-  Val val = *(h->frame->base);
-  push_valarr(h, &as_arr(val)->arr, *(h->frame->base + 1));
+  GcArr* arr = self(h);
+
+  for (int i = 0; i < argc; i++) {
+    push_varr(h, &arr->arr, *(h->frame->base + i + 1));
+  }
+  return false;
+}
+
+static bool arr_insert(hbs_State* h, int argc) {
+  hbs_expect_array(h, 0);
+  int len = hbs_len(h, 0);
+
+  GcArr* arr = self(h);
+  int idx = varr_get_idx(h, len, hbs_get_num(h, 1));
+
+  insert_varr(h, &arr->arr, *(h->frame->base + 2), idx);
   return false;
 }
 
 static bool arr_rem(hbs_State* h, int argc) {
-  hbs_check_array(h, 0);
+  hbs_expect_array(h, 0);
+  int len = hbs_len(h, 0);
 
-  Val val = *(h->frame->base);
-  GcArr* arr = as_arr(val);
+  GcArr* arr = self(h);
+  int idx = varr_get_idx(h, len, hbs_get_num(h, 1));
 
-  int idx = hbs_get_num(h, 1);
-  if (idx < 0) {
-    idx += arr->arr.len;
-  }
-  if (idx < 0 || idx > arr->arr.len) {
-    hbs_err(h, err_msg_index_out_of_bounds);
-  }
-
-  rem_valarr(h, &arr->arr, idx);
+  rem_varr(h, &arr->arr, idx);
   return false;
 }
 
 static bool arr_swaprem(hbs_State* h, int argc) {
-  hbs_check_array(h, 0);
+  hbs_expect_array(h, 0);
+  int len = hbs_len(h, 0);
 
-  Val val = *(h->frame->base);
-  GcArr* arr = as_arr(val);
+  GcArr* arr = self(h);
+  int idx = varr_get_idx(h, len, hbs_get_num(h, 1));
 
-  int idx = hbs_get_num(h, 1);
-  if (idx < 0) {
-    idx += arr->arr.len;
-  }
-  if (idx < 0 || idx > arr->arr.len) {
-    hbs_err(h, err_msg_index_out_of_bounds);
-  }
-
-  ValArr* varr = &arr->arr;
+  VArr* varr = &arr->arr;
   varr->items[idx] = varr->items[varr->len - 1];
   varr->len--;
   return false;
+}
+
+static int find(VArr* arr, Val val) {
+  for (int i = 0; i < arr->len; i++) {
+    if (vals_eql(arr->items[i], val)) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+static bool arr_erase(hbs_State* h, int argc) {
+  hbs_expect_array(h, 0);
+  GcArr* arr = self(h);
+  int idx = find(&arr->arr, *(h->frame->base + 1));
+  if (idx == -1) {
+    return false;
+  }
+  arr_rem(h, idx);
+  return false;
+}
+
+static bool arr_find(hbs_State* h, int argc) {
+  hbs_expect_array(h, 0);
+  GcArr* arr = self(h);
+  hbs_push_num(h, find(&arr->arr, *(h->frame->base + 1)));
+  return true;
 }
 
 
@@ -70,10 +100,20 @@ static void add_method(hbs_State* h, const char* name, hbs_CFn fn, int argc) {
   hbs_pop(h, 2); // name and c fn
 }
 
+hbs_CFnArgs arr_methods[] = {
+  {"len", arr_len, 0},
+  {"push", arr_push, -1},
+  {"insert", arr_insert, 2},
+  {"rem", arr_rem, 1},
+  {"swaprem", arr_swaprem, 1},
+  {"erase", arr_erase, 1},
+  {"find", arr_find, 1},
+  {NULL, NULL, 0},
+};
+
 bool open_arr(hbs_State* h, int argc) {
-  add_method(h, "len", arr_len, 0);
-  add_method(h, "push", arr_push, 1);
-  add_method(h, "rem", arr_rem, 1);
-  add_method(h, "swaprem", arr_swaprem, 1);
+  for (hbs_CFnArgs* arg = arr_methods; arg->name != NULL; arg++) {
+    add_method(h, arg->name, arg->fn, arg->argc);
+  }
   return false;
 }

@@ -136,7 +136,7 @@ static Tok str(Lexer* l, char term) {
         case '\\':
           break;
         default:
-          free_arr(l->h, char, chars, cap);
+          release_arr(l->h, char, chars, cap);
           return create_err_tok(l, err_msg_escape_str);
       }
     }
@@ -146,7 +146,7 @@ static Tok str(Lexer* l, char term) {
   }
 
   if (unterminated || is_at_end(l)) {
-    free_arr(l->h, char, chars, cap);
+    release_arr(l->h, char, chars, cap);
     return create_err_tok(l, err_msg_eof_str);
   }
 
@@ -159,7 +159,7 @@ static Tok str(Lexer* l, char term) {
   str_tok.line = l->line;
   str_tok.val = create_obj(copy_str(l->h, chars, len));
 
-  free_arr(l->h, char, chars, cap);
+  release_arr(l->h, char, chars, cap);
   return str_tok;
 }
 

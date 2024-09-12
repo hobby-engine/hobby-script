@@ -166,7 +166,7 @@ void hbs_get_prop(hbs_State* h, const char* name, int index) {
 
 
 double hbs_get_num(hbs_State* h, int index) {
-  hbs_check_num(h, index);
+  hbs_expect_num(h, index);
   Val val = val_at(h, index);
   return as_num(val);
 }
@@ -177,13 +177,13 @@ bool hbs_get_bool(hbs_State* h, int index) {
 }
 
 hbs_CFn hbs_get_cfunction(hbs_State* h, int index) {
-  hbs_check_cfunction(h, index);
+  hbs_expect_cfunction(h, index);
   Val val = val_at(h, index);
   return as_c_fn(val)->fn;
 }
 
 const char* hbs_get_string(hbs_State* h, int index, size_t* len_out) {
-  hbs_check_string(h, index);
+  hbs_expect_string(h, index);
   Val val = val_at(h, index);
 
   GcStr* str = as_str(val);
@@ -297,6 +297,16 @@ void hbs_tostr(hbs_State* h, int index) {
   push(h, create_obj(obj_to_string(h, index)));
 }
 
+int hbs_len(hbs_State* h, int index) {
+  Val val = val_at(h, index);
+  switch(hbs_get_type(h, index)) {
+    case hbs_type_array:
+      return as_arr(val)->arr.len;
+    default:
+      return 0;
+  }
+}
+
 
 void hbs_call(hbs_State* h, int argc) {
   vm_call(h, h->top[-1 - argc], argc);
@@ -367,7 +377,7 @@ void hbs_add_members(hbs_State* h, hbs_StructMethod* members, int _struct) {
 }
 
 void hbs_add_enum(hbs_State* h, const char* name, int _enum) {
-  hbs_check_enum(h, _enum);
+  hbs_expect_enum(h, _enum);
 
   GcEnum* e = as_enum(val_at(h, _enum));
   GcStr* sname = copy_str(h, name, strlen(name));

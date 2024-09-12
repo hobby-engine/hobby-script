@@ -84,17 +84,6 @@ typedef struct {
 
 #endif
 
-typedef struct {
-  int cap;
-  int len;
-  Val* items;
-  GcObj* obj;
-} ValArr;
-
-void init_valarr(ValArr* arr);
-void push_valarr(struct hbs_State* h, ValArr* arr, Val val);
-void rem_valarr(struct hbs_State* h, ValArr* arr, int idx);
-void free_valarr(struct hbs_State* h, ValArr* arr);
 bool vals_eql(Val a, Val b);
 
 #endif // __HBS_VAL_H

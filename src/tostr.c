@@ -56,7 +56,7 @@ GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
   chars[len++] = ']';
 
   GcStr* copy = copy_str(h, chars, len);
-  free_arr(h, char, chars, cap);
+  release_arr(h, char, chars, cap);
   return copy;
 }
 

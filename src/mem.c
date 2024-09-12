@@ -5,6 +5,7 @@
 #include "compiler.h"
 #include "tostr.h"
 #include "val.h"
+#include "arr.h"
 #include "state.h"
 #include "obj.h"
 
@@ -70,7 +71,7 @@ static void free_obj(hbs_State* h, GcObj* obj) {
       break;
     case obj_closure: {
       GcClosure* closure = (GcClosure*)obj;
-      free_arr(h, GcUpval*, closure->upvals, closure->upvalc);
+      release_arr(h, GcUpval*, closure->upvals, closure->upvalc);
       release(h, GcClosure, obj);
       break;
     }
@@ -91,13 +92,13 @@ static void free_obj(hbs_State* h, GcObj* obj) {
     }
     case obj_arr: {
       GcArr* arr = (GcArr*)obj;
-      free_valarr(h, &arr->arr);
+      free_varr(h, &arr->arr);
       release(h, GcArr, obj);
       break;
     }
     case obj_str: {
       GcStr* str = (GcStr*)obj;
-      free_arr(h, char, str->chars, str->len + 1);
+      release_arr(h, char, str->chars, str->len + 1);
       release(h, GcStr, obj);
       break;
     }
@@ -131,7 +132,7 @@ void mark_val(hbs_State* h, Val val) {
   }
 }
 
-static void mark_arr(hbs_State* h, ValArr* arr) {
+static void mark_arr(hbs_State* h, VArr* arr) {
   for (int i = 0; i < arr->len; i++) {
     mark_val(h, arr->items[i]);
   }

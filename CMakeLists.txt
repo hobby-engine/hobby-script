@@ -20,6 +20,7 @@ set(SRC
   # Hobbyscript
   src/hbs.c
   src/api.c
+  src/arr.c
   src/chunk.c
   src/compiler.c
   src/debug.c

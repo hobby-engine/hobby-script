@@ -5,6 +5,7 @@
 #include "chunk.h"
 #include "state.h"
 #include "val.h"
+#include "arr.h"
 
 typedef enum {
   obj_str,
@@ -74,7 +75,7 @@ typedef struct {
 
 typedef struct {
   GcObj obj;
-  ValArr arr;
+  VArr arr;
 } GcArr;
 
 typedef struct {

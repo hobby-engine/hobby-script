@@ -634,7 +634,7 @@ static void subscript(Parser* p, bool can_assign) {
     write_bc(p, bc_push_subscript); \
     write_2bc(p, bc_const, create_const(p, create_num(1))); \
     write_bc(p, op); \
-    write_bc(p, bc_set_prop); \
+    write_bc(p, bc_set_subscript); \
   } while (false)
 
   if (can_assign && consume(p, tok_eql)) {

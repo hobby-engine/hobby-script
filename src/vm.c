@@ -165,7 +165,6 @@ bool invoke(hbs_State* h, GcStr* name, int argc) {
         return call_fn(h, as_closure(method), argc);
       }
       case obj_arr: {
-        GcArr* arr = as_arr(reciever);
         Val method;
         if (!get_map(&h->arr_methods, name, &method)) {
           runtime_err(h, err_msg_undef_prop, name->chars);

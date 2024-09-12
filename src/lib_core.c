@@ -5,7 +5,7 @@
 #include "obj.h"
 
 static bool core_tostr(hbs_State* h, int argc) {
-  hbs_to_str(h, 1);
+  hbs_tostr(h, 1);
   return true;
 }
 
@@ -15,7 +15,7 @@ static bool core_tonum(hbs_State* h, int argc) {
       hbs_push(h, 1);
       return true;
     case hbs_type_string:
-      hbs_push_num(h, strtod(hbs_get_str(h, 1, NULL), NULL));
+      hbs_push_num(h, strtod(hbs_get_string(h, 1, NULL), NULL));
       return true;
     case hbs_type_bool:
       hbs_push_num(h, hbs_get_bool(h, 1) ? 1 : 0);
@@ -32,7 +32,7 @@ static bool core_tonum(hbs_State* h, int argc) {
 
 static bool core_import(hbs_State* h, int argc) {
   size_t len;
-  const char* path = hbs_get_str(h, 1, &len);
+  const char* path = hbs_get_string(h, 1, &len);
   if (file_imported(h, path)) {
     Val val;
     if (get_map(&h->files, copy_str(h, path, len), &val)) {
@@ -54,36 +54,38 @@ static bool core_import(hbs_State* h, int argc) {
 }
 
 static bool core_err(hbs_State* h, int argc) {
-  hbs_err(h, hbs_get_and_to_str(h, 1, NULL));
+  hbs_err(h, hbs_get_tostring(h, 1, NULL));
   return false;
 }
 
 static bool core_assert(hbs_State* h, int argc) {
   if (!hbs_get_bool(h, 1)) {
-    hbs_err(h, hbs_get_and_to_str(h, 2, NULL));
+    hbs_err(h, hbs_get_tostring(h, 2, NULL));
   }
   return false;
 }
 
+static bool core_typestr(hbs_State* h, int argc) {
+  size_t len;
+  const char* type_name = hbs_typestr(hbs_get_type(h, 1), &len);
+  hbs_push_string_copy(h, type_name, len);
+  return true;
+}
+
+hbs_CFnArgs core_mod[] = {
+  {"tostr", core_tostr, 1},
+  {"tonum", core_tonum, 1},
+  {"err", core_err, 1},
+  {"assert", core_assert, 2},
+  {"import", core_import, 1},
+  {"typestr", core_typestr, 1},
+  {NULL, NULL, 0},
+};
+
 bool open_core(hbs_State* h, int argc) {
-  hbs_push_c_fn(h, "tostr", core_tostr, 1);
-  hbs_set_global(h, "tostr");
-  hbs_pop(h, 2);
-
-  hbs_push_c_fn(h, "tonum", core_tonum, 1);
-  hbs_set_global(h, "tonum");
-  hbs_pop(h, 2);
-
-  hbs_push_c_fn(h, "import", core_import, 1);
-  hbs_set_global(h, "import");
-  hbs_pop(h, 2);
-
-  hbs_push_c_fn(h, "err", core_err, 1);
-  hbs_set_global(h, "err");
-  hbs_pop(h, 2);
-
-  hbs_push_c_fn(h, "assert", core_assert, 2);
-  hbs_set_global(h, "assert");
-  hbs_pop(h, 2);
+  for (hbs_CFnArgs* args = core_mod; args->name != NULL; args++) {
+    hbs_push_cfunction(h, args->name, args->fn, args->argc);
+    hbs_set_global(h, NULL);
+  }
   return false;
 }

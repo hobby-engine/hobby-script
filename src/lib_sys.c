@@ -10,13 +10,13 @@ static bool sys_clock(hbs_State* h, int argc) {
 }
 
 static bool sys_command(hbs_State* h, int argc) {
-  hbs_push_num(h, system(hbs_get_str(h, 1, NULL)));
+  hbs_push_num(h, system(hbs_get_string(h, 1, NULL)));
   return true;
 }
 
 static bool sys_getenv(hbs_State* h, int argc) {
-  const char* chars = getenv(hbs_get_str(h, 1, NULL));
-  hbs_push_str_copy(h, chars, strlen(chars));
+  const char* chars = getenv(hbs_get_string(h, 1, NULL));
+  hbs_push_string_copy(h, chars, strlen(chars));
   return true;
 }
 
@@ -34,7 +34,7 @@ hbs_StructMethod sys_mod[] = {
 };
 
 bool open_sys(hbs_State* h, int argc) {
-  hbs_define_struct(h, "sys");
+  hbs_push_struct(h, "sys");
   hbs_add_members(h, sys_mod, -2);
   hbs_set_global(h, "sys");
   hbs_pop(h, 2);

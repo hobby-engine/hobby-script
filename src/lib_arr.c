@@ -71,7 +71,7 @@ static bool arr_swaprem(hbs_State* h, int argc) {
 
 
 static void add_method(hbs_State* h, const char* name, hbs_CFn fn, int argc) {
-  hbs_push_c_fn(h, name, fn, argc);
+  hbs_push_cfunction(h, name, fn, argc);
   GcStr* str_name = copy_str(h, name, strlen(name));
   push(h, create_obj(str_name));
   set_map(h, &h->arr_methods, str_name, *(h->top - 2));

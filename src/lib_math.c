@@ -178,7 +178,7 @@ hbs_StructMethod math_mod[] = {
 };
 
 bool open_math(hbs_State* h, int argc) {
-  hbs_define_struct(h, "math");
+  hbs_push_struct(h, "math");
   hbs_add_members(h, math_mod, -2);
 
   hbs_push_num(h, pi);

@@ -4,14 +4,14 @@
 
 static bool io_write(hbs_State* h, int argc) {
   size_t len;
-  const char* str = hbs_get_str(h, 1, &len);
+  const char* str = hbs_get_string(h, 1, &len);
   fwrite(str, sizeof(char), len, stdout);
   return false;
 }
 
 static bool io_print(hbs_State* h, int argc) {
   for (int i = 1; i <= argc; i++) {
-    const char* s = hbs_get_and_to_str(h, i, NULL);
+    const char* s = hbs_get_tostring(h, i, NULL);
     if (i > 1) {
       putc('\t', stdout);
     }
@@ -40,7 +40,7 @@ static bool io_input(hbs_State* h, int argc) {
   i = grow_arr(h, char, i, cap, len + 1);
   i[len] = '\0';
 
-  hbs_push_str(h, i, len);
+  hbs_push_string(h, i, len);
   return true;
 }
 
@@ -52,7 +52,7 @@ hbs_StructMethod io[] = {
 };
 
 bool open_io(hbs_State* h, int argc) {
-  hbs_define_struct(h, "io");
+  hbs_push_struct(h, "io");
   hbs_add_members(h, io, -2);
   hbs_set_global(h, "io");
   hbs_pop(h, 2);

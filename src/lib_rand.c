@@ -70,7 +70,7 @@ hbs_StructMethod rand_mod[] = {
 };
 
 bool open_rand(hbs_State* h, int argc) {
-  hbs_define_struct(h, "rand");
+  hbs_push_struct(h, "rand");
   hbs_add_members(h, rand_mod, -2);
   hbs_set_global(h, "rand");
   hbs_pop(h, 2);

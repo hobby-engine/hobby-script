@@ -1,0 +1,13 @@
+var arr = [1, 2, 3, 4, 5];
+io:print(arr.len()); // expect: 5
+
+arr.push(6);
+io:print(arr[-1]); // expect: 6
+
+arr.rem(0);
+io:print(arr[0]); // expect: 2
+
+arr.swaprem(0);
+io:print(arr[0]); // expect: 6
+
+io:print(arr.len()); // expect: 4

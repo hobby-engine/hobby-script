@@ -55,7 +55,9 @@ GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
   // comma and space after elements, which isn't present on the last element
   chars[len++] = ']';
 
-  return copy_str(h, chars, len);
+  GcStr* copy = copy_str(h, chars, len);
+  free_arr(h, char, chars, cap);
+  return copy;
 }
 
 

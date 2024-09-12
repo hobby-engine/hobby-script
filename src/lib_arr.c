@@ -8,31 +8,25 @@
 // TODO: Make all of this better. It sucks and doesn't use the C API well
 
 static bool arr_len(hbs_State* h, int argc) {
-  Val val = *(h->frame->base);
-  if (!is_arr(val)) {
-    hbs_err(h, "Expected array");
-  }
+  hbs_check_array(h, 0);
 
+  Val val = *(h->frame->base);
   hbs_push_num(h, as_arr(val)->arr.len);
   return true;
 }
 
 static bool arr_push(hbs_State* h, int argc) {
-  Val val = *(h->frame->base);
-  if (!is_arr(val)) {
-    hbs_err(h, "Expected array");
-  }
+  hbs_check_array(h, 0);
 
+  Val val = *(h->frame->base);
   push_valarr(h, &as_arr(val)->arr, *(h->frame->base + 1));
   return false;
 }
 
 static bool arr_rem(hbs_State* h, int argc) {
-  Val val = *(h->frame->base);
-  if (!is_arr(val)) {
-    hbs_err(h, "Expected array");
-  }
+  hbs_check_array(h, 0);
 
+  Val val = *(h->frame->base);
   GcArr* arr = as_arr(val);
 
   int idx = hbs_get_num(h, 1);
@@ -48,11 +42,9 @@ static bool arr_rem(hbs_State* h, int argc) {
 }
 
 static bool arr_swaprem(hbs_State* h, int argc) {
-  Val val = *(h->frame->base);
-  if (!is_arr(val)) {
-    hbs_err(h, "Expected array");
-  }
+  hbs_check_array(h, 0);
 
+  Val val = *(h->frame->base);
   GcArr* arr = as_arr(val);
 
   int idx = hbs_get_num(h, 1);

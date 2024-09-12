@@ -35,9 +35,15 @@ static char* read_file(const char* path) {
   return buf;
 }
 
+hbs_InterpretResult hbs_run_string(
+    hbs_State* h, const char* file_name, const char* str) {
+  hbs_InterpretResult res = vm_interp(h, file_name, str);
+  return res;
+}
+
 hbs_InterpretResult hbs_run(hbs_State* h, const char* path) {
   char* src = read_file(path);
-  hbs_InterpretResult res = vm_interp(h, path, src);
+  hbs_InterpretResult res = hbs_run_string(h, path, src);
   free(src);
   return res;
 }

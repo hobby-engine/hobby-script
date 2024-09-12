@@ -53,6 +53,8 @@ hbs_State* create_state();
 void free_state(hbs_State* h);
 
 hbs_InterpretResult hbs_run(hbs_State* h, const char* path);
+hbs_InterpretResult hbs_run_string(
+    hbs_State* h, const char* file_name, const char* str);
 
 void hbs_err(hbs_State* h, const char* fmt, ...);
 void hbs_expect_type(hbs_State* h, int index, hbs_ValueType expect);

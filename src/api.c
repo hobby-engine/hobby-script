@@ -276,7 +276,7 @@ const char* hbs_typestr(hbs_ValueType type, size_t* len_out) {
       return "tstruct";
     case hbs_type_enum:
       *len_out = 4;
-      return "enum";
+      return "tenum";
     case hbs_type_function:
       *len_out = 8;
       return "function";

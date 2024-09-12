@@ -1020,7 +1020,7 @@ static void struct_body(Parser* p, bool all_static) {
 
 static void struct_decl(Parser* p, bool is_global, bool all_static) {
   if (p->compiler->type != FnType_script || p->compiler->scope != 0) {
-    err(p, err_msg_bad_decl_scope("Struct"));
+    err(p, err_msg_bad_decl_scope("struct"));
   }
 
   p->within_struct = true;
@@ -1062,7 +1062,7 @@ static void struct_decl(Parser* p, bool is_global, bool all_static) {
 
 static void enum_decl(Parser* p, bool is_global) {
   if (p->compiler->type != FnType_script || p->compiler->scope != 0) {
-    err(p, err_msg_bad_decl_scope("Enum"));
+    err(p, err_msg_bad_decl_scope("enum"));
   }
 
   expect(p, tok_ident, err_msg_expect_ident);

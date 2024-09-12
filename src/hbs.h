@@ -24,9 +24,11 @@ typedef enum {
   hbs_type_string,
   hbs_type_instance,
   hbs_type_struct,
+  hbs_type_enum,
   hbs_type_function,
   hbs_type_cfunction,
   hbs_type_array,
+  hbs_type_count, // How many types there are
 } hbs_ValueType;
 
 typedef enum {
@@ -72,6 +74,8 @@ const char* hbs_get_tostring(hbs_State* h, int index, size_t* len_out);
 void hbs_push_num(hbs_State* h, double num);
 void hbs_push_bool(hbs_State* h, bool b);
 void hbs_push_null(hbs_State* h);
+void hbs_push_struct(hbs_State* h, const char* name);
+void hbs_push_enum(hbs_State* h, const char* name);
 void hbs_push_cfunction(hbs_State* h, const char* name, hbs_CFn fn, int argc);
 void hbs_push_string_copy(hbs_State* h, const char* chars, size_t len);
 void hbs_push_string(hbs_State* h, char* chars, size_t len);
@@ -88,11 +92,11 @@ void hbs_pccall(hbs_State* h, hbs_CFn fn, int argc); // TODO
 void hbs_callon(hbs_State* h, const char* mname, int argc);
 void hbs_open_lib(hbs_State* h, hbs_CFn fn);
 
-void hbs_push_struct(hbs_State* h, const char* name);
 void hbs_add_static_const(hbs_State* h, const char* name, int _struct);
 void hbs_add_member(hbs_State* h, hbs_MethodType type, int _struct);
 void hbs_add_members(hbs_State* h, hbs_StructMethod* members, int index);
 
+void hbs_add_enum(hbs_State* h, const char* name, int _enum);
 
 #define hbs_is_num(h, index)          (hbs_get_type(h, index) == hbs_type_number)
 #define hbs_is_bool(h, index)         (hbs_get_type(h, index) == hbs_type_bool)
@@ -100,6 +104,7 @@ void hbs_add_members(hbs_State* h, hbs_StructMethod* members, int index);
 #define hbs_is_string(h, index)       (hbs_get_type(h, index) == hbs_type_string)
 #define hbs_is_instance(h, index)     (hbs_get_type(h, index) == hbs_type_instance)
 #define hbs_is_struct(h, index)       (hbs_get_type(h, index) == hbs_type_struct)
+#define hbs_is_enum(h, index)         (hbs_get_type(h, index) == hbs_type_enum)
 #define hbs_is_function(h, index)     (hbs_get_type(h, index) == hbs_type_function)
 #define hbs_is_cfunction(h, index)    (hbs_get_type(h, index) == hbs_type_cfunction)
 #define hbs_is_array(h, index)        (hbs_get_type(h, index) == hbs_type_array)
@@ -110,6 +115,7 @@ void hbs_add_members(hbs_State* h, hbs_StructMethod* members, int index);
 #define hbs_check_string(h, index)    hbs_expect_type(h, index, hbs_type_string);
 #define hbs_check_instance(h, index)  hbs_expect_type(h, index, hbs_type_instance);
 #define hbs_check_struct(h, index)    hbs_expect_type(h, index, hbs_type_struct);
+#define hbs_check_enum(h, index)      hbs_expect_type(h, index, hbs_type_enum);
 #define hbs_check_function(h, index)  hbs_expect_type(h, index, hbs_type_function);
 #define hbs_check_cfunction(h, index) hbs_expect_type(h, index, hbs_type_cfunction);
 #define hbs_check_array(h, index)     hbs_expect_type(h, index, hbs_type_array);

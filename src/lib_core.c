@@ -72,17 +72,33 @@ static bool core_typestr(hbs_State* h, int argc) {
   return true;
 }
 
+static bool core_typeof(hbs_State* h, int argc) {
+  hbs_push_num(h, hbs_get_type(h, 1));
+  return true;
+}
+
 hbs_CFnArgs core_mod[] = {
   {"tostr", core_tostr, 1},
   {"tonum", core_tonum, 1},
   {"err", core_err, 1},
   {"assert", core_assert, 2},
   {"import", core_import, 1},
+  {"typeof", core_typeof, 1},
   {"typestr", core_typestr, 1},
   {NULL, NULL, 0},
 };
 
 bool open_core(hbs_State* h, int argc) {
+  hbs_push_enum(h, "Type");
+
+  for (int i = 0; i < hbs_type_count; i++) {
+    size_t len;
+    const char* type_name = hbs_typestr(i, &len);
+    hbs_add_enum(h, type_name, -1);
+  }
+
+  hbs_set_global(h, NULL); // Type enum
+
   for (hbs_CFnArgs* args = core_mod; args->name != NULL; args++) {
     hbs_push_cfunction(h, args->name, args->fn, args->argc);
     hbs_set_global(h, NULL);

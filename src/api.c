@@ -1,3 +1,4 @@
+#include "errmsg.h"
 #include "hbs.h"
 
 #include <stdio.h>
@@ -26,6 +27,7 @@ static GcStr* get_name_or(hbs_State* h, Val val, const char* name) {
   } else if (is_obj(val)) {
     switch (obj_type(val)) {
       case obj_struct: return as_struct(val)->name; break;
+      case obj_enum: return as_enum(val)->name; break;
       case obj_c_fn: return as_c_fn(val)->name; break;
       case obj_fn: return as_fn(val)->name; break;
       default: break;
@@ -101,6 +103,7 @@ hbs_ValueType hbs_get_type(hbs_State* h, int index) {
     switch (obj_type(val)) {
       case obj_str: return hbs_type_string;
       case obj_struct: return hbs_type_struct;
+      case obj_enum: return hbs_type_enum;
       case obj_method:
       case obj_closure: return hbs_type_function;
       case obj_c_fn: return hbs_type_cfunction;
@@ -213,6 +216,22 @@ void hbs_push_null(hbs_State* h) {
   push(h, create_null());
 }
 
+void hbs_push_struct(hbs_State* h, const char* name) {
+  GcStr* str_name = copy_str(h, name, strlen(name));
+  push(h, create_obj(str_name));
+  GcStruct* s = create_struct(h, str_name);
+  pop(h);
+  push(h, create_obj(s));
+}
+
+void hbs_push_enum(hbs_State* h, const char* name) {
+  GcStr* str_name = copy_str(h, name, strlen(name));
+  push(h, create_obj(str_name));
+  GcEnum* s = create_enum(h, str_name);
+  pop(h);
+  push(h, create_obj(s));
+}
+
 void hbs_push_cfunction(hbs_State* h, const char* name, hbs_CFn fn, int argc) {
   GcStr* s = copy_str(h, name, strlen(name));
   push(h, create_obj(s));
@@ -241,11 +260,11 @@ const char* hbs_typestr(hbs_ValueType type, size_t* len_out) {
       *len_out = 6;
       return "number";
     case hbs_type_bool:
-      *len_out = 4;
-      return "bool";
+      *len_out = 7;
+      return "boolean";
     case hbs_type_null:
-      *len_out = 4;
-      return "null";
+      *len_out = 5;
+      return "tnull";
     case hbs_type_string:
       *len_out = 6;
       return "string";
@@ -253,17 +272,21 @@ const char* hbs_typestr(hbs_ValueType type, size_t* len_out) {
       *len_out = 8;
       return "instance";
     case hbs_type_struct:
-      *len_out = 6;
-      return "struct";
+      *len_out = 7;
+      return "tstruct";
+    case hbs_type_enum:
+      *len_out = 4;
+      return "enum";
     case hbs_type_function:
       *len_out = 8;
       return "function";
     case hbs_type_cfunction:
       *len_out = 10;
-      return "c_function";
+      return "cfunction";
     case hbs_type_array:
       *len_out = 5;
       return "array";
+    default: break;
   }
 
   *len_out = 7;
@@ -287,15 +310,6 @@ void hbs_open_lib(hbs_State* h, hbs_CFn fn) {
   hbs_push_cfunction(h, "open_lib", fn, 0);
   hbs_call(h, 0);
   hbs_pop(h, 1);
-}
-
-
-void hbs_push_struct(hbs_State* h, const char* name) {
-  GcStr* str_name = copy_str(h, name, strlen(name));
-  push(h, create_obj(str_name));
-  GcStruct* s = create_struct(h, str_name);
-  pop(h);
-  push(h, create_obj(s));
 }
 
 
@@ -350,4 +364,17 @@ void hbs_add_members(hbs_State* h, hbs_StructMethod* members, int _struct) {
     hbs_push_cfunction(h, method->name, method->fn, method->argc);
     hbs_add_member(h, method->mtype, _struct);
   }
+}
+
+void hbs_add_enum(hbs_State* h, const char* name, int _enum) {
+  hbs_check_enum(h, _enum);
+
+  GcEnum* e = as_enum(val_at(h, _enum));
+  GcStr* sname = copy_str(h, name, strlen(name));
+  push(h, create_obj(sname));
+  int i = e->vals.count;
+  if (!set_map(h, &e->vals, sname, create_num(i))) {
+    hbs_err(h, err_msg_shadow_prev_enum, name);
+  }
+  pop(h); // sname
 }

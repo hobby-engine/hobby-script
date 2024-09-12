@@ -16,6 +16,49 @@ static GcStr* fn_to_str(hbs_State* h, GcFn* fn) {
   return str_fmt(h, "<fn @>", fn->name);
 }
 
+GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
+  if (depth > 2) {
+    return copy_str(h, "[...]", 5);
+  }
+  int cap = 8;
+  int len = 0;
+  char* chars = allocate(h, char, cap);
+
+  chars[len++] = '[';
+  for (int i = 0; i < arr->arr.len; i++) {
+    GcStr* str = NULL;
+    if (is_arr(arr->arr.items[i])) {
+      str = arr_to_str(h, as_arr(arr->arr.items[i]), depth + 1);
+    } else {
+      str = to_str(h, arr->arr.items[i]);
+    }
+
+    int add_len = str->len + 2; // + 2 is for comma and space
+    if (len + add_len > cap) {
+      int old_cap = cap;
+      while (len + add_len > cap) {
+        cap = grow_cap(cap);
+      }
+      chars = grow_arr(h, char, chars, old_cap, cap);
+    }
+
+    memcpy(chars + len, str->chars, str->len);
+    len += str->len;
+
+    if (i != arr->arr.len - 1) {
+      chars[len++] = ',';
+      chars[len++] = ' ';
+    }
+  }
+
+  // We know the string has enough space left in it because we added 2 for the
+  // comma and space after elements, which isn't present on the last element
+  chars[len++] = ']';
+
+  return copy_str(h, chars, len);
+}
+
+
 GcStr* to_str(hbs_State* h, Val val) {
   if (is_str(val)) {
     return as_str(val);
@@ -26,7 +69,8 @@ GcStr* to_str(hbs_State* h, Val val) {
   } else if (is_null(val)) {
     return copy_str(h, "null", 4);
   } else if (is_arr(val)) {
-    return copy_str(h, "<Array>", 7);
+    return arr_to_str(h, as_arr(val), 1);
+    // return copy_str(h, "<Array>", 7);
   } else if (is_fn(val)) {
     return fn_to_str(h, as_fn(val));
   } else if (is_closure(val)) {

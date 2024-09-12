@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define hbs_api
+
 #define hbs_version_major 0
 #define hbs_version_minor 1
 #define hbs_version_patch 0
@@ -49,56 +51,56 @@ typedef struct {
   int argc;
 } hbs_CFnArgs;
 
-hbs_State* create_state();
-void free_state(hbs_State* h);
+hbs_api hbs_State* create_state();
+hbs_api void free_state(hbs_State* h);
 
-hbs_InterpretResult hbs_run(hbs_State* h, const char* path);
-hbs_InterpretResult hbs_run_string(
+hbs_api hbs_InterpretResult hbs_run(hbs_State* h, const char* path);
+hbs_api hbs_InterpretResult hbs_run_string(
     hbs_State* h, const char* file_name, const char* str);
 
-void hbs_err(hbs_State* h, const char* fmt, ...);
-void hbs_expect_type(hbs_State* h, int index, hbs_ValueType expect);
-void hbs_pop(hbs_State* h, int c);
-void hbs_push(hbs_State* h, int index);
-void hbs_set_global(hbs_State* h, const char* name);
-void hbs_get_global(hbs_State* h, const char* name);
-hbs_ValueType hbs_get_type(hbs_State* h, int index);
+hbs_api void hbs_err(hbs_State* h, const char* fmt, ...);
+hbs_api void hbs_expect_type(hbs_State* h, int index, hbs_ValueType expect);
+hbs_api void hbs_pop(hbs_State* h, int c);
+hbs_api void hbs_push(hbs_State* h, int index);
+hbs_api void hbs_set_global(hbs_State* h, const char* name);
+hbs_api void hbs_get_global(hbs_State* h, const char* name);
+hbs_api hbs_ValueType hbs_get_type(hbs_State* h, int index);
 
-bool hbs_has_prop(hbs_State* h, const char* name, int index);
-void hbs_get_prop(hbs_State* h, const char* name, int index);
+hbs_api bool hbs_has_prop(hbs_State* h, const char* name, int index);
+hbs_api void hbs_get_prop(hbs_State* h, const char* name, int index);
 
-double hbs_get_num(hbs_State* h, int index);
-bool hbs_get_bool(hbs_State* h, int index);
-hbs_CFn hbs_get_cfunction(hbs_State* h, int index);
-const char* hbs_get_string(hbs_State* h, int index, size_t* len_out);
-const char* hbs_get_tostring(hbs_State* h, int index, size_t* len_out);
+hbs_api double hbs_get_num(hbs_State* h, int index);
+hbs_api bool hbs_get_bool(hbs_State* h, int index);
+hbs_api hbs_CFn hbs_get_cfunction(hbs_State* h, int index);
+hbs_api const char* hbs_get_string(hbs_State* h, int index, size_t* len_out);
+hbs_api const char* hbs_get_tostring(hbs_State* h, int index, size_t* len_out);
 
-void hbs_push_num(hbs_State* h, double num);
-void hbs_push_bool(hbs_State* h, bool b);
-void hbs_push_null(hbs_State* h);
-void hbs_push_struct(hbs_State* h, const char* name);
-void hbs_push_enum(hbs_State* h, const char* name);
-void hbs_push_cfunction(hbs_State* h, const char* name, hbs_CFn fn, int argc);
-void hbs_push_string_copy(hbs_State* h, const char* chars, size_t len);
-void hbs_push_string(hbs_State* h, char* chars, size_t len);
-void hbs_create_array(hbs_State* h); // TODO
-void hbs_instance(hbs_State* h); // TODO
+hbs_api void hbs_push_num(hbs_State* h, double num);
+hbs_api void hbs_push_bool(hbs_State* h, bool b);
+hbs_api void hbs_push_null(hbs_State* h);
+hbs_api void hbs_push_struct(hbs_State* h, const char* name);
+hbs_api void hbs_push_enum(hbs_State* h, const char* name);
+hbs_api void hbs_push_cfunction(hbs_State* h, const char* name, hbs_CFn fn, int argc);
+hbs_api void hbs_push_string_copy(hbs_State* h, const char* chars, size_t len);
+hbs_api void hbs_push_string(hbs_State* h, char* chars, size_t len);
+hbs_api void hbs_create_array(hbs_State* h); // TODO
+hbs_api void hbs_instance(hbs_State* h); // TODO
 
-const char* hbs_typestr(hbs_ValueType type, size_t* len_out);
-void hbs_tostr(hbs_State* h, int index);
-void hbs_len(hbs_State* h, int index); // TODO
+hbs_api const char* hbs_typestr(hbs_ValueType type, size_t* len_out);
+hbs_api void hbs_tostr(hbs_State* h, int index);
+hbs_api void hbs_len(hbs_State* h, int index); // TODO
 
-void hbs_call(hbs_State* h, int argc);
-void hbs_pcall(hbs_State* h, int argc); // TODO
-void hbs_pccall(hbs_State* h, hbs_CFn fn, int argc); // TODO
-void hbs_callon(hbs_State* h, const char* mname, int argc);
-void hbs_open_lib(hbs_State* h, hbs_CFn fn);
+hbs_api void hbs_call(hbs_State* h, int argc);
+hbs_api void hbs_pcall(hbs_State* h, int argc); // TODO
+hbs_api void hbs_pccall(hbs_State* h, hbs_CFn fn, int argc); // TODO
+hbs_api void hbs_callon(hbs_State* h, const char* mname, int argc);
+hbs_api void hbs_open_lib(hbs_State* h, hbs_CFn fn);
 
-void hbs_add_static_const(hbs_State* h, const char* name, int _struct);
-void hbs_add_member(hbs_State* h, hbs_MethodType type, int _struct);
-void hbs_add_members(hbs_State* h, hbs_StructMethod* members, int index);
+hbs_api void hbs_add_static_const(hbs_State* h, const char* name, int _struct);
+hbs_api void hbs_add_member(hbs_State* h, hbs_MethodType type, int _struct);
+hbs_api void hbs_add_members(hbs_State* h, hbs_StructMethod* members, int index);
 
-void hbs_add_enum(hbs_State* h, const char* name, int _enum);
+hbs_api void hbs_add_enum(hbs_State* h, const char* name, int _enum);
 
 #define hbs_is_num(h, index)          (hbs_get_type(h, index) == hbs_type_number)
 #define hbs_is_bool(h, index)         (hbs_get_type(h, index) == hbs_type_bool)

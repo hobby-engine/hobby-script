@@ -83,6 +83,7 @@ typedef struct {
   Map fields; // Struct members
 } GcInst;
 
+// TODO: Allow this to work with C functions too
 typedef struct {
   GcObj obj; // Object header
   Val owner; // The owner of this function

@@ -70,40 +70,18 @@ static bool arr_swaprem(hbs_State* h, int argc) {
 }
 
 
+static void add_method(hbs_State* h, const char* name, hbs_CFn fn, int argc) {
+  hbs_push_c_fn(h, name, fn, argc);
+  GcStr* str_name = copy_str(h, name, strlen(name));
+  push(h, create_obj(str_name));
+  set_map(h, &h->arr_methods, str_name, *(h->top - 2));
+  hbs_pop(h, 2); // name and c fn
+}
+
 bool open_arr(hbs_State* h, int argc) {
-  Map* arr_methods = &h->arr_methods;
-
-  {
-    hbs_push_c_fn(h, "len", arr_len, 0);
-    GcStr* name = copy_str(h, "len", 3);
-    push(h, create_obj(name));
-    set_map(h, arr_methods, name, *(h->top - 2));
-    hbs_pop(h, 2); // name and c fn
-  }
-
-  {
-    hbs_push_c_fn(h, "push", arr_push, 1);
-    GcStr* name = copy_str(h, "push", 4);
-    push(h, create_obj(name));
-    set_map(h, arr_methods, name, *(h->top - 2));
-    hbs_pop(h, 2); // name and c fn
-  }
-
-  {
-    hbs_push_c_fn(h, "rem", arr_rem, 1);
-    GcStr* name = copy_str(h, "rem", 3);
-    push(h, create_obj(name));
-    set_map(h, arr_methods, name, *(h->top - 2));
-    hbs_pop(h, 2); // name and c fn
-  }
-
-  {
-    hbs_push_c_fn(h, "swaprem", arr_swaprem, 1);
-    GcStr* name = copy_str(h, "swaprem", 7);
-    push(h, create_obj(name));
-    set_map(h, arr_methods, name, *(h->top - 2));
-    hbs_pop(h, 2); // name and c fn
-  }
-
+  add_method(h, "len", arr_len, 0);
+  add_method(h, "push", arr_push, 1);
+  add_method(h, "rem", arr_rem, 1);
+  add_method(h, "swaprem", arr_swaprem, 1);
   return false;
 }

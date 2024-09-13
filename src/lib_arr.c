@@ -1,5 +1,4 @@
 #include "arr.h"
-#include "errmsg.h"
 #include "hbs.h"
 #include "lib.h"
 #include "map.h"
@@ -34,7 +33,7 @@ static bool arr_insert(hbs_State* h, int argc) {
   int len = hbs_len(h, 0);
 
   GcArr* arr = self(h);
-  int idx = varr_get_idx(h, len, hbs_get_num(h, 1));
+  int idx = get_idx(h, len, hbs_get_num(h, 1));
 
   insert_varr(h, &arr->varr, *(h->frame->base + 2), idx);
   return false;
@@ -45,7 +44,7 @@ static bool arr_rem(hbs_State* h, int argc) {
   int len = hbs_len(h, 0);
 
   GcArr* arr = self(h);
-  int idx = varr_get_idx(h, len, hbs_get_num(h, 1));
+  int idx = get_idx(h, len, hbs_get_num(h, 1));
 
   rem_varr(h, &arr->varr, idx);
   return false;
@@ -56,7 +55,7 @@ static bool arr_swaprem(hbs_State* h, int argc) {
   int len = hbs_len(h, 0);
 
   GcArr* arr = self(h);
-  int idx = varr_get_idx(h, len, hbs_get_num(h, 1));
+  int idx = get_idx(h, len, hbs_get_num(h, 1));
 
   VArr* varr = &arr->varr;
   varr->items[idx] = varr->items[varr->len - 1];

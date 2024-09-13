@@ -37,6 +37,7 @@ struct hbs_State {
   Map strs;
   Map files;
   Map arr_methods;
+  Map str_methods;
   struct GcUpval* open_upvals;
   struct GcObj* objs;
 

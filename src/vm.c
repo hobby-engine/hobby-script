@@ -10,7 +10,6 @@
 #include "common.h"
 #include "errmsg.h"
 #include "hbs.h"
-#include "lexer.h"
 #include "map.h"
 #include "mem.h"
 #include "obj.h"
@@ -140,6 +139,15 @@ bool call_val(hbs_State* h, Val val, int argc) {
   return false;
 }
 
+bool builtin_invoke(hbs_State* h, Map* methods, GcStr* name, int argc) {
+  Val method;
+  if (!get_map(methods, name, &method)) {
+    runtime_err(h, err_msg_undef_prop, name->chars);
+    return false;
+  }
+  return call_c(h, as_c_fn(method), argc);
+}
+
 bool invoke(hbs_State* h, GcStr* name, int argc) {
   Val reciever = peek(h, argc);
 
@@ -165,14 +173,10 @@ bool invoke(hbs_State* h, GcStr* name, int argc) {
         }
         return call_fn(h, as_closure(method), argc);
       }
-      case obj_arr: {
-        Val method;
-        if (!get_map(&h->arr_methods, name, &method)) {
-          runtime_err(h, err_msg_undef_prop, name->chars);
-          return false;
-        }
-        return call_c(h, as_c_fn(method), argc);
-      }
+      case obj_arr:
+        return builtin_invoke(h, &h->arr_methods, name, argc);
+      case obj_str:
+        return builtin_invoke(h, &h->str_methods, name, argc);
       default:
         break;
     }

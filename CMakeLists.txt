@@ -30,6 +30,7 @@ set(SRC
   src/lib_io.c
   src/lib_math.c
   src/lib_rand.c
+  src/lib_str.c
   src/lib_sys.c
   src/map.c
   src/mem.c

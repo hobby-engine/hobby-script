@@ -15,13 +15,13 @@ io:print("Hello, world!");
 
 Here's timer, so you can get a better feel for the language:
 ```swift
-// Timer.hb
+// Timer.hby
 struct Timer;
 
 var total_time = 0;
 var time_left = 0;
 
-static fn new(total_time) => Timer{.total_time=time};
+static fn new(total_time) => Timer{total_time=time};
 
 fn is_over() => self.time_left <= 0;
 fn step(dt) {
@@ -30,9 +30,9 @@ fn step(dt) {
 ```
 Then, you can use it in some other file like this:
 ```swift
-// main.hb
-var Timer = import("Timer.hb");
+// main.hby
+var Timer = import("Timer.hby");
 
 var timer = Timer:new(5);
-timer:step(1);
+timer.step(1);
 ```

@@ -27,6 +27,7 @@ set(SRC
   src/lexer.c
   src/lib_arr.c
   src/lib_core.c
+  src/lib_ease.c
   src/lib_io.c
   src/lib_math.c
   src/lib_rand.c

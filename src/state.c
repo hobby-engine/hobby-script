@@ -44,6 +44,7 @@ hbs_State* create_state() {
   // This all should be deferred until the VM starts.
   hbs_open_lib(h, open_arr);
   hbs_open_lib(h, open_core);
+  hbs_open_lib(h, open_ease);
   hbs_open_lib(h, open_io);
   hbs_open_lib(h, open_math);
   hbs_open_lib(h, open_rand);

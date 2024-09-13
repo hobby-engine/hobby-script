@@ -1,0 +1,4 @@
+var str = "Chars aND sYm #123!@^&*";
+io:print(str); // expect: Chars aND sYm #123!@^&*
+io:print(str.toup()); // expect: CHARS AND SYM #123!@^&*
+io:print(str.tolow()); // expect: chars and sym #123!@^&*

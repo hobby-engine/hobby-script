@@ -12,7 +12,7 @@ static bool str_len(hbs_State* h, int argc) {
   return true;
 }
 
-static size_t find_substr(
+static int find_substr(
     const char* str, size_t str_len,
     const char* substr, size_t substr_len) {
   for (size_t i = 0; i < str_len - substr_len + 1; i++) {
@@ -64,7 +64,7 @@ static bool str_rem(hbs_State* h, int argc) {
 
   int start = get_idx(h, str_len, hbs_get_num(h, 1));
   int len = hbs_get_num(h, 2);
-  if (len == -1) {
+  if (len < 0) {
     len += str_len - start + 1;
   }
   int end = start + len;

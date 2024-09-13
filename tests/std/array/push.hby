@@ -1,0 +1,11 @@
+var empty = [];
+empty.push(1);
+io:print(empty.len()); // expect: 1
+io:print(empty); // expect: [1]
+io:print(empty[0]); // expect: 1
+
+var full = [1, 2, 3];
+full.push(4);
+io:print(full.len()); // expect: 4
+io:print(full); // expect: [1, 2, 3, 4]
+io:print(full[-1]); // expect: 4

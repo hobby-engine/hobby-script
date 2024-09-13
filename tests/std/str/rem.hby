@@ -1,0 +1,6 @@
+var str = "string with a a typo";
+io:print(str.rem(12, 2)); // expect: string with a typo
+io:print(str.rem(6, -1)); // expect: string
+io:print(str.rem(0, -1)); // expect: 
+io:print(str.rem(5, 0)); // expect: string with a a typo
+io:print(str.rem(-5, -2)); // expect: string with a ao

@@ -1,4 +1,4 @@
-var Statement = import("tests/language/struct/statement_import.hbs");
+var Statement = import("tests/language/struct/statement_import.hby");
 
 var s = Statement{};
 s.ok(); // expect: ok

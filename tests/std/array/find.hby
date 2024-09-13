@@ -1,0 +1,13 @@
+struct Foo {}
+
+var foo = Foo{};
+var a = [];
+
+var arr = [[], 1, 2, a, 3, Foo{}, 4, foo, 5, 6];
+
+io:print(arr.find([])); // expect: -1
+io:print(arr.find(Foo{})); // expect: -1
+io:print(arr.find(foo)); // expect: 7
+io:print(arr.find(a)); // expect: 3
+io:print(arr.find(4)); // expect: 6
+io:print(arr.find(12)); // expect: -1

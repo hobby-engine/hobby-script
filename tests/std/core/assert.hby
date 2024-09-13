@@ -1,0 +1,2 @@
+assert(true, "should not fail");
+assert(false, "should fail"); // expect runtime error: should fail

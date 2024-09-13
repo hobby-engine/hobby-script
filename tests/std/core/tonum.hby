@@ -1,0 +1,6 @@
+io:print(tonum(true)); // expect: 1
+io:print(tonum(false)); // expect: 0
+io:print(tonum(null)); // expect: 0
+io:print(tonum("123.123")); // expect: 123.123
+io:print(tonum(123)); // expect: 123
+io:print(tonum([])); // expect runtime error: cannot convert given value to number

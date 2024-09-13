@@ -1,0 +1,14 @@
+var empty = [];
+empty.insert(0, 32);
+io:print(empty.len()); // expect: 1
+io:print(empty[0]); // expect: 32
+
+var full = [1, 2, 3, 4, 5];
+full.insert(4, 64);
+io:print(full.len()); // expect: 6
+io:print(full[4]); // expect: 64
+
+var at_end = [1, 2, 3];
+at_end.insert(at_end.len(), 128);
+io:print(at_end.len()); // expect: 4
+io:print(at_end[-1]); // expect: 128

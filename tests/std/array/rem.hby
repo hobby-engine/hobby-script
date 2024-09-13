@@ -1,0 +1,16 @@
+var arr = [0, 1, 2, 3, 4, 5];
+
+// Remove from start
+arr.rem(0);
+io:print(arr); // expect: [1, 2, 3, 4, 5]
+
+// Remove from end
+arr.rem(-1);
+io:print(arr); // expect: [1, 2, 3, 4]
+
+// Remove from middle
+arr.rem(2);
+io:print(arr); // expect: [1, 2, 4]
+
+// Remove out of bounds
+arr.rem(3); // expect runtime error: index out of bounds

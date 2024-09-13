@@ -13,10 +13,7 @@ else()
   message(FATAL_ERROR "Platform not supported.")
 endif()
 
-set(SRC
-  # Hobby
-  src/main.c
-
+set(HBY_SRC
   # Hobbyscript
   src/hbs.c
   src/api.c
@@ -42,6 +39,11 @@ set(SRC
   src/vm.c
 )
 
+set(HBY_EXE_SRC
+  src/main.c
+  ${HBY_SRC}
+)
+
 add_compile_options(-Wall -Wextra -Wno-unused-parameter)
 
 if(CONFIG STREQUAL "release")
@@ -59,6 +61,10 @@ endif()
 
 add_compile_definitions(GLFW_INCLUDE_NONE)
 
-add_executable(hobby ${SRC})
+add_executable(hobbyc ${HBY_EXE_SRC})
+target_include_directories(hobbyc PRIVATE src)
+target_link_libraries(hobbyc PRIVATE m)
+
+add_library(hobby SHARED ${HBY_SRC})
 target_include_directories(hobby PRIVATE src)
 target_link_libraries(hobby PRIVATE m)

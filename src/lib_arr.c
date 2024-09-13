@@ -33,7 +33,16 @@ static bool arr_insert(hbs_State* h, int argc) {
   int len = hbs_len(h, 0);
 
   GcArr* arr = self(h);
-  int idx = get_idx(h, len, hbs_get_num(h, 1));
+
+  // For insert, you're allowed to pass in `arr.len()`, to put an element at the
+  // end of the array. So we can't use `get_idx()`, which disallows this.
+  int idx = hbs_get_num(h, 1);
+  if (idx < 0) {
+    idx += len;
+  }
+  if (idx < 0 || idx > len) {
+    hbs_err(h, err_msg_index_out_of_bounds);
+  }
 
   insert_varr(h, &arr->varr, *(h->frame->base + 2), idx);
   return false;
@@ -77,10 +86,13 @@ static bool arr_erase(hbs_State* h, int argc) {
   GcArr* arr = self(h);
   int idx = find(&arr->varr, *(h->frame->base + 1));
   if (idx == -1) {
-    return false;
+    hbs_push_bool(h, false);
+    return true;
   }
-  arr_rem(h, idx);
-  return false;
+
+  rem_varr(h, &arr->varr, idx);
+  hbs_push_bool(h, true);
+  return true;
 }
 
 static bool arr_find(hbs_State* h, int argc) {

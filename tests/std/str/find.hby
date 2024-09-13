@@ -1,0 +1,4 @@
+var str = "this is a long string with lots of text blah blah blah";
+io:print(str.find("blah")); // expect: 40
+io:print(str.find("string")); // expect: 15
+io:print(str.find("doesn't exist")); // expect: -1

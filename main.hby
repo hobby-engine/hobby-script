@@ -1,0 +1,12 @@
+var introduce = "Hello, I am Xander #123";
+var find = "xander";
+var xander_idx = introduce.tolow().find(find);
+
+io:print(introduce.rem(xander_idx, -1));
+io:print(introduce.rem(0, 5));
+io:print(introduce.rem(-5, -1));
+
+io:print(xander_idx, introduce[xander_idx]);
+io:print(introduce);
+io:print(introduce.toup());
+io:print(introduce.tolow());

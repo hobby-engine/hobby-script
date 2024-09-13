@@ -24,7 +24,7 @@ static bool arr_push(hbs_State* h, int argc) {
   GcArr* arr = self(h);
 
   for (int i = 0; i < argc; i++) {
-    push_varr(h, &arr->arr, *(h->frame->base + i + 1));
+    push_varr(h, &arr->varr, *(h->frame->base + i + 1));
   }
   return false;
 }
@@ -36,7 +36,7 @@ static bool arr_insert(hbs_State* h, int argc) {
   GcArr* arr = self(h);
   int idx = varr_get_idx(h, len, hbs_get_num(h, 1));
 
-  insert_varr(h, &arr->arr, *(h->frame->base + 2), idx);
+  insert_varr(h, &arr->varr, *(h->frame->base + 2), idx);
   return false;
 }
 
@@ -47,7 +47,7 @@ static bool arr_rem(hbs_State* h, int argc) {
   GcArr* arr = self(h);
   int idx = varr_get_idx(h, len, hbs_get_num(h, 1));
 
-  rem_varr(h, &arr->arr, idx);
+  rem_varr(h, &arr->varr, idx);
   return false;
 }
 
@@ -58,7 +58,7 @@ static bool arr_swaprem(hbs_State* h, int argc) {
   GcArr* arr = self(h);
   int idx = varr_get_idx(h, len, hbs_get_num(h, 1));
 
-  VArr* varr = &arr->arr;
+  VArr* varr = &arr->varr;
   varr->items[idx] = varr->items[varr->len - 1];
   varr->len--;
   return false;
@@ -76,7 +76,7 @@ static int find(VArr* arr, Val val) {
 static bool arr_erase(hbs_State* h, int argc) {
   hbs_expect_array(h, 0);
   GcArr* arr = self(h);
-  int idx = find(&arr->arr, *(h->frame->base + 1));
+  int idx = find(&arr->varr, *(h->frame->base + 1));
   if (idx == -1) {
     return false;
   }
@@ -87,7 +87,7 @@ static bool arr_erase(hbs_State* h, int argc) {
 static bool arr_find(hbs_State* h, int argc) {
   hbs_expect_array(h, 0);
   GcArr* arr = self(h);
-  hbs_push_num(h, find(&arr->arr, *(h->frame->base + 1)));
+  hbs_push_num(h, find(&arr->varr, *(h->frame->base + 1)));
   return true;
 }
 

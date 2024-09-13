@@ -231,14 +231,14 @@ static bool subscript_get(hbs_State* h, Val container, Val k) {
         int idx = (int)as_num(k);
         GcArr* arr = as_arr(container);
         if (idx < 0) {
-          idx += arr->arr.len;
+          idx += arr->varr.len;
         }
 
-        if (idx < 0 || idx >= arr->arr.len) {
+        if (idx < 0 || idx >= arr->varr.len) {
           runtime_err(h, err_msg_index_out_of_bounds);
           return false;
         }
-        push(h, arr->arr.items[idx]);
+        push(h, arr->varr.items[idx]);
         return true;
       }
       default:
@@ -262,14 +262,14 @@ static bool subscript_set(hbs_State* h, Val container, Val k, Val val) {
         int idx = (int)as_num(k);
         GcArr* arr = as_arr(container);
         if (idx < 0) {
-          idx += arr->arr.len;
+          idx += arr->varr.len;
         }
 
-        if (idx < 0 || idx >= arr->arr.len) {
+        if (idx < 0 || idx >= arr->varr.len) {
           runtime_err(h, err_msg_index_out_of_bounds);
           return false;
         }
-        arr->arr.items[idx] = val;
+        arr->varr.items[idx] = val;
         return true;
       }
       default:
@@ -555,7 +555,7 @@ static hbs_InterpretResult run(hbs_State* h) {
       case bc_array_item: {
         // Compiler ensures this is an array
         GcArr* arr = as_arr(peek(h, 1));
-        push_varr(h, &arr->arr, peek(h, 0));
+        push_varr(h, &arr->varr, peek(h, 0));
         pop(h);
         break;
       }

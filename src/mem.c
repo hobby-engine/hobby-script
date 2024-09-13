@@ -92,7 +92,7 @@ static void free_obj(hbs_State* h, GcObj* obj) {
     }
     case obj_arr: {
       GcArr* arr = (GcArr*)obj;
-      free_varr(h, &arr->arr);
+      free_varr(h, &arr->varr);
       release(h, GcArr, obj);
       break;
     }
@@ -189,7 +189,7 @@ static void blacken_obj(hbs_State* h, GcObj* obj) {
       break;
     }
     case obj_arr:
-      mark_arr(h, &((GcArr*)obj)->arr);
+      mark_arr(h, &((GcArr*)obj)->varr);
       break;
     case obj_upval: {
       GcUpval* up = (GcUpval*)obj;

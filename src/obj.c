@@ -97,7 +97,7 @@ GcEnum* create_enum(hbs_State* h, GcStr* name) {
 
 GcArr* create_arr(hbs_State* h) {
   GcArr* arr = alloc_obj(h, GcArr, obj_arr);
-  init_varr(&arr->arr);
+  init_varr(&arr->varr);
   return arr;
 }
 

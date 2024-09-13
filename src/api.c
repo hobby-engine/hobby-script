@@ -301,7 +301,7 @@ int hbs_len(hbs_State* h, int index) {
   Val val = val_at(h, index);
   switch(hbs_get_type(h, index)) {
     case hbs_type_array:
-      return as_arr(val)->arr.len;
+      return as_arr(val)->varr.len;
     default:
       return 0;
   }

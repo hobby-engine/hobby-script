@@ -75,7 +75,7 @@ typedef struct {
 
 typedef struct {
   GcObj obj;
-  VArr arr;
+  VArr varr;
 } GcArr;
 
 typedef struct {

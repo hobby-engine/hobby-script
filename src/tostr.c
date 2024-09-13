@@ -25,12 +25,12 @@ GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
   char* chars = allocate(h, char, cap);
 
   chars[len++] = '[';
-  for (int i = 0; i < arr->arr.len; i++) {
+  for (int i = 0; i < arr->varr.len; i++) {
     GcStr* str = NULL;
-    if (is_arr(arr->arr.items[i])) {
-      str = arr_to_str(h, as_arr(arr->arr.items[i]), depth + 1);
+    if (is_arr(arr->varr.items[i])) {
+      str = arr_to_str(h, as_arr(arr->varr.items[i]), depth + 1);
     } else {
-      str = to_str(h, arr->arr.items[i]);
+      str = to_str(h, arr->varr.items[i]);
     }
 
     int add_len = str->len + 2; // + 2 is for comma and space
@@ -45,7 +45,7 @@ GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
     memcpy(chars + len, str->chars, str->len);
     len += str->len;
 
-    if (i != arr->arr.len - 1) {
+    if (i != arr->varr.len - 1) {
       chars[len++] = ',';
       chars[len++] = ' ';
     }

@@ -10,12 +10,14 @@
 #define err_msg_bad_callee "cannot call that value"
 #define err_msg_bad_static_access "cannot access static properties on that value"
 #define err_msg_bad_prop_access "cannot access properties on that value"
-#define err_msg_bad_sub_access "cannot use subscript operator on that value"
+#define err_msg_bad_sub_get "subscript access is not supported for that value"
+#define err_msg_bad_sub_set "subscript assignment is not supported for that value"
 #define err_msg_bad_inst "cannot instance that value"
 #define err_msg_undef_prop "undefined property '%s'"
 #define err_msg_undef_static_prop "undefined static property '%s'"
 #define err_msg_undef_var "undefined variable '%s'"
 #define err_msg_index_out_of_bounds "index out of bounds"
+#define err_msg_expected_char "Expected char (string with a length of 1)"
 #define err_msg_bad_operands(type) "operands must be " type
 #define err_msg_bad_operand(type) "operand must be a " type
 

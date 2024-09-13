@@ -241,12 +241,30 @@ static bool subscript_get(hbs_State* h, Val container, Val k) {
         push(h, arr->varr.items[idx]);
         return true;
       }
+      case obj_str: {
+        if (!is_num(k)) {
+          runtime_err(h, err_msg_bad_operand("number"));
+          return false;
+        }
+        int idx = (int)as_num(k);
+        GcStr* str = as_str(container);
+        if (idx < 0) {
+          idx += str->len;
+        }
+
+        if (idx < 0 || idx >= str->len) {
+          runtime_err(h, err_msg_index_out_of_bounds);
+          return false;
+        }
+        push(h, create_obj(copy_str(h, &str->chars[idx], 1)));
+        return true;
+      }
       default:
         break;
     }
   }
 
-  runtime_err(h, err_msg_bad_sub_access);
+  runtime_err(h, err_msg_bad_sub_get);
   return false;
 }
 
@@ -277,7 +295,7 @@ static bool subscript_set(hbs_State* h, Val container, Val k, Val val) {
     }
   }
 
-  runtime_err(h, err_msg_bad_sub_access);
+  runtime_err(h, err_msg_bad_sub_set);
   return false;
 }
 

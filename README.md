@@ -9,12 +9,12 @@ is standalone as well.
 
 ## Snippets
 Hello world:
-```swift
+```zig
 io:print("Hello, world!");
 ```
 
 Here's timer, so you can get a better feel for the language:
-```swift
+```zig
 // Timer.hby
 struct Timer;
 
@@ -29,7 +29,7 @@ fn step(dt) {
 }
 ```
 Then, you can use it in some other file like this:
-```swift
+```zig
 // main.hby
 var Timer = import("Timer.hby");
 

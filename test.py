@@ -333,7 +333,7 @@ def run_script(app, path, type):
     global failed
     global num_skipped
 
-    if (splitext(path)[1] != '.hbs'):
+    if (splitext(path)[1] != '.hb'):
         return
 
     # Check if we are just running a subset of the tests.

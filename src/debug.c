@@ -86,6 +86,7 @@ int print_bc(hbs_State* h, Chunk *c, int idx) {
     case bc_lt: return simple_bc("lt", idx);
     case bc_lte: return simple_bc("lte", idx);
     case bc_cat: return simple_bc("cat", idx);
+    case bc_is: return simple_bc("is", idx);
     case bc_neg: return simple_bc("neg", idx);
     case bc_not: return simple_bc("not", idx);
     case bc_jmp: return jmp_bc("jmp", 1, c, idx);

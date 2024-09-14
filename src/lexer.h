@@ -31,6 +31,7 @@ typedef enum {
   tok_return, tok_var, tok_const, // return var const
   tok_global, tok_switch, tok_case, // global switch case
   tok_break, tok_continue, tok_static, // break continue
+  tok_is, // is
 
   tok_eof, tok_err,
 } TokType;

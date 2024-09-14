@@ -123,6 +123,10 @@ hbs_CFnArgs arr_methods[] = {
 };
 
 bool open_arr(hbs_State* h, int argc) {
+  hbs_push_struct(h, "Array");
+  h->array_struct = as_struct(*(h->top - 1));
+  hbs_set_global(h, NULL);
+
   for (hbs_CFnArgs* arg = arr_methods; arg->name != NULL; arg++) {
     add_method(h, arg->name, arg->fn, arg->argc);
   }

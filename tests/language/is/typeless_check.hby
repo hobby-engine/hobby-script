@@ -1,0 +1,21 @@
+enum Foo {}
+
+var types = [Number, Boolean, String, Array, Function];
+var typeless = [null, Foo];
+
+for (i = 0; i < typeless.len(); i++) {
+  for (j = 0; j < types.len(); j++) {
+    io:print(typeless[i] is types[j]);
+  }
+}
+
+// expect: false
+// expect: false
+// expect: false
+// expect: false
+// expect: false
+// expect: false
+// expect: false
+// expect: false
+// expect: false
+// expect: false

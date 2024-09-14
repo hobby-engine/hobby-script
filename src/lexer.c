@@ -224,7 +224,14 @@ static TokType get_keyword(Lexer* l) {
       }
       break;
     case 'g': return check_keyword(l, 1, 5, "lobal", tok_global);
-    case 'i': return check_keyword(l, 1, 1, "f", tok_if);
+    case 'i':
+      if (l->cur - l->start > 1) {
+        switch (l->start[1]) {
+          case 'f': return check_keyword(l, 2, 0, "", tok_if);
+          case 's': return check_keyword(l, 2, 0, "", tok_is);
+        }
+      }
+      break;
     case 'l': return check_keyword(l, 1, 3, "oop", tok_loop);
     case 'n': return check_keyword(l, 1, 3, "ull", tok_null);
     case 'r': return check_keyword(l, 1, 5, "eturn", tok_return);

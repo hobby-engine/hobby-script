@@ -20,6 +20,7 @@ typedef enum {
   Prec_or,        // ||
   Prec_and,       // &&
   Prec_eql,       // == !=
+  Prec_is,        // is
   Prec_cmp,       // > < >= <=
   Prec_term,      // + - ..
   Prec_factor,    // * / %
@@ -488,6 +489,7 @@ static void binary(Parser* p, bool can_assign) {
     case tok_eql_eql: write_bc(p, bc_eql); break;
     case tok_bang_eql: write_bc(p, bc_neql); break;
     case tok_dot_dot: write_bc(p, bc_cat); break;
+    case tok_is: write_bc(p, bc_is); break;
     default: return;
   }
 }
@@ -852,6 +854,7 @@ ParseRule rules[] = {
   [tok_null]        = {literal, NULL, Prec_none},
   [tok_struct]      = {NULL, NULL, Prec_none},
   [tok_if]          = {ternary, NULL, Prec_none},
+  [tok_is]          = {NULL, binary, Prec_is},
   [tok_else]        = {NULL, NULL, Prec_none},
   [tok_while]       = {NULL, NULL, Prec_none},
   [tok_for]         = {NULL, NULL, Prec_none},

@@ -264,7 +264,7 @@ const char* hbs_typestr(hbs_ValueType type, size_t* len_out) {
       return "boolean";
     case hbs_type_null:
       *len_out = 5;
-      return "tnull";
+      return "null";
     case hbs_type_string:
       *len_out = 6;
       return "string";
@@ -273,10 +273,10 @@ const char* hbs_typestr(hbs_ValueType type, size_t* len_out) {
       return "instance";
     case hbs_type_struct:
       *len_out = 7;
-      return "tstruct";
+      return "struct";
     case hbs_type_enum:
       *len_out = 5;
-      return "tenum";
+      return "enum";
     case hbs_type_function:
       *len_out = 8;
       return "function";

@@ -1,0 +1,7 @@
+struct Foo {
+  fn bar() {}
+}
+
+var foo = Foo{};
+var bar = foo.bar;
+io:print(bar is Function); // expect: true

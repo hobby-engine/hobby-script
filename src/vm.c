@@ -362,6 +362,26 @@ static bool is_false(Val val) {
   return is_null(val) || (is_bool(val) && !as_bool(val));
 }
 
+static GcStruct* get_type(hbs_State* h, Val val) {
+  if (is_num(val)) {
+    return h->number_struct;
+  } else if (is_bool(val)) {
+    return h->boolean_struct;
+  } else if (is_closure(val) || is_method(val)) {
+    return h->function_struct;
+  } else if (is_inst(val)) {
+    return as_inst(val)->_struct;
+  } else if (is_arr(val)) {
+    return h->array_struct;
+  } else if (is_str(val)) {
+    return h->string_struct;
+  } else if (is_struct(val)) {
+    return as_struct(val);
+  }
+
+  return NULL;
+}
+
 static void concat(hbs_State* h) {
   GcStr* b = to_str(h, peek(h, 0));
   push(h, create_obj(b));
@@ -683,8 +703,23 @@ static hbs_InterpretResult run(hbs_State* h) {
         push(h, create_bool(a < b));
         break;
       }
-      case bc_cat: {
+      case bc_cat:
         concat(h);
+        break;
+      case bc_is: {
+        if (!is_struct(peek(h, 0))) {
+          runtime_err(h, err_msg_bad_operand("type"));
+          return hbs_result_runtime_err;
+        }
+
+        GcStruct* b = as_struct(pop(h));
+        GcStruct* a = get_type(h, pop(h));
+        if (a == NULL) {
+          push(h, create_bool(false));
+          break;
+        }
+
+        push(h, create_bool(a == b));
         break;
       }
       case bc_neg:

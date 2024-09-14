@@ -41,6 +41,12 @@ struct hbs_State {
   struct GcUpval* open_upvals;
   struct GcObj* objs;
 
+  struct GcStruct* number_struct;
+  struct GcStruct* boolean_struct;
+  struct GcStruct* function_struct;
+  struct GcStruct* string_struct;
+  struct GcStruct* array_struct;
+
   bool can_gc;
   size_t alloced;
   size_t next_gc;

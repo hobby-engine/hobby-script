@@ -1,0 +1,10 @@
+struct Foo {}
+
+io:print(1 is Number); // expect: true
+io:print("string" is String); // expect: true
+io:print(true is Boolean); // expect: true
+io:print(false is Boolean); // expect: true
+io:print(Foo is Foo); // expect: true
+io:print(Foo{} is Foo); // expect: true
+io:print(fn() {} is Function); // expect: true
+io:print(Foo{} is Foo{}); // expect runtime error: operand must be a type

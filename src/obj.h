@@ -64,7 +64,7 @@ typedef struct {
   Map vals;
 } GcEnum;
 
-typedef struct {
+typedef struct GcStruct {
   GcObj obj; // Object header
   GcStr* name; // Struct name
 

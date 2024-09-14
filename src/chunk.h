@@ -42,6 +42,7 @@ typedef enum {
   bc_gte,
   bc_lte,
   bc_cat,
+  bc_is,
   bc_neg,
   bc_not,
   bc_ineq_jmp,

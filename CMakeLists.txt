@@ -41,10 +41,9 @@ set(HBY_SRC
 
 set(HBY_EXE_SRC
   src/main.c
-  ${HBY_SRC}
 )
 
-add_compile_options(-Wall -Wextra -Wno-unused-parameter)
+add_compile_options(-Wall -Wextra -Wno-unused-parameter -fPIC)
 
 if(CONFIG STREQUAL "release")
   add_compile_options(-O3)
@@ -61,10 +60,12 @@ endif()
 
 add_compile_definitions(GLFW_INCLUDE_NONE)
 
-add_executable(hobbyc ${HBY_EXE_SRC})
+add_library(hobbyo OBJECT ${HBY_SRC})
+
+add_executable(hobbyc $<TARGET_OBJECTS:hobbyo> ${HBY_EXE_SRC})
 target_include_directories(hobbyc PRIVATE src)
 target_link_libraries(hobbyc PRIVATE m)
 
-add_library(hobby SHARED ${HBY_SRC})
+add_library(hobby SHARED $<TARGET_OBJECTS:hobbyo>)
 target_include_directories(hobby PRIVATE src)
 target_link_libraries(hobby PRIVATE m)

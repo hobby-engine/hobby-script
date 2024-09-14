@@ -103,32 +103,22 @@ static bool arr_find(hbs_State* h, int argc) {
 }
 
 
-static void add_method(hbs_State* h, const char* name, hbs_CFn fn, int argc) {
-  hbs_push_cfunction(h, name, fn, argc);
-  GcStr* str_name = copy_str(h, name, strlen(name));
-  push(h, create_obj(str_name));
-  set_map(h, &h->arr_methods, str_name, *(h->top - 2));
-  hbs_pop(h, 2); // name and c fn
-}
-
-hbs_CFnArgs arr_methods[] = {
-  {"len", arr_len, 0},
-  {"push", arr_push, -1},
-  {"insert", arr_insert, 2},
-  {"rem", arr_rem, 1},
-  {"swaprem", arr_swaprem, 1},
-  {"erase", arr_erase, 1},
-  {"find", arr_find, 1},
-  {NULL, NULL, 0},
+hbs_StructMethod arr_methods[] = {
+  {"len", arr_len, 0, hbs_method},
+  {"push", arr_push, -1, hbs_method},
+  {"insert", arr_insert, 2, hbs_method},
+  {"rem", arr_rem, 1, hbs_method},
+  {"swaprem", arr_swaprem, 1, hbs_method},
+  {"erase", arr_erase, 1, hbs_method},
+  {"find", arr_find, 1, hbs_method},
+  {NULL, NULL, 0, 0},
 };
 
 bool open_arr(hbs_State* h, int argc) {
   hbs_push_struct(h, "Array");
   h->array_struct = as_struct(*(h->top - 1));
+  hbs_add_members(h, arr_methods, -2);
   hbs_set_global(h, NULL);
 
-  for (hbs_CFnArgs* arg = arr_methods; arg->name != NULL; arg++) {
-    add_method(h, arg->name, arg->fn, arg->argc);
-  }
   return false;
 }

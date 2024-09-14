@@ -139,9 +139,9 @@ bool call_val(hbs_State* h, Val val, int argc) {
   return false;
 }
 
-bool builtin_invoke(hbs_State* h, Map* methods, GcStr* name, int argc) {
+bool builtin_invoke(hbs_State* h, GcStruct* _struct, GcStr* name, int argc) {
   Val method;
-  if (!get_map(methods, name, &method)) {
+  if (!get_map(&_struct->methods, name, &method)) {
     runtime_err(h, err_msg_undef_prop, name->chars);
     return false;
   }
@@ -174,9 +174,9 @@ bool invoke(hbs_State* h, GcStr* name, int argc) {
         return call_fn(h, as_closure(method), argc);
       }
       case obj_arr:
-        return builtin_invoke(h, &h->arr_methods, name, argc);
+        return builtin_invoke(h, h->array_struct, name, argc);
       case obj_str:
-        return builtin_invoke(h, &h->str_methods, name, argc);
+        return builtin_invoke(h, h->string_struct, name, argc);
       default:
         break;
     }

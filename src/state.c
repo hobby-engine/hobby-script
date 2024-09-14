@@ -33,8 +33,6 @@ hbs_State* create_state() {
   init_map(&h->globals);
   init_map(&h->strs);
   init_map(&h->files);
-  init_map(&h->arr_methods);
-  init_map(&h->str_methods);
   reset_stack(h);
 
   srand(time(NULL));
@@ -59,8 +57,6 @@ void free_state(hbs_State* h) {
   free_map(h, &h->globals);
   free_map(h, &h->strs);
   free_map(h, &h->files);
-  free_map(h, &h->arr_methods);
-  free_map(h, &h->str_methods);
   free_objs(h);
   free(h);
 }

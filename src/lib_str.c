@@ -132,30 +132,21 @@ static bool str_tolow(hbs_State* h, int argc) {
   return true;
 }
 
-static void add_method(hbs_State* h, const char* name, hbs_CFn fn, int argc) {
-  hbs_push_cfunction(h, name, fn, argc);
-  GcStr* str_name = copy_str(h, name, strlen(name));
-  push(h, create_obj(str_name));
-  set_map(h, &h->str_methods, str_name, *(h->top - 2));
-  hbs_pop(h, 2); // name and c fn
-}
 
-hbs_CFnArgs str_methods[] = {
-  {"len", str_len, 0},
-  {"find", str_find, 1},
-  {"rem", str_rem, 2},
-  {"toup", str_toup, 0},
-  {"tolow", str_tolow, 0},
-  {NULL, NULL, 0},
+hbs_StructMethod str_methods[] = {
+  {"len", str_len, 0, hbs_method},
+  {"find", str_find, 1, hbs_method},
+  {"rem", str_rem, 2, hbs_method},
+  {"toup", str_toup, 0, hbs_method},
+  {"tolow", str_tolow, 0, hbs_method},
+  {NULL, NULL, 0, 0},
 };
 
 bool open_str(hbs_State* h, int argc) {
   hbs_push_struct(h, "String");
   h->string_struct = as_struct(*(h->top - 1));
+  hbs_add_members(h, str_methods, -2);
   hbs_set_global(h, NULL);
 
-  for (hbs_CFnArgs* arg = str_methods; arg->name != NULL; arg++) {
-    add_method(h, arg->name, arg->fn, arg->argc);
-  }
   return false;
 }

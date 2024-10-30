@@ -84,8 +84,6 @@ typedef struct {
   Map fields; // Struct members
 } GcInst;
 
-#define method_type(m) (m->fn.hbs->obj.type)
-
 // TODO: Allow this to work with C functions too
 typedef struct {
   GcObj obj; // Object header
@@ -108,6 +106,7 @@ static inline bool obj_of_type(Val val, ObjType type) {
 }
 
 #define obj_type(v) (as_obj(v)->type)
+#define method_type(m) (m->fn.hbs->obj.type)
 
 #define is_struct(v)  obj_of_type(v, obj_struct)
 #define is_method(v)  obj_of_type(v, obj_method)

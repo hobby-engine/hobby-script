@@ -5,7 +5,7 @@ BENCHMARK_PATH = 'examples/benchmark/'
 ITERATE_COUNT = 5
 
 LANGUAGES = [
-    ("hobby", "./build/hobby", ".hbs"),
+    ("hobby", "./build/hobbyc", ".hby"),
     ("lua", "lua", ".lua"),
     ("python", "python3", ".py"),
     ("wren", "wren", ".wren"),

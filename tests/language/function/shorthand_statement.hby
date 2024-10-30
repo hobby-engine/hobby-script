@@ -1,1 +1,1 @@
-fn x() => return 1; // expect error
+fn x() -> return 1; // expect error

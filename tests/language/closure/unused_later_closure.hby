@@ -11,10 +11,10 @@ var closure;
 
   {
     var b = "b";
-    closure = fn() => a;
+    closure = fn() -> a;
 
     if(false) {
-      var f = fn() => b;
+      var f = fn() -> b;
     }
   }
 

@@ -3,7 +3,7 @@
 
   {
     var a = "a";
-    f = fn() => io:print(a);
+    f = fn() -> io:print(a);
   }
 
   {

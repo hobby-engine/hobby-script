@@ -5,7 +5,7 @@
 {
   var a = "a";
   if(false) {
-    var foo = fn() => a;
+    var foo = fn() -> a;
   }
 }
 

@@ -3,14 +3,14 @@ struct Node {
   var prev;
   var next;
 
-  fn tostr() => "<Node " .. self.val .. ">";
+  fn tostr() -> "<Node " .. self.val .. ">";
 }
 
 struct LinkedList {
   var head;
   var tail;
 
-  static fn new() => LinkedList{};
+  static fn new() -> LinkedList{};
 
   fn prepend(val) {
     var node = Node{

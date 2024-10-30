@@ -1277,7 +1277,7 @@ static void switch_stat(Parser* p) {
       expr(p); // The value to switch on
       int ineq_jmp = write_jmp(p, bc_ineq_jmp);
 
-      expect(p, tok_rarrow, err_msg_expect("=>"));
+      expect(p, tok_rarrow, err_msg_expect("->"));
       stat(p);
 
       if (casec == UINT8_MAX) {
@@ -1290,7 +1290,7 @@ static void switch_stat(Parser* p) {
   }
 
   if (consume(p, tok_else)) {
-    expect(p, tok_rarrow, err_msg_expect("=>"));
+    expect(p, tok_rarrow, err_msg_expect("->"));
     stat(p);
   }
 

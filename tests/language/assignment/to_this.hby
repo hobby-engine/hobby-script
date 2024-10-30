@@ -1,5 +1,5 @@
 struct Foo {
-  static fn new() => Foo{};
+  static fn new() -> Foo{};
   fn bar() {
     self = "value"; // expect error line 4
   }

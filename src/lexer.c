@@ -303,6 +303,9 @@ Tok next_token(Lexer* l) {
       }
       return create_tok(l, match(l, '=') ? tok_plus_eql : tok_plus);
     case '-':
+      if (match(l, '>')) {
+        return create_tok(l, tok_rarrow);
+      }
       if (match(l, '-')) {
         return create_tok(l, tok_minus_minus);
       }
@@ -316,9 +319,6 @@ Tok next_token(Lexer* l) {
     case ';': return create_tok(l, tok_semicolon);
     case ':': return create_tok(l, tok_colon);
     case '=': {
-      if (match(l, '>')) {
-        return create_tok(l, tok_rarrow);
-      }
       return create_tok(l, match(l, '=') ? tok_eql_eql : tok_eql);
     }
     case '!':

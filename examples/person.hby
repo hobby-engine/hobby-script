@@ -2,7 +2,7 @@ struct Person {
   var name;
   var age;
 
-  static fn new(name, age) => Person{
+  static fn new(name, age) -> Person{
     .name = name,
     .age = age,
   };

@@ -21,9 +21,9 @@ struct Timer;
 var total_time = 0;
 var time_left = 0;
 
-static fn new(total_time) => Timer{total_time=time};
+static fn new(total_time) -> Timer{total_time=time};
 
-fn is_over() => self.time_left <= 0;
+fn is_over() -> self.time_left <= 0;
 fn step(dt) {
   self.time_left -= dt;
 }

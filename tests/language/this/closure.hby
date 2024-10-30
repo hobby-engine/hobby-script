@@ -6,7 +6,7 @@ struct Foo {
     return closure;
   }
 
-  fn toString() => "Foo";
+  fn toString() -> "Foo";
 }
 
 var closure = Foo {}.getClosure();

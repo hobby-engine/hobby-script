@@ -1,13 +1,13 @@
 struct Foo {
-  static fn method0() => "no args";
-  static fn method1(a) => a;
-  static fn method2(a, b) => a + b;
-  static fn method3(a, b, c) => a + b + c;
-  static fn method4(a, b, c, d) => a + b + c + d;
-  static fn method5(a, b, c, d, e) => a + b + c + d + e;
-  static fn method6(a, b, c, d, e, f) => a + b + c + d + e + f;
-  static fn method7(a, b, c, d, e, f, g) => a + b + c + d + e + f + g;
-  static fn method8(a, b, c, d, e, f, g, h) => a + b + c + d + e + f + g + h;
+  static fn method0() -> "no args";
+  static fn method1(a) -> a;
+  static fn method2(a, b) -> a + b;
+  static fn method3(a, b, c) -> a + b + c;
+  static fn method4(a, b, c, d) -> a + b + c + d;
+  static fn method5(a, b, c, d, e) -> a + b + c + d + e;
+  static fn method6(a, b, c, d, e, f) -> a + b + c + d + e + f;
+  static fn method7(a, b, c, d, e, f, g) -> a + b + c + d + e + f + g;
+  static fn method8(a, b, c, d, e, f, g, h) -> a + b + c + d + e + f + g + h;
 }
 
 io:print(Foo:method0()); // expect: no args

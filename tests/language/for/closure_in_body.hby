@@ -1,7 +1,7 @@
 fn f() {
   for (;;) {
     var i = "i";
-    return fn() => io:print(i);
+    return fn() -> io:print(i);
   }
 }
 

@@ -28,7 +28,14 @@ static GcObj* alloc_obj_impl(hbs_State* h, size_t size, ObjType type) {
 GcMethod* create_method(hbs_State* h, Val owner, GcClosure* fn) {
   GcMethod* method = alloc_obj(h, GcMethod, obj_method);
   method->owner = owner;
-  method->fn = fn;
+  method->fn.hbs = fn;
+  return method;
+}
+
+GcMethod* create_c_method(hbs_State* h, Val owner, GcCFn* fn) {
+  GcMethod* method = alloc_obj(h, GcMethod, obj_method);
+  method->owner = owner;
+  method->fn.c = fn;
   return method;
 }
 

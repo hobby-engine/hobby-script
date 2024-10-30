@@ -128,7 +128,9 @@ bool call_val(hbs_State* h, Val val, int argc) {
       case obj_method: {
         GcMethod* method = as_method(val);
         h->top[-argc - 1] = method->owner;
-        return call_fn(h, method->fn, argc);
+        if (method_type(method) == obj_closure)
+          return call_fn(h, method->fn.hbs, argc);
+        return call_c(h, method->fn.c, argc);
       }
       case obj_closure: return call_fn(h, as_closure(val), argc);
       case obj_c_fn: return call_c(h, as_c_fn(val), argc);
@@ -310,7 +312,12 @@ static bool bind_method(hbs_State* h, GcStruct* _struct, GcStr* name) {
     return false;
   }
 
-  GcMethod* method = create_method(h, peek(h, 0), as_closure(val));
+  GcMethod* method = NULL;
+  if (is_closure(val)) {
+    method = create_method(h, peek(h, 0), as_closure(val));
+  } else if (is_c_fn(val)) {
+    method = create_c_method(h, peek(h, 0), as_c_fn(val));
+  }
   pop(h);
   push(h, create_obj(method));
   return true;
@@ -401,6 +408,45 @@ static void concat(hbs_State* h) {
   pop(h); // Val A
   pop(h); // Val B
   push(h, create_obj(res));
+}
+
+static bool get_property(hbs_State* h, Val owner, GcStr* name) {
+  if (is_obj(owner)) {
+    switch (obj_type(owner)) {
+      case obj_inst: {
+        GcInst* inst = as_inst(owner);
+
+        Val val;
+        if (get_map(&inst->fields, name, &val)) {
+          pop(h);
+          push(h, val);
+          return true;
+        }
+
+        if (!bind_method(h, inst->_struct, name)) {
+          return false;
+        }
+        return true;
+      }
+      case obj_arr: {
+        Val cfn;
+        if (!get_map(&h->array_struct->methods, name, &cfn)) {
+          runtime_err(h, err_msg_undef_prop, name->chars);
+          return false;
+        }
+
+        GcMethod* method = create_c_method(h, peek(h, 0), as_c_fn(cfn));
+        pop(h);
+        push(h, create_obj(method));
+        return true;
+      }
+      default:
+        break;
+    }
+  }
+
+  runtime_err(h, err_msg_bad_prop_access);
+  return false;
 }
 
 static hbs_InterpretResult run(hbs_State* h) {
@@ -500,22 +546,9 @@ static hbs_InterpretResult run(hbs_State* h) {
         break;
       }
       case bc_get_prop: {
-        if (!is_inst(peek(h, 0))) {
-          runtime_err(h, err_msg_bad_prop_access);
-          return hbs_result_runtime_err;
-        }
-
-        GcInst* inst = as_inst(peek(h, 0));
+        Val val = peek(h, 0);
         GcStr* name = read_str();
-
-        Val val;
-        if (get_map(&inst->fields, name, &val)) {
-          pop(h);
-          push(h, val);
-          break;
-        }
-
-        if (!bind_method(h, inst->_struct, name)) {
+        if (!get_property(h, val, name)) {
           return hbs_result_runtime_err;
         }
         break;

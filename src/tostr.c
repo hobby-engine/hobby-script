@@ -78,7 +78,15 @@ GcStr* to_str(hbs_State* h, Val val) {
   } else if (is_closure(val)) {
     return fn_to_str(h, as_closure(val)->fn);
   } else if (is_method(val)) {
-    return fn_to_str(h, as_method(val)->fn->fn);
+    GcMethod* m = as_method(val);
+    switch (method_type(m)) {
+      case obj_closure:
+        return fn_to_str(h, m->fn.hbs->fn);
+      case obj_c_fn:
+        return str_fmt(h, "<c fn @>", m->fn.c->name);
+      default:
+        ; // unreachable
+    }
   } else if (is_c_fn(val)) {
     return str_fmt(h, "<c fn @>", as_c_fn(val)->name);
   } else if (is_inst(val)) {

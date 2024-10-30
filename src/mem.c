@@ -147,7 +147,7 @@ static void blacken_obj(hbs_State* h, GcObj* obj) {
     case obj_method: {
       GcMethod* method = (GcMethod*)obj;
       mark_val(h, method->owner);
-      mark_obj(h, (GcObj*)method->fn);
+      mark_obj(h, (GcObj*)method->fn.hbs);
       break;
     }
     case obj_struct: {

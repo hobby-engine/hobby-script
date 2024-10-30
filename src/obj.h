@@ -84,11 +84,16 @@ typedef struct {
   Map fields; // Struct members
 } GcInst;
 
+#define method_type(m) (m->fn.hbs->obj.type)
+
 // TODO: Allow this to work with C functions too
 typedef struct {
   GcObj obj; // Object header
   Val owner; // The owner of this function
-  GcClosure* fn; // The wrapped function
+  union {
+    GcClosure* hbs;
+    GcCFn* c;
+  } fn; // The wrapped function
 } GcMethod;
 
 struct GcStr {
@@ -129,6 +134,7 @@ static inline bool obj_of_type(Val val, ObjType type) {
 
 GcStruct* create_struct(hbs_State* h, GcStr* name);
 GcMethod* create_method(hbs_State* h, Val owner, GcClosure* fn);
+GcMethod* create_c_method(hbs_State* h, Val owner, GcCFn* fn);
 GcInst* create_inst(hbs_State* h, GcStruct* s);
 GcUpval* create_upval(hbs_State* h, Val* loc);
 GcCFn* create_c_fn(hbs_State* h, GcStr* name, hbs_CFn fn, int arity);

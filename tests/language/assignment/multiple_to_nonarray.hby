@@ -1,0 +1,1 @@
+var a, b, c = 1; // expect runtime error: cannot assign to that value

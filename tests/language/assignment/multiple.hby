@@ -1,0 +1,8 @@
+var a, b, c = [1, 2, 3];
+io:print(a); // expect: 1
+io:print(b); // expect: 2
+io:print(c); // expect: 3
+a, b, c = [4, 5, 6];
+io:print(a); // expect: 4
+io:print(b); // expect: 5
+io:print(c); // expect: 6

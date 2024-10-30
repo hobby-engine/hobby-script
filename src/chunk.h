@@ -22,6 +22,7 @@ typedef enum {
   bc_get_subscript,
   bc_set_subscript,
   bc_push_subscript,
+  bc_destruct_array,
   bc_get_static,
   bc_init_prop,
   bc_const,

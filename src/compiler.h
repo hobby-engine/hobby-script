@@ -12,6 +12,8 @@ typedef struct Parser {
   bool erred;
   Lexer lexer;
 
+  bool in_expr_stat;
+
   // Last name is used for identifying structs, enums, and methods.
   // the `last_name` is only valid for the duration of the statement it was set
   // in.

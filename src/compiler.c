@@ -532,6 +532,8 @@ static void array(Parser* p, bool can_assign) {
 }
 
 static u8 arg_list(Parser* p) {
+  bool in_expr_stat = p->in_expr_stat;
+  p->in_expr_stat = false;
   u8 argc = 0;
   if (!check(p, tok_rparen)) {
     do {
@@ -543,6 +545,7 @@ static u8 arg_list(Parser* p) {
       argc++;
     } while (consume(p, tok_comma));
   }
+  p->in_expr_stat = in_expr_stat;
   expect(p, tok_rparen, err_msg_expect(")"));
   return argc;
 }
@@ -717,6 +720,44 @@ static void anon_fn(Parser* p, bool can_assign) {
 }
 
 static void named_var(Parser* p, Tok name, bool can_assign) {
+  if (p->in_expr_stat && consume(p, tok_comma)) { // Multiple assignment
+    Tok names[UINT8_MAX];
+    names[0] = name;
+    int count = 1;
+
+    do {
+      expect(p, tok_ident, err_msg_expect_ident);
+      names[count] = p->prev;
+      count++;
+    } while (consume(p, tok_comma));
+
+    if (!can_assign) {
+      err(p, err_msg_bad_assign);
+    }
+    expect(p, tok_eql, err_msg_expect("="));
+
+    expr(p);
+
+    for (int i = 0; i < count; i++) {
+      u8 setter;
+      int arg = resolve_local(p, p->compiler, &names[i]);
+      if (arg != -1) {
+        setter = bc_set_local;
+      } else if ((arg = resolve_upval(p, p->compiler, &names[i])) != -1) {
+        setter = bc_set_upval;
+      } else {
+        arg = ident_const(p, &names[i]);
+        setter = bc_set_global;
+      }
+
+      write_2bc(p, bc_destruct_array, i);
+      write_2bc(p, setter, (u8)arg);
+      write_bc(p, bc_pop);
+    }
+
+    return;
+  }
+
   u8 getter, setter;
   int arg = resolve_local(p, p->compiler, &name);
   if (arg != -1) {
@@ -921,7 +962,27 @@ static void block(Parser* p) {
 }
 
 static void var_decl(Parser* p, bool is_global) {
-  u8 global = parse_var(p, err_msg_expect_ident, is_global);
+  u8 vars[UINT8_MAX];
+  Tok names[UINT8_MAX];
+  int count = 0;
+
+  do {
+    if (count == UINT8_MAX) {
+      err(p, err_msg_max_destruct);
+      return;
+    }
+
+    Tok name = p->cur;
+    u8 name_const = parse_var(p, err_msg_expect_ident, is_global);
+    vars[count] = name_const;
+    names[count] = name;
+    count++;
+
+    if (!is_global && (check(p, tok_comma) || count > 1)) {
+      def_var(p, 0, false);
+      write_bc(p, bc_null); // Reserve this slot
+    }
+  } while (consume(p, tok_comma));
 
   if (consume(p, tok_eql)) {
     expr(p);
@@ -929,8 +990,24 @@ static void var_decl(Parser* p, bool is_global) {
     write_bc(p, bc_null);
   }
 
+  if (count > 1) { // Multiple assignment
+    for (int i = 0; i < count; i++) {
+      write_2bc(p, bc_destruct_array, i);
+      def_var(p, vars[i], is_global);
+
+      if (!is_global) {
+        uint8_t local = resolve_local(p, p->compiler, &names[i]);
+        write_2bc(p, bc_set_local, local);
+        write_bc(p, bc_pop);
+      }
+    }
+    write_bc(p, bc_pop); // The expression result
+  } else { // Single assignment
+
+    def_var(p, vars[0], is_global);
+  }
+
   expect(p, tok_semicolon, err_msg_expect(";"));
-  def_var(p, global, is_global);
 }
 
 static void fn_decl(Parser* p, bool is_global) {
@@ -1078,7 +1155,9 @@ static void enum_decl(Parser* p, bool is_global) {
 }
 
 static void expr_stat(Parser* p) {
+  p->in_expr_stat = true;
   expr(p);
+  p->in_expr_stat = false;
   expect(p, tok_semicolon, err_msg_expect(";"));
   write_bc(p, bc_pop);
 }

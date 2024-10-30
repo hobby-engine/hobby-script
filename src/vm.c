@@ -609,6 +609,29 @@ static hbs_InterpretResult run(hbs_State* h) {
         }
         break;
       }
+      case bc_destruct_array: {
+        int idx = read_byte();
+
+        if (is_null(peek(h, 0))) {
+          push(h, create_null());
+          break;
+        }
+
+        if (!is_arr(peek(h, 0))) {
+          runtime_err(h, err_msg_bad_destruct_val);
+          return hbs_result_runtime_err;
+        }
+
+        GcArr* arr = as_arr(peek(h, 0));
+
+        if (idx >= arr->varr.len) {
+          runtime_err(h, err_msg_bad_destruct_len);
+          return hbs_result_runtime_err;
+        }
+
+        push(h, arr->varr.items[idx]);
+        break;
+      }
       case bc_get_static: {
         if (!static_access(h, peek(h, 0), read_str())) {
           return hbs_result_runtime_err;

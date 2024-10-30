@@ -66,6 +66,11 @@ int print_bc(hbs_State* h, Chunk *c, int idx) {
     case bc_init_prop: return const_bc(h, "init_prop", c, idx);
     case bc_get_subscript: return simple_bc("get_subscript", idx);
     case bc_set_subscript: return simple_bc("set_subscript", idx);
+    case bc_destruct_array: {
+      u8 element = c->code[idx + 1];
+      printf("%-16s %4d\n", "destruct_array", element);
+      return idx + 2;
+    }
     case bc_push_subscript: return simple_bc("push_subscript", idx);
     case bc_get_static: return const_bc(h, "get_static", c, idx);
     case bc_const: return const_bc(h, "const", c, idx);

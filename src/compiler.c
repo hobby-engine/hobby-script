@@ -1239,7 +1239,7 @@ static void break_stat(Parser* p) {
     }
   }
 
-  discard_locals(p, loop->scope - 1);
+  discard_locals(p, loop->scope);
 
   int index = write_jmp(p, bc_break);
 
@@ -1374,6 +1374,8 @@ static void switch_stat(Parser* p) {
       expr(p); // The value to switch on
       int ineq_jmp = write_jmp(p, bc_ineq_jmp);
 
+      write_bc(p, bc_pop); // switch expression
+
       expect(p, tok_rarrow, err_msg_expect("->"));
       stat(p);
 
@@ -1388,6 +1390,7 @@ static void switch_stat(Parser* p) {
 
   if (consume(p, tok_else)) {
     expect(p, tok_rarrow, err_msg_expect("->"));
+    write_bc(p, bc_pop); // switch expression
     stat(p);
   }
 
@@ -1400,7 +1403,6 @@ static void switch_stat(Parser* p) {
     patch_jmp(p, cases[i]);
   }
 
-  write_bc(p, bc_pop); // switch expression
   expect(p, tok_rbrace, err_msg_expect("}"));
 }
 

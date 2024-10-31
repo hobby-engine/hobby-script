@@ -184,7 +184,7 @@ bool invoke(hbs_State* h, GcStr* name, int argc) {
     }
   }
 
-  runtime_err(h, err_msg_bad_static_access);
+  runtime_err(h, err_msg_bad_prop_access);
   return false;
 }
 

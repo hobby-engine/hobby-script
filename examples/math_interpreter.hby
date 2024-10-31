@@ -1,0 +1,327 @@
+enum Error {
+  ok,
+  expected_expr,
+  expected_rparen,
+}
+
+fn error_to_str(error) {
+  switch (error) {
+    case Error:ok -> return "ok";
+    case Error:expected_expr -> return "expected expression";
+    case Error:expected_rparen -> return "expected ')'";
+  }
+}
+
+enum TokType {
+  add,
+  minus,
+  mult,
+  div,
+  mod,
+  lparen,
+  rparen,
+  num,
+  error,
+  eof,
+}
+
+struct Tok {
+  var type;
+  var src;
+
+  static fn new(type, src) -> Tok{type=type, src=src};
+
+  fn tostr() -> $"Token: {self.src}";
+}
+
+struct NumNode {
+  var num;
+
+  static fn new(num) -> NumNode{num=num};
+
+  fn execute() {
+    return self.num;
+  }
+
+  fn tostr() -> tostr(self.num);
+}
+
+struct BinNode {
+  var op;
+  var lhs;
+  var rhs;
+
+  static fn new(op, lhs, rhs) {
+    return BinNode{
+      op = op,
+      lhs = lhs,
+      rhs = rhs,
+    };
+  }
+
+  fn execute() {
+    switch (self.op) {
+      case '+' -> return self.lhs.execute() + self.rhs.execute();
+      case '-' -> return self.lhs.execute() - self.rhs.execute();
+      case '*' -> return self.lhs.execute() * self.rhs.execute();
+      case '/' -> return self.lhs.execute() / self.rhs.execute();
+      case '%' -> return self.lhs.execute() % self.rhs.execute();
+      else -> err("Invalid binary operator");
+    }
+  }
+
+  fn tostr() -> $"(bin {tostr(self.lhs)} {self.op} {tostr(self.rhs)})";
+}
+
+struct UnNode {
+  var op;
+  var operand;
+
+  static fn new(op, operand) {
+    return UnNode{
+      op = op,
+      operand = operand,
+    };
+  }
+
+  fn execute() {
+    switch (self.op) {
+      case '-' -> return -self.operand.execute();
+      else -> err("Invalid unary operator");
+    }
+  }
+
+  fn tostr() -> $"(un {self.op} {self.operand})";
+}
+
+struct Lexer {
+  var src;
+  var index = 0;
+
+  static fn new(src) -> Lexer{src=src};
+
+  fn peek() {
+    if (self.index >= self.src.len()) {
+      return '';
+    }
+    return self.src[self.index];
+  }
+
+  fn advance() {
+    self.index++;
+  }
+
+  fn at_end() {
+    return self.index >= self.src.len();
+  }
+
+  fn skip_whitespace() {
+    loop {
+      var c = self.peek();
+
+      switch (c) {
+        case ' ' -> self.advance();
+        case '\n' -> self.advance();
+        case '\t' -> self.advance();
+        case '\r' -> self.advance();
+        else -> break;
+      }
+    }
+  }
+
+  fn num() {
+    var src = self.peek();
+    self.advance();
+
+    while (self.peek().isdigit()) {
+      src = src .. self.peek();
+      self.advance();
+    }
+
+    if (self.peek() == '.') {
+      src = src .. self.peek();
+      self.advance();
+      while (self.peek().isdigit()) {
+        src = src .. self.peek();
+        self.advance();
+      }
+    }
+
+    return Tok:new(TokType:num, src);
+  }
+
+  fn next_token() {
+    self.skip_whitespace();
+
+    if (self.at_end()) {
+      return Tok:new(TokType:eof, "EOF");
+    }
+
+    var c = self.peek();
+
+    if (c.isdigit()) {
+      return self.num();
+    }
+
+    self.advance();
+
+    switch (c) {
+      case '(' -> return Tok:new(TokType:lparen, '(');
+      case ')' -> return Tok:new(TokType:rparen, ')');
+      case '+' -> return Tok:new(TokType:add, '+');
+      case '-' -> return Tok:new(TokType:minus, '-');
+      case '*' -> return Tok:new(TokType:mult, '*');
+      case '/' -> return Tok:new(TokType:div, '/');
+      case '%' -> return Tok:new(TokType:mod, '%');
+      else -> return Tok:new(TokType:error, $"unexpected character '{c}'");
+    }
+  }
+}
+
+struct ParseResult {
+  var node;
+  var error;
+
+  static fn new(node) {
+    return ParseResult{
+      node = node,
+      error = Error:ok,
+    };
+  }
+
+  static fn error(code) {
+    return ParseResult{
+      node = null,
+      error = code,
+    };
+  }
+}
+
+struct Parser {
+  var lexer;
+  var current_token;
+
+  static fn new(src) {
+    var p = Parser{
+      lexer = Lexer:new(src),
+    };
+    p.advance();
+    return p;
+  }
+  
+  fn advance() {
+    loop {
+      self.current_token = self.lexer.next_token();
+      if (self.current_token != TokType:error) {
+        break;
+      }
+      io:print(self.current_token.src);
+    }
+  }
+
+  fn atom() {
+    var token = self.current_token;
+    self.advance();
+
+    switch (token.type) {
+      case TokType:num -> return ParseResult:new(NumNode:new(tonum(token.src)));
+      case TokType:lparen -> {
+        var result = self.expr();
+
+        if (result.error != Error:ok) {
+          return result;
+        }
+
+        if (self.current_token.type != TokType:rparen) {
+          return ParseResult:error(Error:expected_rparen);
+        }
+        self.advance();
+
+        return result;
+      }
+    }
+
+    return ParseResult:error(Error:expected_expr);
+  }
+
+  fn unary() {
+    if (self.current_token.type == TokType:minus) {
+      var op = self.current_token.src;
+      self.advance();
+
+      var operand = self.atom();
+      if (operand.error != Error:ok) {
+        return operand;
+      }
+
+      return ParseResult:new(UnNode:new(op, operand.node));
+    }
+
+    return self.atom();
+  }
+
+  // * / %
+  fn factor() {
+    var lhs = self.unary();
+    if (lhs.error != Error:ok) {
+      return lhs;
+    }
+
+    while (self.current_token.type == TokType:mult ||
+          self.current_token.type == TokType:div ||
+          self.current_token.type == TokType:mod) {
+      var op = self.current_token.src;
+      self.advance();
+
+      var rhs = self.unary();
+      if (rhs.error != Error:ok) {
+        return rhs;
+      }
+
+      return ParseResult:new(BinNode:new(op, lhs.node, rhs.node));
+    }
+
+    return lhs;
+  }
+
+  // + -
+  fn term() {
+    var lhs = self.factor();
+    if (lhs.error != Error:ok) {
+      return lhs;
+    }
+
+    while (self.current_token.type == TokType:add ||
+          self.current_token.type == TokType:minus) {
+      var op = self.current_token.src;
+      self.advance();
+
+      var rhs = self.factor();
+      if (rhs.error != Error:ok) {
+        return rhs;
+      }
+
+      return ParseResult:new(BinNode:new(op, lhs.node, rhs.node));
+    }
+
+    return lhs;
+  }
+
+  fn expr() {
+    return self.term();
+  }
+}
+
+loop {
+  io:write("> ");
+  var src = io:input();
+  var parser = Parser:new(src);
+  var res = parser.expr();
+
+  if (res.error != Error:ok) {
+    io:print($"Error: {error_to_str(res.error)}");
+    return;
+  }
+
+  io:print(res.node.execute());
+}

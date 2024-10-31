@@ -132,6 +132,27 @@ static bool str_tolow(hbs_State* h, int argc) {
   return true;
 }
 
+static bool str_isdigit(hbs_State* h, int argc) {
+  size_t str_len;
+  const char* str = hbs_get_string(h, 0, &str_len);
+
+  if (str_len == 0) {
+    hbs_push_bool(h, false);
+    return true;
+  }
+
+  for (size_t i = 0; i < str_len; i++) {
+    char c = str[i];
+    if (c < '0' || c > '9') {
+      hbs_push_bool(h, false);
+      return true;
+    }
+  }
+
+  hbs_push_bool(h, true);
+  return true;
+}
+
 
 hbs_StructMethod str_methods[] = {
   {"len", str_len, 0, hbs_method},
@@ -139,6 +160,7 @@ hbs_StructMethod str_methods[] = {
   {"rem", str_rem, 2, hbs_method},
   {"toup", str_toup, 0, hbs_method},
   {"tolow", str_tolow, 0, hbs_method},
+  {"isdigit", str_isdigit, 0, hbs_method},
   {NULL, NULL, 0, 0},
 };
 

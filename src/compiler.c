@@ -40,6 +40,8 @@ typedef struct {
 typedef struct Loop {
   struct Loop* enclosing;
 
+  bool is_for;
+
   int start; // The starting bytecode index of the loop
   int scope; // The scope depth that the loop lives in
 
@@ -1239,7 +1241,11 @@ static void break_stat(Parser* p) {
     }
   }
 
-  discard_locals(p, loop->scope);
+  if (loop->is_for) {
+    discard_locals(p, loop->scope - 1);
+  } else {
+    discard_locals(p, loop->scope);
+  }
 
   int index = write_jmp(p, bc_break);
 
@@ -1307,6 +1313,7 @@ static void for_stat(Parser* p) {
 
   Loop loop;
   begin_loop(p, &loop);
+  loop.is_for = true;
 
   // Loop condition
   int exit_jmp = -1;

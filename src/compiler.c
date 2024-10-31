@@ -1532,4 +1532,7 @@ void mark_compiler_roots(Parser* p) {
     mark_obj(p->h, (GcObj*)compiler->fn);
     compiler = compiler->enclosing;
   }
+
+  mark_val(p->h, p->cur.val);
+  mark_val(p->h, p->prev.val);
 }

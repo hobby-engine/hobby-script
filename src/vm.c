@@ -884,6 +884,7 @@ static hbs_InterpretResult run(hbs_State* h) {
         push(h, create_obj(name));
         GcEnum* _enum = create_enum(h, name);
         pop(h);
+        push(h, create_obj(_enum));
 
         u8 count = read_byte();
         for (int i = 0; i < count; i++) {
@@ -896,7 +897,6 @@ static hbs_InterpretResult run(hbs_State* h) {
           pop(h);
         }
 
-        push(h, create_obj(_enum));
         break;
       }
       case bc_inst: {
@@ -933,7 +933,10 @@ hbs_InterpretResult vm_interp(hbs_State* h, const char* path, const char* src) {
 
   hbs_InterpretResult res = run(h);
 
-  set_map(h, &h->files, copy_str(h, path, strlen(path)), peek(h, 0));
+  GcStr* obj_path = copy_str(h, path, strlen(path));
+  push(h, create_obj(obj_path));
+  set_map(h, &h->files, obj_path, peek(h, 1));
+  pop(h);
 
   return res;
 }

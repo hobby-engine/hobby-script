@@ -34,6 +34,7 @@ GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
       add_quotes = is_str(arr->varr.items[i]);
       str = to_str(h, arr->varr.items[i]);
     }
+    push(h, create_obj(str));
 
     int add_len = str->len + 2; // + 2 is for comma and space
     if (add_quotes) {
@@ -46,6 +47,8 @@ GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
       }
       chars = grow_arr(h, char, chars, old_cap, cap);
     }
+
+    pop(h);
 
     if (add_quotes) {
       chars[len++] = '"';
@@ -85,7 +88,6 @@ GcStr* to_str(hbs_State* h, Val val) {
     return copy_str(h, "null", 4);
   } else if (is_arr(val)) {
     return arr_to_str(h, as_arr(val), 1);
-    // return copy_str(h, "<Array>", 7);
   } else if (is_fn(val)) {
     return fn_to_str(h, as_fn(val));
   } else if (is_closure(val)) {

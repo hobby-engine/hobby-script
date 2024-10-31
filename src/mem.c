@@ -220,8 +220,8 @@ static void mark_roots(hbs_State* h) {
 
   mark_map(h, &h->globals);
   mark_map(h, &h->files);
-  mark_compiler_roots(h->parser);
   mark_obj(h, (GcObj*)h->args);
+  mark_compiler_roots(h->parser);
 }
 
 static void trace_refs(hbs_State* h) {

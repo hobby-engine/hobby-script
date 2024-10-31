@@ -65,6 +65,7 @@ static Tok create_tok(Lexer* l, TokType type) {
   t.start = l->start;
   t.len = (int)(l->cur - l->start);
   t.line = l->line;
+  t.val = create_null();
   return t;
 }
 
@@ -74,6 +75,7 @@ static Tok create_err_tok(Lexer* l, const char* msg) {
   t.start = msg;
   t.len = (int)strlen(msg);
   t.line = l->line;
+  t.val = create_null();
   return t;
 }
 

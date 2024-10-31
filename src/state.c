@@ -69,7 +69,10 @@ void hbs_cli_args(hbs_State* h, int argc, const char** args) {
   for (int i = 0; i < argc; i++) {
     const char* arg = args[i];
     int len = (int)strlen(arg);
-    push_varr(h, &h->args->varr, create_obj(copy_str(h, arg, len)));
+    Val val_arg = create_obj(copy_str(h, arg, len));
+    push(h, val_arg);
+    push_varr(h, &h->args->varr, val_arg);
+    pop(h);
   }
 }
 

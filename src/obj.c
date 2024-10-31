@@ -42,8 +42,11 @@ GcMethod* create_c_method(hbs_State* h, Val owner, GcCFn* fn) {
 GcInst* create_inst(hbs_State* h, GcStruct* s) {
   GcInst* inst = alloc_obj(h, GcInst, obj_inst);
   inst->_struct = s;
+
+  push(h, create_obj(inst));
   init_map(&inst->fields);
   copy_map(h, &s->members, &inst->fields);
+  pop(h);
   return inst;
 }
 

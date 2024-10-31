@@ -126,10 +126,10 @@ static Tok str(Lexer* l, bool is_fmt, bool closing_fmt) {
     }
 
     if (is_fmt && c == '{') {
-      if (l->brace_depth >= max_strfmt_braces) {
-        release_arr(l->h, char, chars, cap);
-        return create_err_tok(l, "Too many nested formatted strings");
-      }
+      // if (l->brace_depth >= max_strfmt_braces) {
+      //   release_arr(l->h, char, chars, cap);
+      //   return create_err_tok(l, "Too many nested formatted strings");
+      // }
       
       advance(l);
       l->brace_depth++;
@@ -359,9 +359,15 @@ Tok next_token(Lexer* l) {
         : create_err_tok(l, "Bitwise or operator not supported ('|')");
     case '\'':
     case '"':
+      if (l->brace_depth >= max_strfmt_braces) {
+        return create_err_tok(l, err_msg_max_strfmt);
+      }
       l->brace_terms[l->brace_depth] = c;
       return str(l, false, false);
     case '$': {
+      if (l->brace_depth >= max_strfmt_braces) {
+        return create_err_tok(l, err_msg_max_strfmt);
+      }
       char term = advance(l);
       l->brace_terms[l->brace_depth] = term;
       return str(l, true, false);

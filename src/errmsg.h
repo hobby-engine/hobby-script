@@ -47,6 +47,7 @@
 #define err_msg_max_breaks "too many break statements in one loop"
 #define err_msg_max_cases "too many cases in one switch"
 #define err_msg_max_enum "too many values in one enum"
+#define err_msg_max_strfmt "too many nested formatted strings"
 #define err_msg_max_destruct "too many variables to destruct"
 #define err_msg_max_args "too many arguments"
 #define err_msg_max_param "too many parameters"

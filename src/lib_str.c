@@ -6,6 +6,10 @@
 #include "val.h"
 #include <stdio.h>
 
+static bool is_whitespace(char c) {
+  return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+}
+
 static bool str_len(hby_State* h, int argc) {
   hby_expect_string(h, 0);
   hby_push_num(h, hby_len(h, 0));
@@ -83,6 +87,79 @@ static bool str_rem(hby_State* h, int argc) {
   char* res = concat(h, lhs, lhs_len, rhs, rhs_len, &res_len);
 
   hby_push_string(h, res, res_len);
+  return true;
+}
+
+static bool str_trim(hby_State* h, int argc) {
+  size_t str_len;
+  const char* str = hby_get_string(h, 0, &str_len);
+
+  int start = 0;
+  int end = str_len;
+
+  for (size_t i = 0; i < str_len && is_whitespace(str[i]); i++) {
+    start++;
+  }
+
+  if (start < end) {
+    for (int i = str_len - 1; i >= 0 && is_whitespace(str[i]); i--) {
+      end--;
+    }
+  }
+
+  hby_push_string_copy(h, str + start, end - start);
+  return true;
+}
+
+static bool str_explode(hby_State* h, int argc) {
+  size_t str_len;
+  const char* str = hby_get_string(h, 0, &str_len);
+
+  size_t delim_len;
+  const char* delim = hby_get_string(h, 1, &delim_len);
+
+  hby_create_array(h);
+
+  int start = 0;
+  int len = 0;
+
+  while (start + len < (int)str_len) {
+    int i = start + len;
+
+    bool is_delim = true;
+
+    for (size_t j = 0; j < delim_len; j++) {
+      if (i + j >= str_len) {
+        is_delim = false;
+        break;
+      }
+
+      char d = delim[j];
+      char c = str[i + j];
+
+      if (c != d) {
+        is_delim = false;
+        break;
+      }
+    }
+
+    if (is_delim) {
+      if (len > 0) {
+        hby_push_string_copy(h, str + start, len);
+        hby_push_array(h, -2);
+      }
+      start += len + delim_len;
+      len = 0;
+    } else {
+      len++;
+    }
+  }
+
+  if (len > 0) {
+    hby_push_string_copy(h, str + start, len);
+    hby_push_array(h, -2);
+  }
+
   return true;
 }
 
@@ -180,6 +257,8 @@ hby_StructMethod str_methods[] = {
   {"len", str_len, 0, hby_method},
   {"find", str_find, 1, hby_method},
   {"rem", str_rem, 2, hby_method},
+  {"trim", str_trim, 0, hby_method},
+  {"explode", str_explode, 1, hby_method},
   {"toup", str_toup, 0, hby_method},
   {"tolow", str_tolow, 0, hby_method},
   {"isdigit", str_isdigit, 0, hby_method},

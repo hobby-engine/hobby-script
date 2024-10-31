@@ -84,7 +84,7 @@ hby_api void hby_push_enum(hby_State* h, const char* name);
 hby_api void hby_push_cfunction(hby_State* h, const char* name, hby_CFn fn, int argc);
 hby_api void hby_push_string_copy(hby_State* h, const char* chars, size_t len);
 hby_api void hby_push_string(hby_State* h, char* chars, size_t len);
-hby_api void hby_create_array(hby_State* h); // TODO
+hby_api void hby_create_array(hby_State* h);
 hby_api void hby_instance(hby_State* h); // TODO
 
 hby_api const char* hby_typestr(hby_ValueType type, size_t* len_out);
@@ -100,6 +100,8 @@ hby_api void hby_open_lib(hby_State* h, hby_CFn fn);
 hby_api void hby_add_static_const(hby_State* h, const char* name, int _struct);
 hby_api void hby_add_member(hby_State* h, hby_MethodType type, int _struct);
 hby_api void hby_add_members(hby_State* h, hby_StructMethod* members, int index);
+
+hby_api void hby_push_array(hby_State* h, int array);
 
 hby_api void hby_add_enum(hby_State* h, const char* name, int _enum);
 

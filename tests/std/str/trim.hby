@@ -1,0 +1,5 @@
+io:print("  i HATE whitespace".trim()); // expect: i HATE whitespace
+io:print("    i HATE whitespace       ".trim()); // expect: i HATE whitespace
+io:print("i HATE whitespace   ".trim()); // expect: i HATE whitespace
+io:print("i HATE whitespace".trim()); // expect: i HATE whitespace
+io:print('a'.trim()); // expect: a

@@ -248,6 +248,10 @@ void hby_push_string(hby_State* h, char* chars, size_t len) {
   push(h, create_obj(take_str(h, chars, len)));
 }
 
+void hby_create_array(hby_State* h) {
+  push(h, create_obj(create_arr(h)));
+}
+
 
 const char* hby_typestr(hby_ValueType type, size_t* len_out) {
   size_t dummy;
@@ -376,6 +380,13 @@ void hby_add_members(hby_State* h, hby_StructMethod* members, int _struct) {
     hby_push_cfunction(h, method->name, method->fn, method->argc);
     hby_add_member(h, method->mtype, _struct);
   }
+}
+
+void hby_push_array(hby_State* h, int array) {
+  hby_expect_array(h, array);
+  GcArr* arr = as_arr(val_at(h, array));
+  push_varr(h, &arr->varr, val_at(h, -1));
+  pop(h);
 }
 
 void hby_add_enum(hby_State* h, const char* name, int _enum) {

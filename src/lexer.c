@@ -1,6 +1,7 @@
 #include "lexer.h"
 
 #include <string.h>
+#include <stdio.h>
 #include "errmsg.h"
 #include "mem.h"
 #include "obj.h"
@@ -14,6 +15,7 @@ void init_lexer(hbs_State* h, Lexer* l, const char* src) {
   l->start = src;
   l->cur = src;
   l->line = 1;
+  l->brace_depth = 0;
 }
 
 static bool is_digit(char c) {
@@ -63,6 +65,7 @@ static Tok create_tok(Lexer* l, TokType type) {
   t.start = l->start;
   t.len = (int)(l->cur - l->start);
   t.line = l->line;
+  t.closing_fmt = false;
   return t;
 }
 
@@ -72,6 +75,7 @@ static Tok create_err_tok(Lexer* l, const char* msg) {
   t.start = msg;
   t.len = (int)strlen(msg);
   t.line = l->line;
+  t.closing_fmt = false;
   return t;
 }
 
@@ -103,14 +107,15 @@ static void skip_whitespace(Lexer* l) {
   }
 }
 
-static Tok str(Lexer* l, char term) {
+static Tok str(Lexer* l, bool is_fmt, bool closing_fmt) {
+  TokType type = tok_str;
   int cap = 8;
   int len = 0;
   char* chars = allocate(l->h, char, cap);
 
   bool unterminated = false;
 
-  while (peek(l) != term && !is_at_end(l)) {
+  while (peek(l) != l->brace_terms[l->brace_depth] && !is_at_end(l)) {
     if (len + 1 > cap) {
       int pcap = cap;
       cap = grow_cap(cap);
@@ -120,6 +125,18 @@ static Tok str(Lexer* l, char term) {
     char c = peek(l);
     if (c == '\n') {
       unterminated = true;
+    }
+
+    if (is_fmt && c == '{') {
+      if (l->brace_depth >= max_strfmt_braces) {
+        release_arr(l->h, char, chars, cap);
+        return create_err_tok(l, "Too many nested formatted strings");
+      }
+      
+      advance(l);
+      l->brace_depth++;
+      type = tok_strfmt;
+      goto fmtd_str;
     }
 
     if (c == '\\') {
@@ -134,12 +151,14 @@ static Tok str(Lexer* l, char term) {
         case '\'':
         case '"':
         case '\\':
+        case '{':
           break;
         default:
           release_arr(l->h, char, chars, cap);
           return create_err_tok(l, err_msg_escape_str);
       }
     }
+
     chars[len++] = c;
 
     advance(l);
@@ -152,12 +171,14 @@ static Tok str(Lexer* l, char term) {
 
   advance(l); // Get the closing quote
 
+fmtd_str:
   Tok str_tok;
-  str_tok.type = tok_str;
+  str_tok.type = type;
   str_tok.start = l->start;
   str_tok.len = (int)(l->cur - l->start);
   str_tok.line = l->line;
   str_tok.val = create_obj(copy_str(l->h, chars, len));
+  str_tok.closing_fmt = closing_fmt;
 
   release_arr(l->h, char, chars, cap);
   return str_tok;
@@ -288,7 +309,13 @@ Tok next_token(Lexer* l) {
     case '(': return create_tok(l, tok_lparen);
     case ')': return create_tok(l, tok_rparen);
     case '{': return create_tok(l, tok_lbrace);
-    case '}': return create_tok(l, tok_rbrace);
+    case '}': {
+      if (l->brace_depth > 0) {
+        l->brace_depth--;
+        return str(l, true, true);
+      }
+      return create_tok(l, tok_rbrace);
+    }
     case '[': return create_tok(l, tok_lbracket);
     case ']': return create_tok(l, tok_rbracket);
     case ',': return create_tok(l, tok_comma);
@@ -334,7 +361,14 @@ Tok next_token(Lexer* l) {
         ? create_tok(l, tok_or)
         : create_err_tok(l, "Bitwise or operator not supported ('|')");
     case '\'':
-    case '"': return str(l, c);
+    case '"':
+      l->brace_terms[l->brace_depth] = c;
+      return str(l, false, false);
+    case '$': {
+      char term = advance(l);
+      l->brace_terms[l->brace_depth] = term;
+      return str(l, true, false);
+    }
   }
 
   return create_err_tok(l, err_msg_invalid_char);

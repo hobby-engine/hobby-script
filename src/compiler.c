@@ -517,6 +517,35 @@ static void str(Parser* p, bool can_assign) {
   write_const(p, create_obj(as_obj(p->prev.val)));
 }
 
+static void strfmt(Parser* p, bool can_assign) {
+  write_bc(p, bc_array);
+
+  do {
+    write_const(p, create_obj(as_obj(p->prev.val)));
+    write_bc(p, bc_array_item);
+
+    expr(p);
+    write_bc(p, bc_array_item);
+  } while (consume(p, tok_strfmt));
+
+  if (!p->cur.closing_fmt) {
+    err(p, err_msg_eof_str);
+    return;
+  }
+  expect(p, tok_str, err_msg_eof_str);
+  write_const(p, create_obj(as_obj(p->prev.val)));
+  write_bc(p, bc_array_item);
+
+  Tok s;
+  s.type = tok_ident;
+  s.start = "join";
+  s.len = 4;
+  s.line = 0;
+
+  write_2bc(p, bc_invoke, ident_const(p, &s));
+  write_bc(p, 0);
+}
+
 static void array(Parser* p, bool can_assign) {
   write_bc(p, bc_array);
 
@@ -889,6 +918,7 @@ ParseRule rules[] = {
   [tok_minus_minus] = {NULL, NULL, Prec_none},
   [tok_ident]       = {var, NULL, Prec_none},
   [tok_str]         = {str, NULL, Prec_none},
+  [tok_strfmt]      = {strfmt, NULL, Prec_none},
   [tok_num]         = {num, NULL, Prec_none},
   [tok_true]        = {literal, NULL, Prec_none},
   [tok_false]       = {literal, NULL, Prec_none},
@@ -1488,6 +1518,7 @@ GcFn* compile_hbs(hbs_State* h, const char* path, const char* src) {
   Compiler compiler;
   init_compiler(p, &compiler, FnType_script);
 
+  p->in_expr_stat = false;
   p->last_name_valid = false;
   p->erred = false;
   p->panic = false;

@@ -2,7 +2,9 @@
 #include "hbs.h"
 #include "lib.h"
 #include "map.h"
+#include "mem.h"
 #include "obj.h"
+#include "tostr.h"
 #include "val.h"
 
 // TODO: Make all of this better. It sucks and doesn't use the C API well
@@ -102,6 +104,44 @@ static bool arr_find(hbs_State* h, int argc) {
   return true;
 }
 
+static int find_next_pow(int i) {
+  i--;
+  i |= i >> 1;
+  i |= i >> 2;
+  i |= i >> 4;
+  i |= i >> 8;
+  i |= i >> 16;
+  i++;
+
+  return i;
+}
+
+static bool arr_join(hbs_State* h, int argc) {
+  hbs_expect_array(h, 0);
+  GcArr* arr = self(h);
+
+  int cap = 8;
+  int len = 0;
+  char* chars = allocate(h, char, cap);
+
+  for (int i = 0; i < arr->varr.len; i++) {
+    GcStr* str = to_str(h, arr->varr.items[i]);
+    if (len + str->len > cap) {
+      int pcap = cap;
+      cap = find_next_pow(len + str->len);
+      chars = grow_arr(h, char, chars, pcap, cap);
+    }
+
+    memcpy(chars + len, str->chars, str->len);
+    len += str->len;
+  }
+
+  chars = grow_arr(h, char, chars, cap, len + 1);
+  chars[len] = '\0';
+  hbs_push_string(h, chars, len);
+  return true;
+}
+
 
 hbs_StructMethod arr_methods[] = {
   {"len", arr_len, 0, hbs_method},
@@ -111,6 +151,7 @@ hbs_StructMethod arr_methods[] = {
   {"swaprem", arr_swaprem, 1, hbs_method},
   {"erase", arr_erase, 1, hbs_method},
   {"find", arr_find, 1, hbs_method},
+  {"join", arr_join, 0, hbs_method},
   {NULL, NULL, 0, 0},
 };
 

@@ -30,8 +30,10 @@ int main(int argc, const char* args[]) {
   hbs_State* h = create_state();
 
   if (argc == 1) {
+    hbs_cli_args(h, argc - 1, args + 1);
     repl(h);
-  } else if (argc == 2) {
+  } else if (argc >= 2) {
+    hbs_cli_args(h, argc - 2, args + 2);
     hbs_InterpretResult res = hbs_run(h, args[1]);
     free_state(h);
 

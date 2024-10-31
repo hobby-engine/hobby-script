@@ -30,6 +30,8 @@ hbs_State* create_state() {
   h->gray_cap = 0;
   h->gray_stack = NULL;
 
+  h->args = create_arr(h);
+
   init_map(&h->globals);
   init_map(&h->strs);
   init_map(&h->files);
@@ -59,6 +61,16 @@ void free_state(hbs_State* h) {
   free_map(h, &h->files);
   free_objs(h);
   free(h);
+}
+
+void hbs_cli_args(hbs_State* h, int argc, const char** args) {
+  // free is equivalent to clearing
+  free_varr(h, &h->args->varr);
+  for (int i = 0; i < argc; i++) {
+    const char* arg = args[i];
+    int len = (int)strlen(arg);
+    push_varr(h, &h->args->varr, create_obj(copy_str(h, arg, len)));
+  }
 }
 
 bool file_imported(hbs_State* h, const char* name) {

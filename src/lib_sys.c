@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "hbs.h"
+#include "state.h"
 
 static bool sys_clock(hbs_State* h, int argc) {
   hbs_push_num(h, (double)clock() / CLOCKS_PER_SEC);
@@ -25,11 +26,18 @@ static bool sys_exit(hbs_State* h, int argc) {
   return false;
 }
 
+static bool sys_cliargs(hbs_State* h, int argc) {
+  // TODO: update this when arrays on the C API are supported
+  push(h, create_obj(h->args));
+  return true;
+}
+
 hbs_StructMethod sys_mod[] = {
   {"clock", sys_clock, 0, hbs_static_fn},
   {"command", sys_command, 1, hbs_static_fn},
   {"getenv", sys_getenv, 1, hbs_static_fn},
   {"exit", sys_exit, 1, hbs_static_fn},
+  {"cliargs", sys_cliargs, 0, hbs_static_fn},
   {NULL, NULL, 0, 0},
 };
 

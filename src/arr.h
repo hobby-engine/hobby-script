@@ -17,6 +17,7 @@ void init_varr(VArr* arr);
 void push_varr(struct hbs_State* h, VArr* arr, Val val);
 void insert_varr(struct hbs_State* h, VArr* arr, Val val, int idx);
 void rem_varr(struct hbs_State* h, VArr* arr, int idx);
+void clear_varr(struct hbs_State* h, VArr* arr);
 void free_varr(struct hbs_State* h, VArr* arr);
 
 inline int get_idx(hbs_State* h, int len, int given) {

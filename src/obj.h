@@ -73,7 +73,7 @@ typedef struct GcStruct {
   Map methods; // Methods defined by the struct. Referenced by instances
 } GcStruct;
 
-typedef struct {
+typedef struct GcArr {
   GcObj obj;
   VArr varr;
 } GcArr;

@@ -54,6 +54,7 @@ typedef struct {
 hbs_api hbs_State* create_state();
 hbs_api void free_state(hbs_State* h);
 
+hbs_api void hbs_cli_args(hbs_State* h, int argc, const char** args);
 hbs_api hbs_InterpretResult hbs_run(hbs_State* h, const char* path);
 hbs_api hbs_InterpretResult hbs_run_string(
     hbs_State* h, const char* file_name, const char* str);

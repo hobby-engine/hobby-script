@@ -38,6 +38,7 @@ struct hbs_State {
   Map files;
   struct GcUpval* open_upvals;
   struct GcObj* objs;
+  struct GcArr* args;
 
   struct GcStruct* number_struct;
   struct GcStruct* boolean_struct;

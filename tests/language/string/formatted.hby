@@ -1,1 +1,3 @@
 io:print($"Hello, {'world'}"); // expect: Hello, world
+io:print($"12: {12}"); // expect: 12: 12
+io:print("Hello, {'world'}"); // expect: Hello, {'world'}

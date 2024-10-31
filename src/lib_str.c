@@ -111,7 +111,7 @@ static bool str_trim(hby_State* h, int argc) {
   return true;
 }
 
-static bool str_explode(hby_State* h, int argc) {
+static bool str_split(hby_State* h, int argc) {
   size_t str_len;
   const char* str = hby_get_string(h, 0, &str_len);
 
@@ -258,7 +258,7 @@ hby_StructMethod str_methods[] = {
   {"find", str_find, 1, hby_method},
   {"rem", str_rem, 2, hby_method},
   {"trim", str_trim, 0, hby_method},
-  {"explode", str_explode, 1, hby_method},
+  {"split", str_split, 1, hby_method},
   {"toup", str_toup, 0, hby_method},
   {"tolow", str_tolow, 0, hby_method},
   {"isdigit", str_isdigit, 0, hby_method},

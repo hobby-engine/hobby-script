@@ -1,0 +1,5 @@
+var str = " this is   a string    f :)   ";
+
+io:print(str.split(' ')); // expect: ["this", "is", "a", "string", "f", ":)"]
+io:print(str.split("  ")); // expect: [" this is", " a string", "f :)", " "]
+io:print(str.split("   ")); // expect: [" this is", "a string", " f :)"]

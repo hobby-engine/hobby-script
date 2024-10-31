@@ -102,6 +102,7 @@ hby_api void hby_add_member(hby_State* h, hby_MethodType type, int _struct);
 hby_api void hby_add_members(hby_State* h, hby_StructMethod* members, int index);
 
 hby_api void hby_push_array(hby_State* h, int array);
+hby_api void hby_get_array(hby_State* h, int array, int index);
 
 hby_api void hby_add_enum(hby_State* h, const char* name, int _enum);
 

@@ -389,6 +389,12 @@ void hby_push_array(hby_State* h, int array) {
   pop(h);
 }
 
+void hby_get_array(hby_State* h, int array, int index) {
+  hby_expect_array(h, array);
+  GcArr* arr = as_arr(val_at(h, array));
+  push(h, arr->varr.items[index]);
+}
+
 void hby_add_enum(hby_State* h, const char* name, int _enum) {
   hby_expect_enum(h, _enum);
 

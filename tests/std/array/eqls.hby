@@ -1,0 +1,12 @@
+var a = [1, 2, 3];
+var b = [1, 2, 3];
+var c = [1, 0, 3];
+var d = [1, 2, 3, 4];
+
+io:print(a.eqls(b)); // expect: true
+io:print(b.eqls(a)); // expect: true
+io:print(a.eqls(a)); // expect: true
+io:print(a.eqls(c)); // expect: false
+io:print(a.eqls(d)); // expect: false
+io:print(c.eqls(a)); // expect: false
+io:print(d.eqls(a)); // expect: false

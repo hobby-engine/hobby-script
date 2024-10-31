@@ -6,6 +6,7 @@
 #include "obj.h"
 #include "tostr.h"
 #include "val.h"
+#include "state.h"
 
 // TODO: Make all of this better. It sucks and doesn't use the C API well
 
@@ -14,14 +15,11 @@ static GcArr* self(hby_State* h) {
 }
 
 static bool arr_len(hby_State* h, int argc) {
-  hby_expect_array(h, 0);
   hby_push_num(h, hby_len(h, 0));
   return true;
 }
 
 static bool arr_push(hby_State* h, int argc) {
-  hby_expect_array(h, 0);
-
   GcArr* arr = self(h);
 
   for (int i = 0; i < argc; i++) {
@@ -31,7 +29,6 @@ static bool arr_push(hby_State* h, int argc) {
 }
 
 static bool arr_insert(hby_State* h, int argc) {
-  hby_expect_array(h, 0);
   int len = hby_len(h, 0);
 
   GcArr* arr = self(h);
@@ -51,7 +48,6 @@ static bool arr_insert(hby_State* h, int argc) {
 }
 
 static bool arr_rem(hby_State* h, int argc) {
-  hby_expect_array(h, 0);
   int len = hby_len(h, 0);
 
   GcArr* arr = self(h);
@@ -62,7 +58,6 @@ static bool arr_rem(hby_State* h, int argc) {
 }
 
 static bool arr_swaprem(hby_State* h, int argc) {
-  hby_expect_array(h, 0);
   int len = hby_len(h, 0);
 
   GcArr* arr = self(h);
@@ -84,7 +79,6 @@ static int find(VArr* arr, Val val) {
 }
 
 static bool arr_erase(hby_State* h, int argc) {
-  hby_expect_array(h, 0);
   GcArr* arr = self(h);
   int idx = find(&arr->varr, *(h->frame->base + 1));
   if (idx == -1) {
@@ -98,7 +92,6 @@ static bool arr_erase(hby_State* h, int argc) {
 }
 
 static bool arr_find(hby_State* h, int argc) {
-  hby_expect_array(h, 0);
   GcArr* arr = self(h);
   hby_push_num(h, find(&arr->varr, *(h->frame->base + 1)));
   return true;
@@ -117,7 +110,6 @@ static int find_next_pow(int i) {
 }
 
 static bool arr_join(hby_State* h, int argc) {
-  hby_expect_array(h, 0);
   GcArr* arr = self(h);
 
   int cap = 8;
@@ -143,11 +135,40 @@ static bool arr_join(hby_State* h, int argc) {
 }
 
 static bool arr_clear(hby_State* h, int argc) {
-  hby_expect_array(h, 0);
   GcArr* arr = self(h);
   // Free is equivalent to clearing in this case
   free_varr(h, &arr->varr);
   return false;
+}
+
+static bool arr_eqls(hby_State* h, int argc) {
+  if (!hby_is_array(h, 1)) {
+    hby_push_bool(h, false);
+    return true;
+  }
+
+  int len = hby_len(h, 0);
+
+  if (hby_len(h, 1) != len) {
+    hby_push_bool(h, false);
+    return true;
+  }
+
+  for (int i = 0; i < len; i++) {
+    hby_get_array(h, 0, i);
+    hby_get_array(h, 1, i);
+
+    if (!vals_eql(h->top[-1], h->top[-2])) {
+      hby_pop(h, 2);
+      hby_push_bool(h, false);
+      return true;
+    }
+
+    hby_pop(h, 2);
+  }
+
+  hby_push_bool(h, true);
+  return true;
 }
 
 
@@ -161,6 +182,7 @@ hby_StructMethod arr_methods[] = {
   {"find", arr_find, 1, hby_method},
   {"join", arr_join, 0, hby_method},
   {"clear", arr_clear, 0, hby_method},
+  {"eqls", arr_eqls, 1, hby_method},
   {NULL, NULL, 0, 0},
 };
 

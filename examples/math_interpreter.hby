@@ -320,7 +320,7 @@ loop {
 
   if (res.error != Error:ok) {
     io:print($"Error: {error_to_str(res.error)}");
-    return;
+    continue;
   }
 
   io:print(res.node.execute());

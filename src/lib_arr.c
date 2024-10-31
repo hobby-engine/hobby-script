@@ -142,6 +142,14 @@ static bool arr_join(hbs_State* h, int argc) {
   return true;
 }
 
+static bool arr_clear(hbs_State* h, int argc) {
+  hbs_expect_array(h, 0);
+  GcArr* arr = self(h);
+  // Free is equivalent to clearing in this case
+  free_varr(h, &arr->varr);
+  return false;
+}
+
 
 hbs_StructMethod arr_methods[] = {
   {"len", arr_len, 0, hbs_method},
@@ -152,6 +160,7 @@ hbs_StructMethod arr_methods[] = {
   {"erase", arr_erase, 1, hbs_method},
   {"find", arr_find, 1, hbs_method},
   {"join", arr_join, 0, hbs_method},
+  {"clear", arr_clear, 0, hbs_method},
   {NULL, NULL, 0, 0},
 };
 

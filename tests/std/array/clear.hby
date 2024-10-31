@@ -1,0 +1,6 @@
+var arr = [1, 2, 3, 4, 5];
+arr.clear();
+io:print(arr); // expect: []
+
+arr.push(1, 3, 4);
+io:print(arr); // expect: [1, 3, 4]

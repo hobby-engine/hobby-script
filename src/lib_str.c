@@ -153,6 +153,28 @@ static bool str_isdigit(hby_State* h, int argc) {
   return true;
 }
 
+static bool str_isalpha(hby_State* h, int argc) {
+  size_t str_len;
+  const char* str = hby_get_string(h, 0, &str_len);
+
+  if (str_len == 0) {
+    hby_push_bool(h, false);
+    return true;
+  }
+
+  for (size_t i = 0; i < str_len; i++) {
+    char c = str[i];
+    if ((c < 'a' || c > 'z') &&
+        (c < 'A' || c > 'Z')) {
+      hby_push_bool(h, false);
+      return true;
+    }
+  }
+
+  hby_push_bool(h, true);
+  return true;
+}
+
 
 hby_StructMethod str_methods[] = {
   {"len", str_len, 0, hby_method},
@@ -161,6 +183,7 @@ hby_StructMethod str_methods[] = {
   {"toup", str_toup, 0, hby_method},
   {"tolow", str_tolow, 0, hby_method},
   {"isdigit", str_isdigit, 0, hby_method},
+  {"isalpha", str_isalpha, 0, hby_method},
   {NULL, NULL, 0, 0},
 };
 

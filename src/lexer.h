@@ -24,7 +24,8 @@ typedef enum {
   tok_rarrow, tok_dot_dot, // => ..
   tok_plus_plus, tok_minus_minus, // ++ --
 
-  tok_ident, tok_num, tok_str, tok_strfmt,
+  tok_str, tok_strfmt, tok_strfmt_end,
+  tok_ident, tok_num, 
   tok_true, tok_false, tok_null, // true false null
 
   tok_struct, tok_if, tok_else, // struct if else
@@ -44,7 +45,6 @@ typedef struct {
   int len;
   int line;
   Val val;
-  bool closing_fmt;
 } Tok;
 
 typedef struct Lexer {

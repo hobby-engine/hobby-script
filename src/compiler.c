@@ -1,5 +1,4 @@
 #include "compiler.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -527,11 +526,7 @@ static void strfmt(Parser* p, bool can_assign) {
     count++;
   } while (consume(p, tok_strfmt));
 
-  if (!p->cur.closing_fmt) {
-    err(p, err_msg_eof_str);
-    return;
-  }
-  expect(p, tok_str, err_msg_eof_str);
+  expect(p, tok_strfmt_end, err_msg_eof_str);
   write_const(p, create_obj(as_obj(p->prev.val)));
 
   for (int i = 0; i < count; i++) {

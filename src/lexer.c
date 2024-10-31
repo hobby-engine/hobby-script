@@ -65,7 +65,6 @@ static Tok create_tok(Lexer* l, TokType type) {
   t.start = l->start;
   t.len = (int)(l->cur - l->start);
   t.line = l->line;
-  t.closing_fmt = false;
   return t;
 }
 
@@ -75,7 +74,6 @@ static Tok create_err_tok(Lexer* l, const char* msg) {
   t.start = msg;
   t.len = (int)strlen(msg);
   t.line = l->line;
-  t.closing_fmt = false;
   return t;
 }
 
@@ -108,7 +106,7 @@ static void skip_whitespace(Lexer* l) {
 }
 
 static Tok str(Lexer* l, bool is_fmt, bool closing_fmt) {
-  TokType type = tok_str;
+  TokType type = closing_fmt ? tok_strfmt_end : tok_str;
   int cap = 8;
   int len = 0;
   char* chars = allocate(l->h, char, cap);
@@ -178,7 +176,6 @@ fmtd_str:
   str_tok.len = (int)(l->cur - l->start);
   str_tok.line = l->line;
   str_tok.val = create_obj(copy_str(l->h, chars, len));
-  str_tok.closing_fmt = closing_fmt;
 
   release_arr(l->h, char, chars, cap);
   return str_tok;

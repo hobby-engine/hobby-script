@@ -3,14 +3,12 @@ struct Person {
   var age;
 
   static fn new(name, age) -> Person{
-    .name = name,
-    .age = age,
+    name = name,
+    age = age,
   };
 
   fn introduce() {
-    io:print(
-      "Hello! My name is " .. self.name
-      .. " and I am " .. self.age .. " years old.");
+    io:print($"Hello! My name is {self.name} and I am {self.age} years old.");
   }
 }
 

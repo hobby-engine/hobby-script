@@ -5,26 +5,26 @@ var a = [];
 var arr = [1, "erase", [], 2, 3, "erase", foo, a, 5];
 
 arr.erase(1);
-io:print(arr); // expect: [erase, [], 2, 3, erase, <Foo instance>, [], 5]
+io:print(arr); // expect: ["erase", [], 2, 3, "erase", <Foo instance>, [], 5]
 
 arr.erase("erase");
-io:print(arr); // expect: [[], 2, 3, erase, <Foo instance>, [], 5]
+io:print(arr); // expect: [[], 2, 3, "erase", <Foo instance>, [], 5]
 
 io:print(arr.erase([])); // expect: false
-io:print(arr); // expect: [[], 2, 3, erase, <Foo instance>, [], 5]
+io:print(arr); // expect: [[], 2, 3, "erase", <Foo instance>, [], 5]
 
 arr.erase(a);
-io:print(arr); // expect: [[], 2, 3, erase, <Foo instance>, 5]
+io:print(arr); // expect: [[], 2, 3, "erase", <Foo instance>, 5]
 
 io:print(arr.erase(Foo{})); // expect: false
-io:print(arr); // expect: [[], 2, 3, erase, <Foo instance>, 5]
+io:print(arr); // expect: [[], 2, 3, "erase", <Foo instance>, 5]
 
 arr.erase(foo);
-io:print(arr); // expect: [[], 2, 3, erase, 5]
+io:print(arr); // expect: [[], 2, 3, "erase", 5]
 
 io:print(arr.erase(3)); // expect: true
-io:print(arr); // expect: [[], 2, erase, 5]
+io:print(arr); // expect: [[], 2, "erase", 5]
 
 io:print(arr.erase(3)); // expect: false
-io:print(arr); // expect: [[], 2, erase, 5]
+io:print(arr); // expect: [[], 2, "erase", 5]
 

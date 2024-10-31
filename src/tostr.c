@@ -26,14 +26,19 @@ GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
 
   chars[len++] = '[';
   for (int i = 0; i < arr->varr.len; i++) {
+    bool add_quotes = false;
     GcStr* str = NULL;
     if (is_arr(arr->varr.items[i])) {
       str = arr_to_str(h, as_arr(arr->varr.items[i]), depth + 1);
     } else {
+      add_quotes = is_str(arr->varr.items[i]);
       str = to_str(h, arr->varr.items[i]);
     }
 
     int add_len = str->len + 2; // + 2 is for comma and space
+    if (add_quotes) {
+      add_len += 2;
+    }
     if (len + add_len > cap) {
       int old_cap = cap;
       while (len + add_len > cap) {
@@ -42,8 +47,16 @@ GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
       chars = grow_arr(h, char, chars, old_cap, cap);
     }
 
+    if (add_quotes) {
+      chars[len++] = '"';
+    }
+
     memcpy(chars + len, str->chars, str->len);
     len += str->len;
+
+    if (add_quotes) {
+      chars[len++] = '"';
+    }
 
     if (i != arr->varr.len - 1) {
       chars[len++] = ',';

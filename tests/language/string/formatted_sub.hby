@@ -1,0 +1,1 @@
+io:print($"hello, {$"test2 {12}"}"); // expect: hello, test2 12

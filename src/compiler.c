@@ -518,14 +518,13 @@ static void str(Parser* p, bool can_assign) {
 }
 
 static void strfmt(Parser* p, bool can_assign) {
-  write_bc(p, bc_array);
+  int count = 0;
 
   do {
     write_const(p, create_obj(as_obj(p->prev.val)));
-    write_bc(p, bc_array_item);
-
     expr(p);
-    write_bc(p, bc_array_item);
+    write_bc(p, bc_cat);
+    count++;
   } while (consume(p, tok_strfmt));
 
   if (!p->cur.closing_fmt) {
@@ -534,16 +533,10 @@ static void strfmt(Parser* p, bool can_assign) {
   }
   expect(p, tok_str, err_msg_eof_str);
   write_const(p, create_obj(as_obj(p->prev.val)));
-  write_bc(p, bc_array_item);
 
-  Tok s;
-  s.type = tok_ident;
-  s.start = "join";
-  s.len = 4;
-  s.line = 0;
-
-  write_2bc(p, bc_invoke, ident_const(p, &s));
-  write_bc(p, 0);
+  for (int i = 0; i < count; i++) {
+    write_bc(p, bc_cat);
+  }
 }
 
 static void array(Parser* p, bool can_assign) {

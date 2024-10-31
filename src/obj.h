@@ -1,5 +1,5 @@
-#ifndef __HBS_OBJ_H
-#define __HBS_OBJ_H
+#ifndef __HBY_OBJ_H
+#define __HBY_OBJ_H
 
 #include "common.h"
 #include "chunk.h"
@@ -53,7 +53,7 @@ typedef struct GcClosure {
 typedef struct GcCFn {
   GcObj obj; // Object header
   int arity; // Number of arguments. -1 means it's varadic
-  hbs_CFn fn; // The function ptr
+  hby_CFn fn; // The function ptr
   GcStr* name; // Name of the function. Only used for stack traces and printing
 } GcCFn;
 
@@ -89,7 +89,7 @@ typedef struct {
   GcObj obj; // Object header
   Val owner; // The owner of this function
   union {
-    GcClosure* hbs;
+    GcClosure* hby;
     GcCFn* c;
   } fn; // The wrapped function
 } GcMethod;
@@ -106,7 +106,7 @@ static inline bool obj_of_type(Val val, ObjType type) {
 }
 
 #define obj_type(v) (as_obj(v)->type)
-#define method_type(m) (m->fn.hbs->obj.type)
+#define method_type(m) (m->fn.hby->obj.type)
 
 #define is_struct(v)  obj_of_type(v, obj_struct)
 #define is_method(v)  obj_of_type(v, obj_method)
@@ -131,17 +131,17 @@ static inline bool obj_of_type(Val val, ObjType type) {
 #define as_str(v)     ((GcStr*)as_obj(v))
 #define as_cstr(v)    (as_str(v)->chars)
 
-GcStruct* create_struct(hbs_State* h, GcStr* name);
-GcMethod* create_method(hbs_State* h, Val owner, GcClosure* fn);
-GcMethod* create_c_method(hbs_State* h, Val owner, GcCFn* fn);
-GcInst* create_inst(hbs_State* h, GcStruct* s);
-GcUpval* create_upval(hbs_State* h, Val* loc);
-GcCFn* create_c_fn(hbs_State* h, GcStr* name, hbs_CFn fn, int arity);
-GcFn* create_fn(hbs_State* h, GcStr* file_path);
-GcClosure* create_closure(hbs_State* h, GcFn* fn);
-GcEnum* create_enum(hbs_State* h, GcStr* name);
-GcArr* create_arr(hbs_State* h);
-GcStr* copy_str(hbs_State* h, const char* chars, int len);
-GcStr* take_str(hbs_State* h, char* chars, int len);
+GcStruct* create_struct(hby_State* h, GcStr* name);
+GcMethod* create_method(hby_State* h, Val owner, GcClosure* fn);
+GcMethod* create_c_method(hby_State* h, Val owner, GcCFn* fn);
+GcInst* create_inst(hby_State* h, GcStruct* s);
+GcUpval* create_upval(hby_State* h, Val* loc);
+GcCFn* create_c_fn(hby_State* h, GcStr* name, hby_CFn fn, int arity);
+GcFn* create_fn(hby_State* h, GcStr* file_path);
+GcClosure* create_closure(hby_State* h, GcFn* fn);
+GcEnum* create_enum(hby_State* h, GcStr* name);
+GcArr* create_arr(hby_State* h);
+GcStr* copy_str(hby_State* h, const char* chars, int len);
+GcStr* take_str(hby_State* h, char* chars, int len);
 
-#endif // __HBS_OBJ_H
+#endif // __HBY_OBJ_H

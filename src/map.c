@@ -16,7 +16,7 @@ void init_map(Map* map) {
   map->items = NULL;
 }
 
-void free_map(hbs_State* h, Map* map) {
+void free_map(hby_State* h, Map* map) {
   release_arr(h, MapItem, map->items, map->cap);
   init_map(map);
 }
@@ -43,7 +43,7 @@ static MapItem* find_item(MapItem* items, int cap, GcStr* k) {
   }
 }
 
-static void adjust_cap(hbs_State* h, Map* map, int cap) {
+static void adjust_cap(hby_State* h, Map* map, int cap) {
   MapItem* items = allocate(h, MapItem, cap);
   for (int i = 0; i < cap; i++) {
     items[i].k = NULL;
@@ -82,7 +82,7 @@ bool get_map(Map* map, GcStr* k, Val* out_v) {
   return true;
 }
 
-bool set_map(hbs_State* h, Map* map, GcStr* k, Val v) {
+bool set_map(hby_State* h, Map* map, GcStr* k, Val v) {
   if (map->count + 1 > map->cap * map_max_load) {
     int cap = grow_cap(map->cap);
     adjust_cap(h, map, cap);
@@ -114,7 +114,7 @@ bool rem_map(Map* map, GcStr* k) {
   return true;
 }
 
-void copy_map(struct hbs_State* h, Map* src, Map* dst) {
+void copy_map(struct hby_State* h, Map* src, Map* dst) {
   for (int i = 0; i < src->cap; i++) {
     MapItem* item = &src->items[i];
     if (item->k != NULL) {
@@ -146,7 +146,7 @@ GcStr* find_str_map(Map* map, const char* chars, int len, u32 hash) {
   }
 }
 
-void mark_map(hbs_State* h, Map* map) {
+void mark_map(hby_State* h, Map* map) {
   for (int i = 0; i < map->cap; i++) {
     MapItem* item = &map->items[i];
     mark_obj(h, (GcObj*)item->k);
@@ -154,7 +154,7 @@ void mark_map(hbs_State* h, Map* map) {
   }
 }
 
-void rem_black_map(struct hbs_State* h, Map* map) {
+void rem_black_map(struct hby_State* h, Map* map) {
   for (int i = 0; i < map->cap; i++) {
     MapItem* item = &map->items[i];
     if (item->k != NULL && !item->k->obj.marked) {

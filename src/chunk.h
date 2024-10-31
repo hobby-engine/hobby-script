@@ -1,10 +1,10 @@
-#ifndef __HBS_CHUNK_H
-#define __HBS_CHUNK_H
+#ifndef __HBY_CHUNK_H
+#define __HBY_CHUNK_H
 
 #include "common.h"
 #include "val.h"
 #include "arr.h"
-#include "hbs.h"
+#include "hby.h"
 
 typedef enum {
   bc_pop,
@@ -73,8 +73,8 @@ typedef struct {
 } Chunk;
 
 void init_chunk(Chunk* c);
-void free_chunk(hbs_State* h, Chunk* c);
-void write_chunk(hbs_State* h, Chunk* c, Bc bc, int line);
-int add_const_chunk(hbs_State* h, Chunk* c, Val val);
+void free_chunk(hby_State* h, Chunk* c);
+void write_chunk(hby_State* h, Chunk* c, Bc bc, int line);
+int add_const_chunk(hby_State* h, Chunk* c, Val val);
 
-#endif // __HBS_CHUNK_H
+#endif // __HBY_CHUNK_H

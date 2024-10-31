@@ -15,7 +15,7 @@ endif()
 
 set(HBY_SRC
   # Hobbyscript
-  src/hbs.c
+  src/hby.c
   src/api.c
   src/arr.c
   src/chunk.c

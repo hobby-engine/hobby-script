@@ -9,14 +9,14 @@
 
 #define num_fmt "%.14g"
 
-static GcStr* fn_to_str(hbs_State* h, GcFn* fn) {
+static GcStr* fn_to_str(hby_State* h, GcFn* fn) {
   if (fn->name == NULL) {
     return copy_str(h, "<script>", 8);
   }
   return str_fmt(h, "<fn @>", fn->name);
 }
 
-GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
+GcStr* arr_to_str(hby_State* h, GcArr* arr, int depth) {
   if (depth > 2) {
     return copy_str(h, "[...]", 5);
   }
@@ -77,7 +77,7 @@ GcStr* arr_to_str(hbs_State* h, GcArr* arr, int depth) {
 }
 
 
-GcStr* to_str(hbs_State* h, Val val) {
+GcStr* to_str(hby_State* h, Val val) {
   if (is_str(val)) {
     return as_str(val);
   } else if (is_num(val)) {
@@ -96,7 +96,7 @@ GcStr* to_str(hbs_State* h, Val val) {
     GcMethod* m = as_method(val);
     switch (method_type(m)) {
       case obj_closure:
-        return fn_to_str(h, m->fn.hbs->fn);
+        return fn_to_str(h, m->fn.hby->fn);
       case obj_c_fn:
         return str_fmt(h, "<c fn @>", m->fn.c->name);
       default:
@@ -117,7 +117,7 @@ GcStr* to_str(hbs_State* h, Val val) {
   return copy_str(h, "<unknown>", 9);
 }
 
-GcStr* num_to_str(hbs_State* h, double n) {
+GcStr* num_to_str(hby_State* h, double n) {
   if (isnan(n)) {
     return copy_str(h, "nan", 3);
   }
@@ -136,11 +136,11 @@ GcStr* num_to_str(hbs_State* h, double n) {
   return take_str(h, str, len);
 }
 
-GcStr* bool_to_str(hbs_State* h, bool b) {
+GcStr* bool_to_str(hby_State* h, bool b) {
   return b ? copy_str(h, "true", 4) : copy_str(h, "false", 5);
 }
 
-GcStr* str_fmt(hbs_State* h, const char* fmt, ...) {
+GcStr* str_fmt(hby_State* h, const char* fmt, ...) {
   va_list args;
 
   va_start(args, fmt);

@@ -1,5 +1,5 @@
-#ifndef __HBS_ERRMSG_H
-#define __HBS_ERRMSG_H
+#ifndef __HBY_ERRMSG_H
+#define __HBY_ERRMSG_H
 
 #define err_msg_out_mem "not enough memory"
 
@@ -59,4 +59,4 @@
 #define err_msg_expect_fn_body "expected '{' or '=>'"
 #define err_msg_expect(expected) "expected '" expected "'"
 
-#endif // __HBS_ERRMSG_H
+#endif // __HBY_ERRMSG_H

@@ -1,16 +1,16 @@
-#ifndef __HBS_LIB_H
-#define __HBS_LIB_H
+#ifndef __HBY_LIB_H
+#define __HBY_LIB_H
 
 #include <stdbool.h>
-#include "hbs.h"
+#include "hby.h"
 
-bool open_arr(hbs_State* h, int argc);
-bool open_core(hbs_State* h, int argc);
-bool open_ease(hbs_State* h, int argc);
-bool open_io(hbs_State* h, int argc);
-bool open_math(hbs_State* h, int argc);
-bool open_rand(hbs_State* h, int argc);
-bool open_str(hbs_State* h, int argc);
-bool open_sys(hbs_State* h, int argc);
+bool open_arr(hby_State* h, int argc);
+bool open_core(hby_State* h, int argc);
+bool open_ease(hby_State* h, int argc);
+bool open_io(hby_State* h, int argc);
+bool open_math(hby_State* h, int argc);
+bool open_rand(hby_State* h, int argc);
+bool open_str(hby_State* h, int argc);
+bool open_sys(hby_State* h, int argc);
 
-#endif // __HBS_LIB_H
+#endif // __HBY_LIB_H

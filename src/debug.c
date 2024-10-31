@@ -11,7 +11,7 @@ static int simple_bc(const char* name, int idx) {
   return idx + 1;
 }
 
-static int const_bc(hbs_State* h, const char* name, Chunk* c, int idx) {
+static int const_bc(hby_State* h, const char* name, Chunk* c, int idx) {
   u8 constant = c->code[idx + 1];
   printf(
     "%-16s %4d '%s'\n", 
@@ -32,7 +32,7 @@ static int jmp_bc(const char* name, int sign, Chunk* c, int idx) {
   return idx + 3;
 }
 
-static int invoke_bc(hbs_State* h, const char* name, Chunk* c, int offset) {
+static int invoke_bc(hby_State* h, const char* name, Chunk* c, int offset) {
   u8 constant = c->code[offset + 1];
   u8 argc = c->code[offset + 2];
   printf(
@@ -42,7 +42,7 @@ static int invoke_bc(hbs_State* h, const char* name, Chunk* c, int offset) {
 }
 
 
-int print_bc(hbs_State* h, Chunk *c, int idx) {
+int print_bc(hby_State* h, Chunk *c, int idx) {
   printf("%04d ", idx);
   if (idx > 0 && c->lines[idx] == c->lines[idx - 1]) {
     printf("   | ");
@@ -148,7 +148,7 @@ int print_bc(hbs_State* h, Chunk *c, int idx) {
   }
 }
 
-void print_chunk(hbs_State* h, Chunk* c, const char* name) {
+void print_chunk(hby_State* h, Chunk* c, const char* name) {
   printf("== %s ==\n", name);
 
   for (int idx = 0; idx < c->len;) {

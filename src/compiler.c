@@ -9,7 +9,7 @@
 #include "lexer.h"
 #include "obj.h"
 
-#ifdef hbs_print_bc
+#ifdef hby_print_bc
 # include "debug.h"
 #endif
 
@@ -249,7 +249,7 @@ static GcFn* end_compiler(Parser* p) {
   write_ret(p);
   GcFn* fn = p->compiler->fn;
 
-#ifdef hbs_print_bc
+#ifdef hby_print_bc
   print_chunk(
     p->h, cur_chunk(p), fn->name != NULL ? fn->name->chars : "<script>");
 #endif
@@ -1497,7 +1497,7 @@ static void stat(Parser* p) {
   }
 }
 
-GcFn* compile_hbs(hbs_State* h, const char* path, const char* src) {
+GcFn* compile_hby(hby_State* h, const char* path, const char* src) {
   Parser* p = h->parser;
   p->h = h;
   p->file_path = path;

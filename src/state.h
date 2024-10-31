@@ -1,8 +1,8 @@
-#ifndef __HBS_STATE_H
-#define __HBS_STATE_H
+#ifndef __HBY_STATE_H
+#define __HBY_STATE_H
 
 #include <setjmp.h>
-#include "hbs.h"
+#include "hby.h"
 #include "map.h"
 #include "val.h"
 
@@ -13,12 +13,12 @@ typedef enum {
   call_type_c, // This is a C function
   call_type_script, // This is a script
   call_type_reenter, // This is called from the C API
-  call_type_hbs, // This is called from other Hobby code
+  call_type_hby, // This is called from other Hobby code
 } CallType;
 
 typedef struct {
   union {
-    struct GcClosure* hbs;
+    struct GcClosure* hby;
     struct GcCFn* c;
   } fn;
   u8* ip;
@@ -26,7 +26,7 @@ typedef struct {
   CallType type;
 } CallFrame;
 
-struct hbs_State {
+struct hby_State {
   CallFrame frame_stack[frames_max];
   CallFrame* frame;
 
@@ -59,16 +59,16 @@ struct hbs_State {
   struct Parser* parser;
 };
 
-bool file_imported(hbs_State* h, const char* name);
-void reset_stack(hbs_State* h);
+bool file_imported(hby_State* h, const char* name);
+void reset_stack(hby_State* h);
 
-inline void push(hbs_State* h, Val val) {
+inline void push(hby_State* h, Val val) {
   *h->top = val;
   h->top++;
 }
 
-inline Val pop(hbs_State* h) {
+inline Val pop(hby_State* h) {
   return *(--h->top);
 }
 
-#endif // __HBS_STATE_H
+#endif // __HBY_STATE_H

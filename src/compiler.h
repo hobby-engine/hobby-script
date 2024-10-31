@@ -1,5 +1,5 @@
-#ifndef __HBS_COMPILER_H
-#define __HBS_COMPILER_H
+#ifndef __HBY_COMPILER_H
+#define __HBY_COMPILER_H
 
 #include "obj.h"
 #include "lexer.h"
@@ -24,10 +24,10 @@ typedef struct Parser {
 
   const char* file_path;
   struct Compiler* compiler;
-  hbs_State* h;
+  hby_State* h;
 } Parser;
 
-GcFn* compile_hbs(hbs_State* h, const char* path, const char* src);
+GcFn* compile_hby(hby_State* h, const char* path, const char* src);
 void mark_compiler_roots(Parser* p);
 
-#endif // __HBS_COMPILER_H
+#endif // __HBY_COMPILER_H

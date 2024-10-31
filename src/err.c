@@ -1,5 +1,5 @@
-#ifndef __HOBBY_HBS_ERR_H
-#define __HOBBY_HBS_ERR_H
+#ifndef __HOBBY_HBY_ERR_H
+#define __HOBBY_HBY_ERR_H
 
 typedef enum {
 #define errmsg(name, msg) \
@@ -7,4 +7,4 @@ typedef enum {
 #include "errmsg.h"
 } ErrorMsg;
 
-#endif // __HOBBY_HBS_ERR_H
+#endif // __HOBBY_HBY_ERR_H

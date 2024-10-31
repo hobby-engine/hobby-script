@@ -1,9 +1,9 @@
-#ifndef __HBS_VAL_H
-#define __HBS_VAL_H
+#ifndef __HBY_VAL_H
+#define __HBY_VAL_H
 
 #include "common.h"
 
-struct hbs_State;
+struct hby_State;
 
 typedef struct GcObj GcObj;
 typedef struct GcStr GcStr;
@@ -86,4 +86,4 @@ typedef struct {
 
 bool vals_eql(Val a, Val b);
 
-#endif // __HBS_VAL_H
+#endif // __HBY_VAL_H

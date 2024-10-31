@@ -1,5 +1,5 @@
-#ifndef __HBS_MEM_H
-#define __HBS_MEM_H
+#ifndef __HBY_MEM_H
+#define __HBY_MEM_H
 
 #include "common.h"
 #include "state.h"
@@ -13,11 +13,11 @@
 #define release_arr(h, T, ptr, plen) \
   reallocate(h, ptr, sizeof(T) * (plen), 0)
 
-void* reallocate(hbs_State* h, void* ptr, size_t plen, size_t len);
-void free_objs(hbs_State* h);
+void* reallocate(hby_State* h, void* ptr, size_t plen, size_t len);
+void free_objs(hby_State* h);
 
-void gc(hbs_State* h);
-void mark_obj(hbs_State* h, GcObj* obj);
-void mark_val(hbs_State* h, Val val);
+void gc(hby_State* h);
+void mark_obj(hby_State* h, GcObj* obj);
+void mark_val(hby_State* h, Val val);
 
-#endif // __HBS_MEM_H
+#endif // __HBY_MEM_H

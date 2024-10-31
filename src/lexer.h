@@ -1,5 +1,5 @@
-#ifndef __HBS_TOKENIZER_H
-#define __HBS_TOKENIZER_H
+#ifndef __HBY_TOKENIZER_H
+#define __HBY_TOKENIZER_H
 
 #include "state.h"
 
@@ -48,7 +48,7 @@ typedef struct {
 } Tok;
 
 typedef struct Lexer {
-  hbs_State* h;
+  hby_State* h;
   const char* start;
   const char* cur;
   int line;
@@ -56,7 +56,7 @@ typedef struct Lexer {
   int brace_depth;
 } Lexer;
 
-void init_lexer(hbs_State* h, Lexer* l, const char* src);
+void init_lexer(hby_State* h, Lexer* l, const char* src);
 Tok next_token(Lexer* l);
 
-#endif // __HBS_TOKENIZER_H
+#endif // __HBY_TOKENIZER_H

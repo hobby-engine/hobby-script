@@ -13,14 +13,14 @@ void init_chunk(Chunk* c) {
   init_varr(&c->consts);
 }
 
-void free_chunk(hbs_State* h, Chunk* c) {
+void free_chunk(hby_State* h, Chunk* c) {
   release_arr(h, u8, c->code, c->cap);
   release_arr(h, int, c->lines, c->cap);
   free_varr(h, &c->consts);
   init_chunk(c);
 }
 
-void write_chunk(hbs_State* h, Chunk* c, Bc bc, int line) {
+void write_chunk(hby_State* h, Chunk* c, Bc bc, int line) {
   if (c->cap < c->len + 1) {
     int old_cap = c->cap;
     c->cap = grow_cap(old_cap);
@@ -33,7 +33,7 @@ void write_chunk(hbs_State* h, Chunk* c, Bc bc, int line) {
   c->len++;
 }
 
-int add_const_chunk(hbs_State* h, Chunk* c, Val val) {
+int add_const_chunk(hby_State* h, Chunk* c, Val val) {
   push(h, val);
   push_varr(h, &c->consts, val);
   pop(h);

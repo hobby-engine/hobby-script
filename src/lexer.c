@@ -6,7 +6,7 @@
 #include "mem.h"
 #include "obj.h"
 
-void init_lexer(hbs_State* h, Lexer* l, const char* src) {
+void init_lexer(hby_State* h, Lexer* l, const char* src) {
   if (strncmp(src, "\xEF\xBB\xBF", 3) == 0) {
     src += 3;
   }

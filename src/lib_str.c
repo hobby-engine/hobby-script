@@ -1,14 +1,14 @@
 #include "errmsg.h"
-#include "hbs.h"
+#include "hby.h"
 #include "lib.h"
 #include "mem.h"
 #include "obj.h"
 #include "val.h"
 #include <stdio.h>
 
-static bool str_len(hbs_State* h, int argc) {
-  hbs_expect_string(h, 0);
-  hbs_push_num(h, hbs_len(h, 0));
+static bool str_len(hby_State* h, int argc) {
+  hby_expect_string(h, 0);
+  hby_push_num(h, hby_len(h, 0));
   return true;
 }
 
@@ -35,7 +35,7 @@ static int find_substr(
 }
 
 static char* concat(
-    hbs_State* h,
+    hby_State* h,
     const char* lhs, size_t lhs_len,
     const char* rhs, size_t rhs_len,
     size_t* dest_len) {
@@ -48,29 +48,29 @@ static char* concat(
   return dest;
 }
 
-static bool str_find(hbs_State* h, int argc) {
+static bool str_find(hby_State* h, int argc) {
   size_t substr_len;
-  const char* substr = hbs_get_tostring(h, 1, &substr_len);
+  const char* substr = hby_get_tostring(h, 1, &substr_len);
   size_t str_len;
-  const char* str = hbs_get_string(h, 0, &str_len);
+  const char* str = hby_get_string(h, 0, &str_len);
 
-  hbs_push_num(h, find_substr(str, str_len, substr, substr_len));
+  hby_push_num(h, find_substr(str, str_len, substr, substr_len));
   return true;
 }
 
-static bool str_rem(hbs_State* h, int argc) {
+static bool str_rem(hby_State* h, int argc) {
   size_t str_len;
-  const char* str = hbs_get_string(h, 0, &str_len);
+  const char* str = hby_get_string(h, 0, &str_len);
 
-  int start = get_idx(h, str_len, hbs_get_num(h, 1));
-  int len = hbs_get_num(h, 2);
+  int start = get_idx(h, str_len, hby_get_num(h, 1));
+  int len = hby_get_num(h, 2);
   if (len < 0) {
     len += str_len - start + 1;
   }
   int end = start + len;
 
   if (end < 0 || end > (int)str_len) {
-    hbs_err(h, err_msg_index_out_of_bounds);
+    hby_err(h, err_msg_index_out_of_bounds);
   }
 
   const char* lhs = str;
@@ -82,7 +82,7 @@ static bool str_rem(hbs_State* h, int argc) {
   size_t res_len;
   char* res = concat(h, lhs, lhs_len, rhs, rhs_len, &res_len);
 
-  hbs_push_string(h, res, res_len);
+  hby_push_string(h, res, res_len);
   return true;
 }
 
@@ -94,9 +94,9 @@ static bool is_upper(char c) {
   return c >= 'A' && c <= 'Z';
 }
 
-static bool str_toup(hbs_State* h, int argc) {
+static bool str_toup(hby_State* h, int argc) {
   size_t len;
-  const char* str = hbs_get_string(h, 0, &len);
+  const char* str = hby_get_string(h, 0, &len);
 
   char* upper = allocate(h, char, len + 1);
   upper[len] = '\0';
@@ -109,13 +109,13 @@ static bool str_toup(hbs_State* h, int argc) {
     upper[i] = c;
   }
 
-  hbs_push_string(h, upper, len);
+  hby_push_string(h, upper, len);
   return true;
 }
 
-static bool str_tolow(hbs_State* h, int argc) {
+static bool str_tolow(hby_State* h, int argc) {
   size_t len;
-  const char* str = hbs_get_string(h, 0, &len);
+  const char* str = hby_get_string(h, 0, &len);
 
   char* upper = allocate(h, char, len + 1);
   upper[len] = '\0';
@@ -128,47 +128,47 @@ static bool str_tolow(hbs_State* h, int argc) {
     upper[i] = c;
   }
 
-  hbs_push_string(h, upper, len);
+  hby_push_string(h, upper, len);
   return true;
 }
 
-static bool str_isdigit(hbs_State* h, int argc) {
+static bool str_isdigit(hby_State* h, int argc) {
   size_t str_len;
-  const char* str = hbs_get_string(h, 0, &str_len);
+  const char* str = hby_get_string(h, 0, &str_len);
 
   if (str_len == 0) {
-    hbs_push_bool(h, false);
+    hby_push_bool(h, false);
     return true;
   }
 
   for (size_t i = 0; i < str_len; i++) {
     char c = str[i];
     if (c < '0' || c > '9') {
-      hbs_push_bool(h, false);
+      hby_push_bool(h, false);
       return true;
     }
   }
 
-  hbs_push_bool(h, true);
+  hby_push_bool(h, true);
   return true;
 }
 
 
-hbs_StructMethod str_methods[] = {
-  {"len", str_len, 0, hbs_method},
-  {"find", str_find, 1, hbs_method},
-  {"rem", str_rem, 2, hbs_method},
-  {"toup", str_toup, 0, hbs_method},
-  {"tolow", str_tolow, 0, hbs_method},
-  {"isdigit", str_isdigit, 0, hbs_method},
+hby_StructMethod str_methods[] = {
+  {"len", str_len, 0, hby_method},
+  {"find", str_find, 1, hby_method},
+  {"rem", str_rem, 2, hby_method},
+  {"toup", str_toup, 0, hby_method},
+  {"tolow", str_tolow, 0, hby_method},
+  {"isdigit", str_isdigit, 0, hby_method},
   {NULL, NULL, 0, 0},
 };
 
-bool open_str(hbs_State* h, int argc) {
-  hbs_push_struct(h, "String");
+bool open_str(hby_State* h, int argc) {
+  hby_push_struct(h, "String");
   h->string_struct = as_struct(*(h->top - 1));
-  hbs_add_members(h, str_methods, -2);
-  hbs_set_global(h, NULL);
+  hby_add_members(h, str_methods, -2);
+  hby_set_global(h, NULL);
 
   return false;
 }

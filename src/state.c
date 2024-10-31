@@ -8,11 +8,11 @@
 #include "compiler.h"
 #include "mem.h"
 #include "obj.h"
-#include "hbs.h"
+#include "hby.h"
 #include "lib.h"
 
-hbs_State* create_state() {
-  hbs_State* h = (hbs_State*)malloc(sizeof(hbs_State));
+hby_State* create_state() {
+  hby_State* h = (hby_State*)malloc(sizeof(hby_State));
 
   // FIXME: The frame stack should be interfaced with the same as the normal
   // stack. This - 1 is hacky and shouldn't really exist.
@@ -42,19 +42,19 @@ hbs_State* create_state() {
   // Using the C API like this is dangerous, since it cannot resolve errors.
   // TODO: Add a way to call API functions outside of the runtime
   // This all should be deferred until the VM starts.
-  hbs_open_lib(h, open_arr);
-  hbs_open_lib(h, open_core);
-  hbs_open_lib(h, open_ease);
-  hbs_open_lib(h, open_io);
-  hbs_open_lib(h, open_math);
-  hbs_open_lib(h, open_rand);
-  hbs_open_lib(h, open_str);
-  hbs_open_lib(h, open_sys);
+  hby_open_lib(h, open_arr);
+  hby_open_lib(h, open_core);
+  hby_open_lib(h, open_ease);
+  hby_open_lib(h, open_io);
+  hby_open_lib(h, open_math);
+  hby_open_lib(h, open_rand);
+  hby_open_lib(h, open_str);
+  hby_open_lib(h, open_sys);
 
   return h;
 }
 
-void free_state(hbs_State* h) {
+void free_state(hby_State* h) {
   release(h, Parser, h->parser);
   free_map(h, &h->globals);
   free_map(h, &h->strs);
@@ -63,7 +63,7 @@ void free_state(hbs_State* h) {
   free(h);
 }
 
-void hbs_cli_args(hbs_State* h, int argc, const char** args) {
+void hby_cli_args(hby_State* h, int argc, const char** args) {
   // free is equivalent to clearing
   free_varr(h, &h->args->varr);
   for (int i = 0; i < argc; i++) {
@@ -76,12 +76,12 @@ void hbs_cli_args(hbs_State* h, int argc, const char** args) {
   }
 }
 
-bool file_imported(hbs_State* h, const char* name) {
+bool file_imported(hby_State* h, const char* name) {
   Val val;
   return get_map(&h->files, copy_str(h, name, strlen(name)), &val);
 }
 
-void reset_stack(hbs_State* h) {
+void reset_stack(hby_State* h) {
   h->top = h->stack;
   h->frame = h->frame_stack;
   h->open_upvals = NULL;

@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "hbs.h"
+#include "hby.h"
 
 const char help_str[] = "usage: hobbyc [file]\n";
 
@@ -9,7 +9,7 @@ typedef enum {
   help = bit_flag(0),
 } Args;
 
-static void repl(hbs_State* h) {
+static void repl(hby_State* h) {
   char line[1024];
   while (true) {
     printf(">");
@@ -18,7 +18,7 @@ static void repl(hbs_State* h) {
       break;
     }
 
-    hbs_run_string(h, "repl", line);
+    hby_run_string(h, "repl", line);
   }
 }
 
@@ -27,19 +27,19 @@ static void show_help() {
 }
 
 int main(int argc, const char* args[]) {
-  hbs_State* h = create_state();
+  hby_State* h = create_state();
 
   if (argc == 1) {
-    hbs_cli_args(h, argc - 1, args + 1);
+    hby_cli_args(h, argc - 1, args + 1);
     repl(h);
   } else if (argc >= 2) {
-    hbs_cli_args(h, argc - 2, args + 2);
-    hbs_InterpretResult res = hbs_run(h, args[1]);
+    hby_cli_args(h, argc - 2, args + 2);
+    hby_InterpretResult res = hby_run(h, args[1]);
     free_state(h);
 
-    if (res == hbs_result_compile_err) {
+    if (res == hby_result_compile_err) {
       return 65;
-    } else if (res == hbs_result_runtime_err) {
+    } else if (res == hby_result_runtime_err) {
       return 70;
     }
   } else {

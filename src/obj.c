@@ -8,9 +8,9 @@
 #include "mem.h"
 #include "map.h"
 
-#define alloc_obj(h, ctype, hbstype) (ctype*)alloc_obj_impl(h, sizeof(ctype), hbstype)
+#define alloc_obj(h, ctype, hbytype) (ctype*)alloc_obj_impl(h, sizeof(ctype), hbytype)
 
-static GcObj* alloc_obj_impl(hbs_State* h, size_t size, ObjType type) {
+static GcObj* alloc_obj_impl(hby_State* h, size_t size, ObjType type) {
   GcObj* obj = (GcObj*)reallocate(h, NULL, 0, size);
   obj->type = type;
   obj->marked = false;
@@ -18,28 +18,28 @@ static GcObj* alloc_obj_impl(hbs_State* h, size_t size, ObjType type) {
   obj->next = h->objs;
   h->objs = obj;
 
-#ifdef hbs_log_gc
+#ifdef hby_log_gc
   printf("%p allocated %zu for type %d\n", (void*)obj, size, type);
 #endif
 
   return obj;
 }
 
-GcMethod* create_method(hbs_State* h, Val owner, GcClosure* fn) {
+GcMethod* create_method(hby_State* h, Val owner, GcClosure* fn) {
   GcMethod* method = alloc_obj(h, GcMethod, obj_method);
   method->owner = owner;
-  method->fn.hbs = fn;
+  method->fn.hby = fn;
   return method;
 }
 
-GcMethod* create_c_method(hbs_State* h, Val owner, GcCFn* fn) {
+GcMethod* create_c_method(hby_State* h, Val owner, GcCFn* fn) {
   GcMethod* method = alloc_obj(h, GcMethod, obj_method);
   method->owner = owner;
   method->fn.c = fn;
   return method;
 }
 
-GcInst* create_inst(hbs_State* h, GcStruct* s) {
+GcInst* create_inst(hby_State* h, GcStruct* s) {
   GcInst* inst = alloc_obj(h, GcInst, obj_inst);
   inst->_struct = s;
 
@@ -50,7 +50,7 @@ GcInst* create_inst(hbs_State* h, GcStruct* s) {
   return inst;
 }
 
-GcStruct* create_struct(hbs_State* h, GcStr* name) {
+GcStruct* create_struct(hby_State* h, GcStr* name) {
   GcStruct* s = alloc_obj(h, GcStruct, obj_struct);
   s->name = name;
   init_map(&s->staticm);
@@ -59,7 +59,7 @@ GcStruct* create_struct(hbs_State* h, GcStr* name) {
   return s;
 }
 
-GcUpval* create_upval(hbs_State* h, Val* loc) {
+GcUpval* create_upval(hby_State* h, Val* loc) {
   GcUpval* upval = alloc_obj(h, GcUpval, obj_upval);
   upval->loc = loc;
   upval->closed = create_null();
@@ -67,7 +67,7 @@ GcUpval* create_upval(hbs_State* h, Val* loc) {
   return upval;
 }
 
-GcClosure* create_closure(hbs_State* h, GcFn* fn) {
+GcClosure* create_closure(hby_State* h, GcFn* fn) {
   GcUpval** upvals = allocate(h, GcUpval*, fn->upvalc);
   for (int i = 0; i < fn->upvalc; i++) {
     upvals[i] = NULL;
@@ -80,7 +80,7 @@ GcClosure* create_closure(hbs_State* h, GcFn* fn) {
   return closure;
 }
 
-GcCFn* create_c_fn(hbs_State* h, GcStr* name, hbs_CFn fn, int arity) {
+GcCFn* create_c_fn(hby_State* h, GcStr* name, hby_CFn fn, int arity) {
   GcCFn* c_fn = alloc_obj(h, GcCFn, obj_c_fn);
   c_fn->arity = arity;
   c_fn->name = name;
@@ -88,7 +88,7 @@ GcCFn* create_c_fn(hbs_State* h, GcStr* name, hbs_CFn fn, int arity) {
   return c_fn;
 }
 
-GcFn* create_fn(hbs_State* h, GcStr* file_path) {
+GcFn* create_fn(hby_State* h, GcStr* file_path) {
   GcFn* fn = alloc_obj(h, GcFn, obj_fn);
   fn->arity = 0;
   fn->name = NULL;
@@ -98,20 +98,20 @@ GcFn* create_fn(hbs_State* h, GcStr* file_path) {
   return fn;
 }
 
-GcEnum* create_enum(hbs_State* h, GcStr* name) {
+GcEnum* create_enum(hby_State* h, GcStr* name) {
   GcEnum* _enum = alloc_obj(h, GcEnum, obj_enum);
   _enum->name = name;
   init_map(&_enum->vals);
   return _enum;
 }
 
-GcArr* create_arr(hbs_State* h) {
+GcArr* create_arr(hby_State* h) {
   GcArr* arr = alloc_obj(h, GcArr, obj_arr);
   init_varr(&arr->varr);
   return arr;
 }
 
-static GcStr* alloc_str(hbs_State* h, char* chars, int len, u32 hash) {
+static GcStr* alloc_str(hby_State* h, char* chars, int len, u32 hash) {
   GcStr* str = alloc_obj(h, GcStr, obj_str);
   str->len = len;
   str->chars = chars;
@@ -132,7 +132,7 @@ static uint32_t hash_str(const char* key, int length) {
   return hash;
 }
 
-GcStr* copy_str(hbs_State* h, const char* chars, int len) {
+GcStr* copy_str(hby_State* h, const char* chars, int len) {
   u32 hash = hash_str(chars, len);
   GcStr* interned = find_str_map(&h->strs, chars, len, hash);
   if (interned != NULL) {
@@ -145,7 +145,7 @@ GcStr* copy_str(hbs_State* h, const char* chars, int len) {
   return alloc_str(h, copy, len, hash);
 }
 
-GcStr* take_str(hbs_State* h, char* chars, int len) {
+GcStr* take_str(hby_State* h, char* chars, int len) {
   u32 hash = hash_str(chars, len);
   GcStr* interned = find_str_map(&h->strs, chars, len, hash);
   if (interned != NULL) {

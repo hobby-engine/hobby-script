@@ -10,17 +10,17 @@
 #include "obj.h"
 
 # include <stdio.h>
-#ifdef hbs_log_gc
+#ifdef hby_log_gc
 # include <stdio.h>
 # include "debug.h"
 #endif
 
 #define gc_grow_factor 2
 
-void* reallocate(hbs_State* h, void* ptr, size_t plen, size_t len) {
+void* reallocate(hby_State* h, void* ptr, size_t plen, size_t len) {
   h->alloced += len - plen;
   if (len > plen) {
-#ifdef hbs_stress_gc
+#ifdef hby_stress_gc
     gc(h);
 #else
     if (h->alloced > h->next_gc) {
@@ -42,8 +42,8 @@ void* reallocate(hbs_State* h, void* ptr, size_t plen, size_t len) {
   return res;
 }
 
-static void free_obj(hbs_State* h, GcObj* obj) {
-#ifdef hbs_log_gc
+static void free_obj(hby_State* h, GcObj* obj) {
+#ifdef hby_log_gc
   printf("%p free type %d\n", (void*)obj, obj->type);
 #endif
 
@@ -105,11 +105,11 @@ static void free_obj(hbs_State* h, GcObj* obj) {
   }
 }
 
-void mark_obj(hbs_State* h, GcObj* obj) {
+void mark_obj(hby_State* h, GcObj* obj) {
   if (obj == NULL || obj->marked) {
     return;
   }
-#ifdef hbs_log_gc
+#ifdef hby_log_gc
   printf("%p mark %d\n", (void*)obj, obj->type);
 #endif
   obj->marked = true;
@@ -126,20 +126,20 @@ void mark_obj(hbs_State* h, GcObj* obj) {
   h->gray_stack[h->grayc++] = obj;
 }
 
-void mark_val(hbs_State* h, Val val) {
+void mark_val(hby_State* h, Val val) {
   if (is_obj(val)) {
     mark_obj(h, as_obj(val));
   }
 }
 
-static void mark_arr(hbs_State* h, VArr* arr) {
+static void mark_arr(hby_State* h, VArr* arr) {
   for (int i = 0; i < arr->len; i++) {
     mark_val(h, arr->items[i]);
   }
 }
 
-static void blacken_obj(hbs_State* h, GcObj* obj) {
-#ifdef hbs_log_gc
+static void blacken_obj(hby_State* h, GcObj* obj) {
+#ifdef hby_log_gc
   printf("%p blacken %d\n", (void*)obj, obj->type);
 #endif
 
@@ -147,7 +147,7 @@ static void blacken_obj(hbs_State* h, GcObj* obj) {
     case obj_method: {
       GcMethod* method = (GcMethod*)obj;
       mark_val(h, method->owner);
-      mark_obj(h, (GcObj*)method->fn.hbs);
+      mark_obj(h, (GcObj*)method->fn.hby);
       break;
     }
     case obj_struct: {
@@ -201,7 +201,7 @@ static void blacken_obj(hbs_State* h, GcObj* obj) {
   }
 }
 
-static void mark_roots(hbs_State* h) {
+static void mark_roots(hby_State* h) {
   for (Val* slot = h->stack; slot < h->top; slot++) {
     mark_val(h, *slot);
   }
@@ -210,7 +210,7 @@ static void mark_roots(hbs_State* h) {
     if (frame->type == call_type_c) {
       mark_obj(h, (GcObj*)frame->fn.c);
     } else {
-      mark_obj(h, (GcObj*)frame->fn.hbs);
+      mark_obj(h, (GcObj*)frame->fn.hby);
     }
   }
 
@@ -224,14 +224,14 @@ static void mark_roots(hbs_State* h) {
   mark_compiler_roots(h->parser);
 }
 
-static void trace_refs(hbs_State* h) {
+static void trace_refs(hby_State* h) {
   while (h->grayc > 0) {
     GcObj* obj = h->gray_stack[--h->grayc];
     blacken_obj(h, obj);
   }
 }
 
-static void sweep(hbs_State* h) {
+static void sweep(hby_State* h) {
   GcObj* prev = NULL;
   GcObj* obj = h->objs;
 
@@ -254,12 +254,12 @@ static void sweep(hbs_State* h) {
   }
 }
 
-void gc(hbs_State* h) {
+void gc(hby_State* h) {
   if (!h->can_gc) {
     return;
   }
 
-#ifdef hbs_log_gc
+#ifdef hby_log_gc
   printf("-- GC BEGIN --\n");
   size_t before = h->alloced;
 #endif
@@ -271,7 +271,7 @@ void gc(hbs_State* h) {
 
   h->next_gc = h->alloced * gc_grow_factor;
 
-#ifdef hbs_log_gc
+#ifdef hby_log_gc
   printf(
     "COLLECTED %zu BYTES (FROM %zu TO %zu) NEXT AT %zu\n",
     before - h->alloced, before, h->alloced, h->next_gc);
@@ -279,7 +279,7 @@ void gc(hbs_State* h) {
 #endif
 }
 
-void free_objs(hbs_State* h) {
+void free_objs(hby_State* h) {
   GcObj* obj = h->objs;
   while (obj != NULL) {
     GcObj* next = obj->next;

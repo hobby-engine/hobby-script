@@ -10,6 +10,8 @@
 #define hby_version_minor 1
 #define hby_version_patch 0
 
+#define hby_version "0.1.0"
+
 typedef struct hby_State hby_State;
 typedef bool (*hby_CFn)(hby_State* h, int argc);
 

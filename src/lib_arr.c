@@ -155,8 +155,8 @@ static bool arr_eqls(hby_State* h, int argc) {
   }
 
   for (int i = 0; i < len; i++) {
-    hby_get_array(h, 0, i);
-    hby_get_array(h, 1, i);
+    hby_index_array(h, 0, i);
+    hby_index_array(h, 1, i);
 
     if (!vals_eql(h->top[-1], h->top[-2])) {
       hby_pop(h, 2);

@@ -76,6 +76,13 @@ hby_api bool hby_get_bool(hby_State* h, int index);
 hby_api hby_CFn hby_get_cfunction(hby_State* h, int index);
 hby_api const char* hby_get_string(hby_State* h, int index, size_t* len_out);
 hby_api const char* hby_get_tostring(hby_State* h, int index, size_t* len_out);
+hby_api void* hby_get_udata(hby_State* h, int udata);
+
+hby_api double hby_opt_num(hby_State* h, int index, double opt);
+hby_api bool hby_opt_bool(hby_State* h, int index, bool opt);
+hby_api hby_CFn hby_opt_cfunction(hby_State* h, int index, hby_CFn opt);
+hby_api const char* hby_opt_string(
+  hby_State* h, int index, size_t* len_out, const char* opt);
 
 hby_api void hby_push_num(hby_State* h, double num);
 hby_api void hby_push_bool(hby_State* h, bool b);
@@ -103,12 +110,11 @@ hby_api void hby_add_static_const(hby_State* h, const char* name, int _struct);
 hby_api void hby_add_member(hby_State* h, hby_MethodType type, int _struct);
 hby_api void hby_add_members(hby_State* h, hby_StructMethod* members, int index);
 
-hby_api void* hby_get_udata(hby_State* h, int udata);
 hby_api void hby_set_udata_struct(hby_State* h, int udata);
 hby_api void hby_set_udata_finalizer(hby_State* h, hby_CFn fn);
 
 hby_api void hby_push_array(hby_State* h, int array);
-hby_api void hby_get_array(hby_State* h, int array, int index);
+hby_api void hby_index_array(hby_State* h, int array, int index);
 
 hby_api void hby_add_enum(hby_State* h, const char* name, int _enum);
 

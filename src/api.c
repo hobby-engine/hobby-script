@@ -244,6 +244,41 @@ const char* hby_get_tostring(hby_State* h, int index, size_t* len_out) {
   return str->chars;
 }
 
+hby_api void* hby_get_udata(hby_State* h, int udata) {
+  hby_expect_udata(h, udata);
+  return as_udata(val_at(h, udata))->data;
+}
+
+
+hby_api double hby_opt_num(hby_State* h, int index, double opt) {
+  if (hby_is_null(h, index)) {
+    return opt;
+  }
+  return hby_get_num(h, index);
+}
+
+hby_api bool hby_opt_bool(hby_State* h, int index, bool opt) {
+  if (hby_is_null(h, index)) {
+    return opt;
+  }
+  return hby_get_num(h, index);
+}
+
+hby_api hby_CFn hby_opt_cfunction(hby_State* h, int index, hby_CFn opt) {
+  if (hby_is_null(h, index)) {
+    return opt;
+  }
+  return hby_get_cfunction(h, index);
+}
+
+hby_api const char* hby_opt_string(
+    hby_State* h, int index, size_t* len_out, const char* opt) {
+  if (hby_is_null(h, index)) {
+    return opt;
+  }
+  return hby_get_string(h, index, len_out);
+}
+
 
 void hby_push_num(hby_State* h, double num) {
   push(h, create_num(num));
@@ -437,11 +472,6 @@ void hby_add_members(hby_State* h, hby_StructMethod* members, int _struct) {
   }
 }
 
-hby_api void* hby_get_udata(hby_State* h, int udata) {
-  hby_expect_udata(h, udata);
-  return as_udata(val_at(h, udata))->data;
-}
-
 hby_api void hby_set_udata_struct(hby_State* h, int udata) {
   hby_expect_udata(h, udata);
   hby_expect_struct(h, -1);
@@ -466,7 +496,7 @@ void hby_push_array(hby_State* h, int array) {
   pop(h);
 }
 
-void hby_get_array(hby_State* h, int array, int index) {
+void hby_index_array(hby_State* h, int array, int index) {
   hby_expect_array(h, array);
   GcArr* arr = as_arr(val_at(h, array));
   push(h, arr->varr.items[index]);

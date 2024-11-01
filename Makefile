@@ -34,10 +34,10 @@ endif
 
 
 ifeq (release,$(config))
-	CFLAG += -O3
+	CFLAG += -O2
 else
 	config = debug
-	CFLAG += -O2 -g
+	CFLAG += -g
 	ifeq (Linux,$(HOST_SYS))
 		CFLAG += -fsanitize=address -fsanitize=address
 	endif

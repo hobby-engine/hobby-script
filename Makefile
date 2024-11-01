@@ -10,15 +10,6 @@ RMDIR = rmdir 2>/dev/null
 
 TARGET_SUFFIX = 
 
-ifeq (release,$(config))
-	CFLAG += -O3
-else
-	config = debug
-	CFLAG += -O2 -g
-	CFLAG += -fsanitize=address -fsanitize=address
-	TARGET_SUFFIX = _debug
-endif
-
 ifeq (,$(findstring Windows,$(OS)))
 	HOST_SYS = $(shell uname -s)
 else
@@ -39,6 +30,18 @@ ifeq (iOS,$(HOST_SYS))
 endif
 ifeq (Windows,$(HOST_SYS))
 	CFLAG += -Dhby_windows
+endif
+
+
+ifeq (release,$(config))
+	CFLAG += -O3
+else
+	config = debug
+	CFLAG += -O2 -g
+	ifeq (Linux,$(HOST_SYS))
+		CFLAG += -fsanitize=address -fsanitize=address
+	endif
+	TARGET_SUFFIX = _debug
 endif
 
 BIN = bin

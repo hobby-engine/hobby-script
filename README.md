@@ -5,8 +5,13 @@ is standalone as well.
 ### Features
 - No OOP
 - Blazingly average speed!!
-- I'd say it's a pretty solid language. I mean, I designed it.
 
+## Building
+It should be as easy as cloning the repo and going:
+```shell
+make
+```
+Requires MinGW on Windows.
 ## Snippets
 Hello world:
 ```zig
@@ -36,3 +41,4 @@ var Timer = import("Timer.hby");
 var timer = Timer:new(5);
 timer.step(1);
 ```
+

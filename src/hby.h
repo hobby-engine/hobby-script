@@ -30,6 +30,7 @@ typedef enum {
   hby_type_function,
   hby_type_cfunction,
   hby_type_array,
+  hby_type_udata,
   hby_type_count, // How many types there are
 } hby_ValueType;
 
@@ -84,8 +85,9 @@ hby_api void hby_push_enum(hby_State* h, const char* name);
 hby_api void hby_push_cfunction(hby_State* h, const char* name, hby_CFn fn, int argc);
 hby_api void hby_push_string_copy(hby_State* h, const char* chars, size_t len);
 hby_api void hby_push_string(hby_State* h, char* chars, size_t len);
+hby_api void* hby_create_udata(hby_State* h, size_t size);
 hby_api void hby_create_array(hby_State* h);
-hby_api void hby_instance(hby_State* h); // TODO
+void hby_instance(hby_State* h, int _struct);
 
 hby_api const char* hby_typestr(hby_ValueType type, size_t* len_out);
 hby_api void hby_tostr(hby_State* h, int index);
@@ -101,6 +103,10 @@ hby_api void hby_add_static_const(hby_State* h, const char* name, int _struct);
 hby_api void hby_add_member(hby_State* h, hby_MethodType type, int _struct);
 hby_api void hby_add_members(hby_State* h, hby_StructMethod* members, int index);
 
+hby_api void* hby_get_udata(hby_State* h, int udata);
+hby_api void hby_set_udata_struct(hby_State* h, int udata);
+hby_api void hby_set_udata_finalizer(hby_State* h, hby_CFn fn);
+
 hby_api void hby_push_array(hby_State* h, int array);
 hby_api void hby_get_array(hby_State* h, int array, int index);
 
@@ -115,6 +121,7 @@ hby_api void hby_add_enum(hby_State* h, const char* name, int _enum);
 #define hby_is_enum(h, index)         (hby_get_type(h, index) == hby_type_enum)
 #define hby_is_function(h, index)     (hby_get_type(h, index) == hby_type_function)
 #define hby_is_cfunction(h, index)    (hby_get_type(h, index) == hby_type_cfunction)
+#define hby_is_udata(h, index)        (hby_get_type(h, index) == hby_type_udata)
 #define hby_is_array(h, index)        (hby_get_type(h, index) == hby_type_array)
 
 #define hby_expect_num(h, index)       hby_expect_type(h, index, hby_type_number);
@@ -126,6 +133,7 @@ hby_api void hby_add_enum(hby_State* h, const char* name, int _enum);
 #define hby_expect_enum(h, index)      hby_expect_type(h, index, hby_type_enum);
 #define hby_expect_function(h, index)  hby_expect_type(h, index, hby_type_function);
 #define hby_expect_cfunction(h, index) hby_expect_type(h, index, hby_type_cfunction);
+#define hby_expect_udata(h, index)     hby_expect_type(h, index, hby_type_udata);
 #define hby_expect_array(h, index)     hby_expect_type(h, index, hby_type_array);
 
 #endif // __HBY_H

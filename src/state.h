@@ -26,6 +26,17 @@ typedef struct {
   CallType type;
 } CallFrame;
 
+typedef struct {
+  bool can_gc;
+  size_t alloced;
+  size_t next_gc;
+  struct GcObj* objs;
+  struct GcObj* udata;
+  int grayc;
+  int gray_cap;
+  struct GcObj** gray_stack;
+} GcState;
+
 struct hby_State {
   CallFrame frame_stack[frames_max];
   CallFrame* frame;
@@ -37,7 +48,6 @@ struct hby_State {
   Map strs;
   Map files;
   struct GcUpval* open_upvals;
-  struct GcObj* objs;
   struct GcArr* args;
 
   struct GcStruct* number_struct;
@@ -46,15 +56,8 @@ struct hby_State {
   struct GcStruct* string_struct;
   struct GcStruct* array_struct;
 
-  bool can_gc;
-  size_t alloced;
-  size_t next_gc;
-
+  GcState gc;
   jmp_buf err_jmp;
-
-  int grayc;
-  int gray_cap;
-  struct GcObj** gray_stack;
 
   struct Parser* parser;
 };

@@ -18,6 +18,7 @@ typedef enum {
   obj_method,
   obj_enum,
   obj_arr,
+  obj_udata,
 } ObjType;
 
 struct GcObj {
@@ -84,6 +85,14 @@ typedef struct {
   Map fields; // Struct members
 } GcInst;
 
+typedef struct {
+  GcObj obj; // Object header
+  GcStruct* _struct; // The struct this ptr uses
+  GcCFn* finalizer;
+  void* data; // The data
+  size_t size;
+} GcUData;
+
 // TODO: Allow this to work with C functions too
 typedef struct {
   GcObj obj; // Object header
@@ -118,6 +127,7 @@ static inline bool obj_of_type(Val val, ObjType type) {
 #define is_enum(v)    obj_of_type(v, obj_enum)
 #define is_arr(v)     obj_of_type(v, obj_arr)
 #define is_str(v)     obj_of_type(v, obj_str)
+#define is_udata(v)   obj_of_type(v, obj_udata)
 
 #define as_struct(v)  ((GcStruct*)as_obj(v))
 #define as_method(v)  ((GcMethod*)as_obj(v))
@@ -128,6 +138,7 @@ static inline bool obj_of_type(Val val, ObjType type) {
 #define as_fn(v)      ((GcFn*)as_obj(v))
 #define as_enum(v)    ((GcEnum*)as_obj(v))
 #define as_arr(v)     ((GcArr*)as_obj(v))
+#define as_udata(v)   ((GcUData*)as_obj(v))
 #define as_str(v)     ((GcStr*)as_obj(v))
 #define as_cstr(v)    (as_str(v)->chars)
 
@@ -141,6 +152,7 @@ GcFn* create_fn(hby_State* h, GcStr* file_path);
 GcClosure* create_closure(hby_State* h, GcFn* fn);
 GcEnum* create_enum(hby_State* h, GcStr* name);
 GcArr* create_arr(hby_State* h);
+GcUData* create_udata(hby_State* h, size_t size);
 GcStr* copy_str(hby_State* h, const char* chars, int len);
 GcStr* take_str(hby_State* h, char* chars, int len);
 

@@ -8,7 +8,7 @@
 // #define hby_trace_exec
 // #define hby_print_bc
 
-// #define hby_stress_gc
+#define hby_stress_gc
 // #define hby_log_gc
 
 #define nan_boxing

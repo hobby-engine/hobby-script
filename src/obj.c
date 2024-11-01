@@ -15,8 +15,8 @@ static GcObj* alloc_obj_impl(hby_State* h, size_t size, ObjType type) {
   obj->type = type;
   obj->marked = false;
 
-  obj->next = h->objs;
-  h->objs = obj;
+  obj->next = h->gc.objs;
+  h->gc.objs = obj;
 
 #ifdef hby_log_gc
   printf("%p allocated %zu for type %d\n", (void*)obj, size, type);
@@ -109,6 +109,26 @@ GcArr* create_arr(hby_State* h) {
   GcArr* arr = alloc_obj(h, GcArr, obj_arr);
   init_varr(&arr->varr);
   return arr;
+}
+
+GcUData* create_udata(hby_State* h, size_t size) {
+  GcUData* udata = (GcUData*)reallocate(h, NULL, 0, sizeof(GcUData));
+  udata->obj.type = obj_udata;
+  udata->obj.marked = false;
+  udata->obj.next = h->gc.udata;
+  h->gc.udata = (GcObj*)udata;
+
+#ifdef hby_log_gc
+  printf("%p udata allocated %zu for type %d\n", (void*)obj, size, type);
+#endif
+
+  udata->_struct = NULL;
+  udata->finalizer = NULL;
+  udata->size = size;
+  push(h, create_obj(udata));
+  udata->data = (void*)reallocate(h, NULL, 0, size);
+  pop(h);
+  return udata;
 }
 
 static GcStr* alloc_str(hby_State* h, char* chars, int len, u32 hash) {

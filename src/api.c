@@ -108,6 +108,7 @@ hby_ValueType hby_get_type(hby_State* h, int index) {
       case obj_closure: return hby_type_function;
       case obj_c_fn: return hby_type_cfunction;
       case obj_inst: return hby_type_instance;
+      case obj_udata: return hby_type_udata;
       case obj_arr: return hby_type_array;
       default: break;
     }
@@ -248,8 +249,19 @@ void hby_push_string(hby_State* h, char* chars, size_t len) {
   push(h, create_obj(take_str(h, chars, len)));
 }
 
+hby_api void* hby_create_udata(hby_State* h, size_t size) {
+  GcUData* udata = create_udata(h, size);
+  push(h, create_obj(udata));
+  return udata->data;
+}
+
 void hby_create_array(hby_State* h) {
   push(h, create_obj(create_arr(h)));
+}
+
+void hby_instance(hby_State* h, int _struct) {
+  hby_expect_struct(h, _struct);
+  push(h, create_obj(create_inst(h, as_struct(val_at(h, _struct)))));
 }
 
 
@@ -287,6 +299,9 @@ const char* hby_typestr(hby_ValueType type, size_t* len_out) {
     case hby_type_cfunction:
       *len_out = 10;
       return "cfunction";
+    case hby_type_udata:
+      *len_out = 5;
+      return "udata";
     case hby_type_array:
       *len_out = 5;
       return "array";
@@ -380,6 +395,28 @@ void hby_add_members(hby_State* h, hby_StructMethod* members, int _struct) {
     hby_push_cfunction(h, method->name, method->fn, method->argc);
     hby_add_member(h, method->mtype, _struct);
   }
+}
+
+hby_api void* hby_get_udata(hby_State* h, int udata) {
+  hby_expect_udata(h, udata);
+  return as_udata(val_at(h, udata))->data;
+}
+
+hby_api void hby_set_udata_struct(hby_State* h, int udata) {
+  hby_expect_udata(h, udata);
+  hby_expect_struct(h, -1);
+
+  GcUData* u = as_udata(val_at(h, udata));
+  u->_struct = as_struct(pop(h));
+}
+
+hby_api void hby_set_udata_finalizer(hby_State* h, hby_CFn fn) {
+  hby_expect_udata(h, -1);
+  GcUData* u = as_udata(val_at(h, -1));
+
+  hby_push_cfunction(h, "gc", fn, 1);
+  u->finalizer = as_c_fn(val_at(h, -1));
+  pop(h);
 }
 
 void hby_push_array(hby_State* h, int array) {

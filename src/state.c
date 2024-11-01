@@ -18,17 +18,17 @@ hby_State* create_state() {
   // stack. This - 1 is hacky and shouldn't really exist.
   h->frame = h->frame_stack - 1;
 
-  h->objs = NULL;
   h->parser = allocate(h, Parser, 1);
   h->parser->compiler = NULL;
 
-  h->can_gc = true;
-  h->alloced = 0;
-  h->next_gc = 1024 * 1024;
-
-  h->grayc = 0;
-  h->gray_cap = 0;
-  h->gray_stack = NULL;
+  h->gc.objs = NULL;
+  h->gc.udata = NULL;
+  h->gc.can_gc = true;
+  h->gc.alloced = 0;
+  h->gc.next_gc = 1024 * 1024;
+  h->gc.grayc = 0;
+  h->gc.gray_cap = 0;
+  h->gc.gray_stack = NULL;
 
   h->args = create_arr(h);
 

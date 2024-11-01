@@ -7,6 +7,7 @@
 #include "val.h"
 #include "arr.h"
 #include "state.h"
+#include "vm.h"
 #include "obj.h"
 
 # include <stdio.h>
@@ -18,12 +19,12 @@
 #define gc_grow_factor 2
 
 void* reallocate(hby_State* h, void* ptr, size_t plen, size_t len) {
-  h->alloced += len - plen;
+  h->gc.alloced += len - plen;
   if (len > plen) {
 #ifdef hby_stress_gc
     gc(h);
 #else
-    if (h->alloced > h->next_gc) {
+    if (h->gc.alloced > h->gc.next_gc) {
       gc(h);
     }
 #endif
@@ -102,6 +103,12 @@ static void free_obj(hby_State* h, GcObj* obj) {
       release(h, GcStr, obj);
       break;
     }
+    case obj_udata: {
+      GcUData* udata = (GcUData*)obj;
+      reallocate(h, udata->data, udata->size, 0);
+      release(h, GcUData, obj);
+      break;
+    }
   }
 }
 
@@ -114,16 +121,16 @@ void mark_obj(hby_State* h, GcObj* obj) {
 #endif
   obj->marked = true;
 
-  if (h->gray_cap < h->grayc + 1) {
-    h->gray_cap = grow_cap(h->gray_cap);
-    h->gray_stack = (GcObj**)realloc(
-      h->gray_stack, sizeof(GcObj*) * h->gray_cap);
-    if (h->gray_stack == NULL) {
+  if (h->gc.gray_cap < h->gc.grayc + 1) {
+    h->gc.gray_cap = grow_cap(h->gc.gray_cap);
+    h->gc.gray_stack = (GcObj**)realloc(
+      h->gc.gray_stack, sizeof(GcObj*) * h->gc.gray_cap);
+    if (h->gc.gray_stack == NULL) {
       exit(1);
     }
   }
 
-  h->gray_stack[h->grayc++] = obj;
+  h->gc.gray_stack[h->gc.grayc++] = obj;
 }
 
 void mark_val(hby_State* h, Val val) {
@@ -196,6 +203,12 @@ static void blacken_obj(hby_State* h, GcObj* obj) {
       mark_val(h, up->closed);
       break;
     }
+    case obj_udata: {
+      GcUData* udata = (GcUData*)obj;
+      mark_obj(h, (GcObj*)udata->_struct);
+      mark_obj(h, (GcObj*)udata->finalizer);
+      break;
+    }
     case obj_str:
       break;
   }
@@ -225,15 +238,15 @@ static void mark_roots(hby_State* h) {
 }
 
 static void trace_refs(hby_State* h) {
-  while (h->grayc > 0) {
-    GcObj* obj = h->gray_stack[--h->grayc];
+  while (h->gc.grayc > 0) {
+    GcObj* obj = h->gc.gray_stack[--h->gc.grayc];
     blacken_obj(h, obj);
   }
 }
 
-static void sweep(hby_State* h) {
+static void sweep(hby_State* h, GcObj** list) {
   GcObj* prev = NULL;
-  GcObj* obj = h->objs;
+  GcObj* obj = *list;
 
   while (obj != NULL) {
     if (obj->marked) {
@@ -246,7 +259,7 @@ static void sweep(hby_State* h) {
       if (prev != NULL) {
         prev->next = obj;
       } else {
-        h->objs = obj;
+        *list = obj;
       }
 
       free_obj(h, unreached);
@@ -254,8 +267,21 @@ static void sweep(hby_State* h) {
   }
 }
 
+static void finalize_udata(hby_State* h, bool need_unmarked) {
+  GcObj* obj = h->gc.udata;
+  while (obj != NULL) {
+    GcUData* udata = (GcUData*)obj;
+    if ((!need_unmarked || !obj->marked) && udata->finalizer != NULL) {
+      push(h, create_obj(udata->finalizer));
+      push(h, create_obj(udata));
+      hby_call(h, 1);
+    }
+    obj = obj->next;
+  }
+}
+
 void gc(hby_State* h) {
-  if (!h->can_gc) {
+  if (!h->gc.can_gc) {
     return;
   }
 
@@ -267,9 +293,13 @@ void gc(hby_State* h) {
   mark_roots(h);
   trace_refs(h);
   rem_black_map(h, &h->strs);
-  sweep(h);
 
-  h->next_gc = h->alloced * gc_grow_factor;
+  finalize_udata(h, true);
+
+  sweep(h, &h->gc.udata);
+  sweep(h, &h->gc.objs);
+
+  h->gc.next_gc = h->gc.alloced * gc_grow_factor;
 
 #ifdef hby_log_gc
   printf(
@@ -279,13 +309,18 @@ void gc(hby_State* h) {
 #endif
 }
 
-void free_objs(hby_State* h) {
-  GcObj* obj = h->objs;
+static void free_linked_list(hby_State* h, GcObj* head) {
+  GcObj* obj = head;
   while (obj != NULL) {
     GcObj* next = obj->next;
     free_obj(h, obj);
     obj = next;
   }
+}
 
-  free(h->gray_stack);
+void free_objs(hby_State* h) {
+  finalize_udata(h, false);
+  free_linked_list(h, h->gc.udata);
+  free_linked_list(h, h->gc.objs);
+  free(h->gc.gray_stack);
 }

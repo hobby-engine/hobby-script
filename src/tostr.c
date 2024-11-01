@@ -88,6 +88,8 @@ GcStr* to_str(hby_State* h, Val val) {
     return copy_str(h, "null", 4);
   } else if (is_arr(val)) {
     return arr_to_str(h, as_arr(val), 1);
+  } else if (is_udata(val)) {
+    return copy_str(h, "<userdata>", 10);
   } else if (is_fn(val)) {
     return fn_to_str(h, as_fn(val));
   } else if (is_closure(val)) {

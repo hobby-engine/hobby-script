@@ -179,6 +179,22 @@ bool invoke(hby_State* h, GcStr* name, int argc) {
         return builtin_invoke(h, h->array_struct, name, argc);
       case obj_str:
         return builtin_invoke(h, h->string_struct, name, argc);
+      case obj_udata: {
+        GcUData* udata = as_udata(reciever);
+        
+        if (udata->_struct == NULL) {
+          runtime_err(h, err_msg_undef_prop, name->chars);
+          return false;
+        }
+        
+        Val cfn;
+        if (!get_map(&udata->_struct->methods, name, &cfn)) {
+          runtime_err(h, err_msg_undef_prop, name->chars);
+          return false;
+        }
+        
+        return call_c(h, as_c_fn(cfn), argc);
+      }
       default:
         break;
     }
@@ -435,6 +451,25 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
           return false;
         }
 
+        GcMethod* method = create_c_method(h, peek(h, 0), as_c_fn(cfn));
+        pop(h);
+        push(h, create_obj(method));
+        return true;
+      }
+      case obj_udata: {
+        GcUData* udata = as_udata(owner);
+        
+        if (udata->_struct == NULL) {
+          runtime_err(h, err_msg_undef_prop, name->chars);
+          return false;
+        }
+        
+        Val cfn;
+        if (!get_map(&udata->_struct->methods, name, &cfn)) {
+          runtime_err(h, err_msg_undef_prop, name->chars);
+          return false;
+        }
+        
         GcMethod* method = create_c_method(h, peek(h, 0), as_c_fn(cfn));
         pop(h);
         push(h, create_obj(method));

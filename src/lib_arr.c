@@ -130,7 +130,7 @@ static bool arr_join(hby_State* h, int argc) {
 
   chars = grow_arr(h, char, chars, cap, len + 1);
   chars[len] = '\0';
-  hby_push_string(h, chars, len);
+  hby_push_lstr(h, chars, len);
   return true;
 }
 
@@ -155,8 +155,8 @@ static bool arr_eqls(hby_State* h, int argc) {
   }
 
   for (int i = 0; i < len; i++) {
-    hby_index_array(h, 0, i);
-    hby_index_array(h, 1, i);
+    hby_array_index(h, 0, i);
+    hby_array_index(h, 1, i);
 
     if (!vals_eql(h->top[-1], h->top[-2])) {
       hby_pop(h, 2);
@@ -189,7 +189,7 @@ hby_StructMethod arr_methods[] = {
 bool open_arr(hby_State* h, int argc) {
   hby_push_struct(h, "Array");
   h->array_struct = as_struct(*(h->top - 1));
-  hby_add_members(h, arr_methods, -2);
+  hby_struct_add_members(h, arr_methods, -1);
   hby_set_global(h, NULL);
 
   return false;

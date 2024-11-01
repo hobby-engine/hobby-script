@@ -31,7 +31,7 @@ hby_StructMethod ease_mod[] = {
 
 bool open_ease(hby_State* h, int argc) {
   hby_push_struct(h, "ease");
-  hby_add_members(h, ease_mod, -2);
+  hby_struct_add_members(h, ease_mod, -1);
   hby_set_global(h, NULL);
   hby_pop(h, 2);
 

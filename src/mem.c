@@ -205,7 +205,7 @@ static void blacken_obj(hby_State* h, GcObj* obj) {
     }
     case obj_udata: {
       GcUData* udata = (GcUData*)obj;
-      mark_obj(h, (GcObj*)udata->_struct);
+      mark_obj(h, (GcObj*)udata->metastruct);
       mark_obj(h, (GcObj*)udata->finalizer);
       break;
     }

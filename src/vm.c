@@ -182,13 +182,13 @@ bool invoke(hby_State* h, GcStr* name, int argc) {
       case obj_udata: {
         GcUData* udata = as_udata(reciever);
         
-        if (udata->_struct == NULL) {
+        if (udata->metastruct == NULL) {
           runtime_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
         
         Val cfn;
-        if (!get_map(&udata->_struct->methods, name, &cfn)) {
+        if (!get_map(&udata->metastruct->methods, name, &cfn)) {
           runtime_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
@@ -385,7 +385,7 @@ static bool is_false(Val val) {
   return is_null(val) || (is_bool(val) && !as_bool(val));
 }
 
-static GcStruct* get_type(hby_State* h, Val val) {
+GcStruct* vm_get_typestruct(hby_State* h, Val val) {
   if (is_num(val)) {
     return h->number_struct;
   } else if (is_bool(val)) {
@@ -400,12 +400,18 @@ static GcStruct* get_type(hby_State* h, Val val) {
     return h->string_struct;
   } else if (is_struct(val)) {
     return as_struct(val);
+  } else if (is_udata(val)) {
+    GcUData* udata = as_udata(val);
+    if (udata->metastruct == NULL) {
+      return h->udata_struct;
+    }
+    return udata->metastruct;
   }
 
   return NULL;
 }
 
-static void concat(hby_State* h) {
+void vm_concat(hby_State* h) {
   GcStr* b = to_str(h, peek(h, 0));
   push(h, create_obj(b));
   GcStr* a = to_str(h, peek(h, 2));
@@ -424,6 +430,20 @@ static void concat(hby_State* h) {
   pop(h); // Val A
   pop(h); // Val B
   push(h, create_obj(res));
+}
+
+bool vm_isop(hby_State* h) {
+  if (!is_struct(peek(h, 0))) {
+    return false;
+  }
+
+  GcStruct* b = as_struct(pop(h));
+  GcStruct* a = vm_get_typestruct(h, pop(h));
+  if (a == NULL) {
+    return false;
+  }
+
+  return a == b;
 }
 
 static bool get_property(hby_State* h, Val owner, GcStr* name) {
@@ -459,13 +479,13 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
       case obj_udata: {
         GcUData* udata = as_udata(owner);
         
-        if (udata->_struct == NULL) {
+        if (udata->metastruct == NULL) {
           runtime_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
         
         Val cfn;
-        if (!get_map(&udata->_struct->methods, name, &cfn)) {
+        if (!get_map(&udata->metastruct->methods, name, &cfn)) {
           runtime_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
@@ -795,24 +815,15 @@ static hby_InterpretResult run(hby_State* h) {
         break;
       }
       case bc_cat:
-        concat(h);
+        vm_concat(h);
         break;
-      case bc_is: {
+      case bc_is:
         if (!is_struct(peek(h, 0))) {
-          runtime_err(h, err_msg_bad_operand("type"));
+          runtime_err(h, err_msg_bad_operands("type"));
           return hby_result_runtime_err;
         }
-
-        GcStruct* b = as_struct(pop(h));
-        GcStruct* a = get_type(h, pop(h));
-        if (a == NULL) {
-          push(h, create_bool(false));
-          break;
-        }
-
-        push(h, create_bool(a == b));
+        push(h, create_bool(vm_isop(h)));
         break;
-      }
       case bc_neg:
         if (!is_num(peek(h, 0))) {
           runtime_err(h, err_msg_bad_operand("number"));

@@ -122,7 +122,7 @@ GcUData* create_udata(hby_State* h, size_t size) {
   printf("%p udata allocated %zu for type %d\n", (void*)obj, size, type);
 #endif
 
-  udata->_struct = NULL;
+  udata->metastruct = NULL;
   udata->finalizer = NULL;
   udata->size = size;
   push(h, create_obj(udata));

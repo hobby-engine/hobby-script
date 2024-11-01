@@ -179,22 +179,26 @@ hby_StructMethod math_mod[] = {
 
 bool open_math(hby_State* h, int argc) {
   hby_push_struct(h, "math");
-  hby_add_members(h, math_mod, -2);
+  hby_struct_add_members(h, math_mod, -1);
 
   hby_push_num(h, pi);
-  hby_add_static_const(h, "pi", -2);
+  hby_struct_add_const(h, "pi", -2);
   hby_push_num(h, tau);
-  hby_add_static_const(h, "tau", -2);
+  hby_struct_add_const(h, "tau", -2);
   hby_push_num(h, e);
-  hby_add_static_const(h, "e", -2);
+  hby_struct_add_const(h, "e", -2);
   hby_push_num(h, phi);
-  hby_add_static_const(h, "phi", -2);
+  hby_struct_add_const(h, "phi", -2);
   hby_push_num(h, emasch);
-  hby_add_static_const(h, "emasch", -2);
+  hby_struct_add_const(h, "emasch", -2);
   hby_push_num(h, deg2rad);
-  hby_add_static_const(h, "deg2rad", -2);
+  hby_struct_add_const(h, "deg2rad", -2);
   hby_push_num(h, rad2deg);
-  hby_add_static_const(h, "rad2deg", -2);
+  hby_struct_add_const(h, "rad2deg", -2);
+  hby_push_num(h, NAN);
+  hby_struct_add_const(h, "nan", -2);
+  hby_push_num(h, INFINITY);
+  hby_struct_add_const(h, "inf", -2);
 
   hby_set_global(h, "math");
   hby_pop(h, 2);

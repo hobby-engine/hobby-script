@@ -40,7 +40,7 @@ static bool io_input(hby_State* h, int argc) {
   i = grow_arr(h, char, i, cap, len + 1);
   i[len] = '\0';
 
-  hby_push_string(h, i, len);
+  hby_push_lstr(h, i, len);
   return true;
 }
 
@@ -64,10 +64,10 @@ static bool file_open(hby_State* h, int argc) {
   const char* path = hby_get_string(h, 1, &path_len);
   const char* mode = hby_get_string(h, 2, NULL);
 
-  File* file = (File*)hby_create_udata(h, sizeof(File));
+  File* file = (File*)hby_push_udata(h, sizeof(File));
   hby_get_global(h, "File");
-  hby_set_udata_struct(h, -2);
-  hby_set_udata_finalizer(h, file_gc);
+  hby_udata_set_metastruct(h, -2);
+  hby_udata_set_finalizer(h, file_gc);
 
   file->handle = fopen(path, mode);
 
@@ -114,12 +114,16 @@ static bool file_readall(hby_State* h, int argc) {
 
   buf[bytes_read] = '\0';
 
-  hby_push_string(h, buf, file->size);
+  hby_push_lstr(h, buf, file->size);
   return true;
 }
 
 static bool file_close(hby_State* h, int argc) {
   File* file = (File*)hby_get_udata(h, 0);
+  if (file->closed) {
+    return false;
+  }
+
   file->closed = true;
   fclose(file->handle);
   return false;
@@ -142,13 +146,42 @@ hby_StructMethod io[] = {
 
 bool open_io(hby_State* h, int argc) {
   hby_push_struct(h, "io");
-  hby_add_members(h, io, -2);
+  hby_struct_add_members(h, io, -1);
   hby_set_global(h, "io");
-  hby_pop(h, 1);
 
   hby_push_struct(h, "File");
-  hby_add_members(h, file, -2);
+  hby_struct_add_members(h, file, -1);
   hby_set_global(h, "File");
+
+  hby_get_global(h, "io");
+
+  File* _stdout = (File*)hby_push_udata(h, sizeof(File));
+  hby_get_global(h, "File");
+  hby_udata_set_metastruct(h, -2);
+  _stdout->handle = stdout;
+  _stdout->size = 0;
+  _stdout->closed = true;
+
+  hby_struct_add_const(h, "stdout", -2);
+
+  File* _stderr = (File*)hby_push_udata(h, sizeof(File));
+  hby_get_global(h, "File");
+  hby_udata_set_metastruct(h, -2);
+  _stderr->handle = stderr;
+  _stderr->size = 0;
+  _stderr->closed = true;
+
+  hby_struct_add_const(h, "stderr", -2);
+
+  File* _stdin = (File*)hby_push_udata(h, sizeof(File));
+  hby_get_global(h, "File");
+  hby_udata_set_metastruct(h, -2);
+  _stdin->handle = stdin;
+  _stdin->size = 0;
+  _stdin->closed = true;
+
+  hby_struct_add_const(h, "stdin", -2);
+
   hby_pop(h, 1);
 
   return false;

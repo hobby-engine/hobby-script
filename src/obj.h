@@ -87,7 +87,7 @@ typedef struct {
 
 typedef struct {
   GcObj obj; // Object header
-  GcStruct* _struct; // The struct this ptr uses
+  GcStruct* metastruct; // The struct this ptr uses
   GcCFn* finalizer;
   void* data; // The data
   size_t size;

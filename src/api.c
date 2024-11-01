@@ -150,7 +150,7 @@ bool hby_has_prop(hby_State* h, const char* name, int index) {
       case obj_udata: {
         GcUData* udata = as_udata(val);
         Val val;
-        if (get_map(&udata->_struct->methods, str_name, &val)) {
+        if (get_map(&udata->metastruct->methods, str_name, &val)) {
           return true;
         }
         return false;
@@ -189,7 +189,7 @@ void hby_get_prop(hby_State* h, const char* name, int index) {
       case obj_udata: {
         GcUData* udata = as_udata(val);
         Val val;
-        if (get_map(&udata->_struct->methods, str_name, &val)) {
+        if (get_map(&udata->metastruct->methods, str_name, &val)) {
           push(h, val);
           return;
         }
@@ -316,21 +316,29 @@ void hby_push_cfunction(hby_State* h, const char* name, hby_CFn fn, int argc) {
   push(h, create_obj(cfn));
 }
 
-void hby_push_string_copy(hby_State* h, const char* chars, size_t len) {
+void hby_push_lstrcpy(hby_State* h, const char* chars, size_t len) {
   push(h, create_obj(copy_str(h, chars, len)));
 }
 
-void hby_push_string(hby_State* h, char* chars, size_t len) {
+void hby_push_lstr(hby_State* h, char* chars, size_t len) {
   push(h, create_obj(take_str(h, chars, len)));
 }
 
-hby_api void* hby_create_udata(hby_State* h, size_t size) {
+void hby_push_strcpy(hby_State* h, const char* chars) {
+  hby_push_lstrcpy(h, chars, strlen(chars));
+}
+
+void hby_push_str(hby_State* h, char* chars) {
+  hby_push_lstr(h, chars, strlen(chars));
+}
+
+void* hby_push_udata(hby_State* h, size_t size) {
   GcUData* udata = create_udata(h, size);
   push(h, create_obj(udata));
   return udata->data;
 }
 
-void hby_create_array(hby_State* h) {
+void hby_push_array(hby_State* h) {
   push(h, create_obj(create_arr(h)));
 }
 
@@ -403,6 +411,14 @@ int hby_len(hby_State* h, int index) {
   }
 }
 
+void hby_concat(hby_State* h) {
+  vm_concat(h);
+}
+
+void hby_push_typestruct(hby_State* h, int index) {
+  push(h, create_obj(vm_get_typestruct(h, val_at(h, index))));
+}
+
 
 void hby_call(hby_State* h, int argc) {
   vm_call(h, h->top[-1 - argc], argc);
@@ -419,7 +435,7 @@ void hby_open_lib(hby_State* h, hby_CFn fn) {
 }
 
 
-void hby_add_static_const(hby_State* h, const char* name, int _struct) {
+void hby_struct_add_const(hby_State* h, const char* name, int _struct) {
   Val s_val = val_at(h, _struct);
   if (!is_struct(s_val)) {
     hby_err(h, "Expected struct");
@@ -435,7 +451,7 @@ void hby_add_static_const(hby_State* h, const char* name, int _struct) {
   pop(h); // constant
 }
 
-void hby_add_member(hby_State* h, hby_MethodType type, int _struct) {
+void hby_struct_add_member(hby_State* h, hby_MethodType type, int _struct) {
   Val s_val = val_at(h, _struct);
   if (!is_struct(s_val)) {
     hby_err(h, "Expected struct");
@@ -465,22 +481,27 @@ void hby_add_member(hby_State* h, hby_MethodType type, int _struct) {
   pop(h); // c fn
 }
 
-void hby_add_members(hby_State* h, hby_StructMethod* members, int _struct) {
+void hby_struct_add_members(hby_State* h, hby_StructMethod* members, int _struct) {
+  // The struct's index will be offset by the c function being on the stack
+  if (_struct < 0) {
+    _struct--;
+  }
+
   for (hby_StructMethod* method = members; method->name != NULL; method++) {
     hby_push_cfunction(h, method->name, method->fn, method->argc);
-    hby_add_member(h, method->mtype, _struct);
+    hby_struct_add_member(h, method->mtype, _struct);
   }
 }
 
-hby_api void hby_set_udata_struct(hby_State* h, int udata) {
+hby_api void hby_udata_set_metastruct(hby_State* h, int udata) {
   hby_expect_udata(h, udata);
   hby_expect_struct(h, -1);
 
   GcUData* u = as_udata(val_at(h, udata));
-  u->_struct = as_struct(pop(h));
+  u->metastruct = as_struct(pop(h));
 }
 
-hby_api void hby_set_udata_finalizer(hby_State* h, hby_CFn fn) {
+hby_api void hby_udata_set_finalizer(hby_State* h, hby_CFn fn) {
   hby_expect_udata(h, -1);
   GcUData* u = as_udata(val_at(h, -1));
 
@@ -489,14 +510,14 @@ hby_api void hby_set_udata_finalizer(hby_State* h, hby_CFn fn) {
   pop(h);
 }
 
-void hby_push_array(hby_State* h, int array) {
+void hby_array_add(hby_State* h, int array) {
   hby_expect_array(h, array);
   GcArr* arr = as_arr(val_at(h, array));
   push_varr(h, &arr->varr, val_at(h, -1));
   pop(h);
 }
 
-void hby_index_array(hby_State* h, int array, int index) {
+void hby_array_index(hby_State* h, int array, int index) {
   hby_expect_array(h, array);
   GcArr* arr = as_arr(val_at(h, array));
   push(h, arr->varr.items[index]);

@@ -45,9 +45,9 @@ static double range(Rng* rng, double low, double high) {
 }
 
 static bool rng_new(hby_State* h, int argc) {
-  Rng* rng = (Rng*)hby_create_udata(h, sizeof(Rng));
+  Rng* rng = (Rng*)hby_push_udata(h, sizeof(Rng));
   hby_get_global(h, "Rng");
-  hby_set_udata_struct(h, -2);
+  hby_udata_set_metastruct(h, -2);
   rng->a = wang_hash64(time(NULL));
   return true;
 }
@@ -98,7 +98,7 @@ hby_StructMethod rng_struct[] = {
 
 bool open_rand(hby_State* h, int argc) {
   hby_push_struct(h, "Rng");
-  hby_add_members(h, rng_struct, -2);
+  hby_struct_add_members(h, rng_struct, -1);
   hby_set_global(h, "Rng");
 
   return false;

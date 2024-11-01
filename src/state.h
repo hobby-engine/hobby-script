@@ -55,6 +55,7 @@ struct hby_State {
   struct GcStruct* function_struct;
   struct GcStruct* string_struct;
   struct GcStruct* array_struct;
+  struct GcStruct* udata_struct;
 
   GcState gc;
   jmp_buf err_jmp;

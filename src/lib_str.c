@@ -86,7 +86,7 @@ static bool str_rem(hby_State* h, int argc) {
   size_t res_len;
   char* res = concat(h, lhs, lhs_len, rhs, rhs_len, &res_len);
 
-  hby_push_string(h, res, res_len);
+  hby_push_lstr(h, res, res_len);
   return true;
 }
 
@@ -107,7 +107,7 @@ static bool str_trim(hby_State* h, int argc) {
     }
   }
 
-  hby_push_string_copy(h, str + start, end - start);
+  hby_push_lstrcpy(h, str + start, end - start);
   return true;
 }
 
@@ -118,7 +118,7 @@ static bool str_split(hby_State* h, int argc) {
   size_t delim_len;
   const char* delim = hby_get_string(h, 1, &delim_len);
 
-  hby_create_array(h);
+  hby_push_array(h);
 
   int start = 0;
   int len = 0;
@@ -145,8 +145,8 @@ static bool str_split(hby_State* h, int argc) {
 
     if (is_delim) {
       if (len > 0) {
-        hby_push_string_copy(h, str + start, len);
-        hby_push_array(h, -2);
+        hby_push_lstrcpy(h, str + start, len);
+        hby_array_add(h, -2);
       }
       start += len + delim_len;
       len = 0;
@@ -156,8 +156,8 @@ static bool str_split(hby_State* h, int argc) {
   }
 
   if (len > 0) {
-    hby_push_string_copy(h, str + start, len);
-    hby_push_array(h, -2);
+    hby_push_lstrcpy(h, str + start, len);
+    hby_array_add(h, -2);
   }
 
   return true;
@@ -186,7 +186,7 @@ static bool str_toup(hby_State* h, int argc) {
     upper[i] = c;
   }
 
-  hby_push_string(h, upper, len);
+  hby_push_lstr(h, upper, len);
   return true;
 }
 
@@ -205,7 +205,7 @@ static bool str_tolow(hby_State* h, int argc) {
     upper[i] = c;
   }
 
-  hby_push_string(h, upper, len);
+  hby_push_lstr(h, upper, len);
   return true;
 }
 
@@ -252,6 +252,29 @@ static bool str_isalpha(hby_State* h, int argc) {
   return true;
 }
 
+static bool str_isalphanum(hby_State* h, int argc) {
+  size_t str_len;
+  const char* str = hby_get_string(h, 0, &str_len);
+
+  if (str_len == 0) {
+    hby_push_bool(h, false);
+    return true;
+  }
+
+  for (size_t i = 0; i < str_len; i++) {
+    char c = str[i];
+    if ((c < 'a' || c > 'z') &&
+        (c < 'A' || c > 'Z') &&
+        (c < '0' || c > '9')) {
+      hby_push_bool(h, false);
+      return true;
+    }
+  }
+
+  hby_push_bool(h, true);
+  return true;
+}
+
 
 hby_StructMethod str_methods[] = {
   {"len", str_len, 0, hby_method},
@@ -263,13 +286,14 @@ hby_StructMethod str_methods[] = {
   {"tolow", str_tolow, 0, hby_method},
   {"isdigit", str_isdigit, 0, hby_method},
   {"isalpha", str_isalpha, 0, hby_method},
+  {"isalphanum", str_isalphanum, 0, hby_method},
   {NULL, NULL, 0, 0},
 };
 
 bool open_str(hby_State* h, int argc) {
   hby_push_struct(h, "String");
   h->string_struct = as_struct(*(h->top - 1));
-  hby_add_members(h, str_methods, -2);
+  hby_struct_add_members(h, str_methods, -1);
   hby_set_global(h, NULL);
 
   return false;

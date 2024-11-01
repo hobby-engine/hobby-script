@@ -68,7 +68,7 @@ static bool core_assert(hby_State* h, int argc) {
 static bool core_typestr(hby_State* h, int argc) {
   size_t len;
   const char* type_name = hby_typestr(hby_get_type(h, 1), &len);
-  hby_push_string_copy(h, type_name, len);
+  hby_push_lstrcpy(h, type_name, len);
   return true;
 }
 
@@ -98,6 +98,10 @@ bool open_core(hby_State* h, int argc) {
 
   hby_push_struct(h, "Function");
   h->function_struct = as_struct(*(h->top - 1));
+  hby_set_global(h, NULL);
+
+  hby_push_struct(h, "UData");
+  h->udata_struct = as_struct(*(h->top - 1));
   hby_set_global(h, NULL);
 
   return false;

@@ -1,0 +1,32 @@
+// Comments are made with two forward slashes.
+
+// Multiline comments are not supported.
+
+var num = 42; // Variables can be defined with the `var` keyword.
+
+var s = "string"; // Strings are immutable.
+var s = 'a'; // Single quotes are also ok.
+
+{ // You can have standalone blocks
+  // If you prefix a declaration with `global`, it will be hoisted to the
+  // highest scope.
+  global var some_global = 123; 
+}
+
+io:print(some_global); // You can print data with `print`. Automatically coerced to a string.
+
+// While loop
+while (num < 50) {
+  num++; // You can increment numbers with a postfix operator.
+  // Note that `++num` is invalid.
+}
+
+// If statement
+if (num > 40) {
+  io:print("over 40");
+} else if (s != "string") {
+  // Strings are interned, so an equality operator checks by value.
+  io:write("not over 40\n"); // io:write does not add a newline
+} else {
+
+}

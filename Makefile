@@ -16,7 +16,7 @@ else
 	config = debug
 	CFLAG += -O2 -g
 	CFLAG += -fsanitize=address -fsanitize=address
-	TARGET_PREFIX = debug_
+	TARGET_PREFIX = _debug
 endif
 
 ifeq (,$(findstring Windows,$(OS)))
@@ -42,8 +42,8 @@ ifeq (Windows,$(HOST_SYS))
 endif
 
 BIN = bin
-HBY_EXE = $(BIN)/$(TARGET_PREFIX)hobbyc
-HBY_SO = $(BIN)/$(TARGET_PREFIX)libhobbyc.so
+HBY_EXE = $(BIN)/hobbyc$(TARGET_PREFIX)
+HBY_SO = $(BIN)/libhobbyc$(TARGET_PREFIX).so
 
 HBY_SRC = \
 	src/hby.c src/api.c src/arr.c src/chunk.c src/compiler.c src/debug.c \
@@ -51,11 +51,11 @@ HBY_SRC = \
   src/lib_math.c src/lib_rand.c src/lib_str.c src/lib_sys.c src/map.c \
   src/mem.c src/obj.c src/state.c src/tostr.c src/val.c src/vm.c
 
-HBY_OBJ = $(HBY_SRC:%.c=$(BIN)/$(TARGET_PREFIX)%.o)
+HBY_OBJ = $(HBY_SRC:%.c=$(BIN)/%$(TARGET_PREFIX).o)
 HBY_DEPENDS = $(HBY_OBJ:.o=.d)
 
 HBY_EXE_SRC = src/main.c
-HBY_EXE_OBJ = $(HBY_EXE_SRC:%.c=$(BIN)/$(TARGET_PREFIX)%.o)
+HBY_EXE_OBJ = $(HBY_EXE_SRC:%.c=$(BIN)/%$(TARGET_PREFIX).o)
 HBY_EXE_DEPENDS = $(HBY_EXE_OBJ:.o=.d)
 
 ALL_OBJ = $(HBY_OBJ) $(HBY_EXE_OBJ)
@@ -81,7 +81,7 @@ $(HBY_SO): $(HBY_OBJ)
 	@echo "compiling $@"
 	@$(CC) -o $@ $< $(CFLAG) -shared $(SHARED_FLAG) $(LDFLAG)
 
-$(BIN)/$(TARGET_PREFIX)%.o: %.c
+$(BIN)/%$(TARGET_PREFIX).o: %.c
 	@$(MKDIR) $(@D)
 	@echo "compiling $< -> $@"
 	@$(CC) -o $@ -c $< $(CFLAG) -MMD -MD

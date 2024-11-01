@@ -50,6 +50,17 @@ static GcStr* obj_to_string(hby_State* h, int index) {
 
     return as_str(pop(h));
   }
+
+  if (is_udata(val) && hby_has_prop(h, "tostr", index)) {
+    hby_push(h, index);
+    hby_callon(h, "tostr", 0);
+
+    if (!hby_is_string(h, -1)) {
+      hby_err(h, "expected string to be returned from 'tostr'");
+    }
+
+    return as_str(pop(h));
+  }
   return to_str(h, val);
 }
 
@@ -120,49 +131,78 @@ hby_ValueType hby_get_type(hby_State* h, int index) {
 
 
 bool hby_has_prop(hby_State* h, const char* name, int index) {
-  Val inst_val = val_at(h, index);
-  if (!is_inst(inst_val)) {
-    hby_err(h, "Expected instance for call to 'hby_get_prop'");
-  }
-
-  GcInst* inst = as_inst(inst_val);
-
+  Val val = val_at(h, index);
   GcStr* str_name = copy_str(h, name, strlen(name));
 
-  Val val;
-  if (get_map(&inst->fields, str_name, &val)) {
-    return true;
+  if (is_obj(val)) {
+    switch (obj_type(val)) {
+      case obj_inst: {
+        GcInst* inst = as_inst(val);
+        Val val;
+        if (get_map(&inst->fields, str_name, &val)) {
+          return true;
+        }
+        if (get_map(&inst->_struct->methods, str_name, &val)) {
+          return true;
+        }
+        return false;
+      }
+      case obj_udata: {
+        GcUData* udata = as_udata(val);
+        Val val;
+        if (get_map(&udata->_struct->methods, str_name, &val)) {
+          return true;
+        }
+        return false;
+      }
+      default:
+        break;
+    }
   }
 
-  if (get_map(&inst->_struct->methods, str_name, &val)) {
-    return true;
-  }
-
+  hby_err(h, "Expected instance or udata for call to 'hby_get_prop'");
   return false;
 }
 
 void hby_get_prop(hby_State* h, const char* name, int index) {
-  Val inst_val = val_at(h, index);
-  if (!is_inst(inst_val)) {
-    hby_err(h, "Expected instance for call to 'hby_get_prop'");
-  }
-
-  GcInst* inst = as_inst(inst_val);
-
+  Val val = val_at(h, index);
   GcStr* str_name = copy_str(h, name, strlen(name));
 
-  Val val;
-  if (get_map(&inst->fields, str_name, &val)) {
-    push(h, val);
-    return;
+  if (is_obj(val)) {
+    switch (obj_type(val)) {
+      case obj_inst: {
+        GcInst* inst = as_inst(val);
+        Val val;
+        if (get_map(&inst->fields, str_name, &val)) {
+          push(h, val);
+          return;
+        }
+
+        if (get_map(&inst->_struct->methods, str_name, &val)) {
+          push(h, val);
+          return;
+        }
+
+        hby_err(h, "Undefined property '%s'", name);
+        return;
+      }
+      case obj_udata: {
+        GcUData* udata = as_udata(val);
+        Val val;
+        if (get_map(&udata->_struct->methods, str_name, &val)) {
+          push(h, val);
+          return;
+        }
+
+        hby_err(h, "Undefined property '%s'", name);
+        return;
+      }
+      default:
+        break;
+    }
   }
 
-  if (get_map(&inst->_struct->methods, str_name, &val)) {
-    push(h, val);
-    return;
-  }
-
-  hby_err(h, "Undefined property '%s'", name);
+  hby_err(h, "Expected instance or udata for call to 'hby_get_prop'");
 }
 
 

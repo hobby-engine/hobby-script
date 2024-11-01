@@ -7,6 +7,7 @@ LDFLAG = -lm
 RM = rm -f
 MKDIR = mkdir -p
 RMDIR = rmdir 2>/dev/null
+FRMDIR = rm -rf
 
 TARGET_SUFFIX = 
 
@@ -37,7 +38,7 @@ ifeq (release,$(config))
 	CFLAG += -O2
 else
 	config = debug
-	CFLAG += -g
+	CFLAG += -O2 -g
 	ifeq (Linux,$(HOST_SYS))
 		CFLAG += -fsanitize=address -fsanitize=address
 	endif
@@ -77,12 +78,12 @@ all: $(HBY_SO) $(HBY_EXE)
 $(HBY_EXE): $(HBY_OBJ) $(HBY_EXE_OBJ)
 	@$(MKDIR) $(@D)
 	@echo "compiling $@"
-	@$(CC) -o $@ $(HBY_OBJ) $(HBY_EXE_OBJ) $(CFLAG) $(LDFLAG)
+	$(CC) -o $@ $(HBY_OBJ) $(HBY_EXE_OBJ) $(CFLAG) $(LDFLAG)
 
 $(HBY_SO): $(HBY_OBJ)
 	@$(MKDIR) $(@D)
 	@echo "compiling $@"
-	@$(CC) -o $@ $< $(CFLAG) -shared $(SHARED_FLAG) $(LDFLAG)
+	@$(CC) -o $@ $(HBY_OBJ) $(CFLAG) -shared $(SHARED_FLAG) $(LDFLAG)
 
 $(BIN)/%$(TARGET_SUFFIX).o: %.c
 	@$(MKDIR) $(@D)
@@ -90,7 +91,7 @@ $(BIN)/%$(TARGET_SUFFIX).o: %.c
 	@$(CC) -o $@ -c $< $(CFLAG) -MMD -MD
 
 clean:
-	$(RM) $(ALL_GEN)
+	$(FRMDIR) $(BIN)
 
 clangd_compile_flags:
 	@echo "" > compile_flags.txt

@@ -2,9 +2,12 @@
 A dynamically typed programming language designed for use in game development.
 Hobby Script is designed for use in the future Hobby Game Engine, although it
 is standalone as well. 
+
 ### Features
-- No OOP
-- Blazingly average speed!!
+- Lack of OOP
+- Speed 
+  - faster than Wren and Python, slower than Lua (on my machine)
+- Dynamic typing
 
 ## Building
 It should be as easy as cloning the repo and going:

@@ -6,7 +6,7 @@
 #include <string.h>
 #include "arr.h"
 #include "chunk.h"
-#include "compiler.h"
+#include "parser.h"
 #include "common.h"
 #include "errmsg.h"
 #include "hby.h"

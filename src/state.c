@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "tostr.h"
-#include "compiler.h"
+#include "parser.h"
 #include "mem.h"
 #include "obj.h"
 #include "hby.h"

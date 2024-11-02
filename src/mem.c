@@ -2,7 +2,7 @@
 
 #include "mem.h"
 #include "chunk.h"
-#include "compiler.h"
+#include "parser.h"
 #include "tostr.h"
 #include "val.h"
 #include "arr.h"

@@ -1,0 +1,11 @@
+struct MyStruct {
+  fn tostr() -> "custom tostr";
+}
+
+io:print(tostr("string")); // expect: string
+io:print(tostr(null)); // expect: null
+io:print(tostr(true)); // expect: true
+io:print(tostr(false)); // expect: false
+io:print(tostr(0.2)); // expect: 0.2
+io:print(tostr(MyStruct{})); // expect: custom tostr
+io:print(tostr([1, 2, 3, "a string"])); // expect: [1, 2, 3, "a string"]

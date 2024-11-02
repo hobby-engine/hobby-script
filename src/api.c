@@ -34,7 +34,7 @@ static GcStr* get_name_or(hby_State* h, Val val, const char* name) {
     }
   }
 
-  hby_err(h, "Must provide a name for global (C API)");
+  hby_err(h, "Must provide a name for function (C API)");
   return NULL;
 }
 
@@ -436,13 +436,9 @@ void hby_open_lib(hby_State* h, hby_CFn fn) {
 
 
 void hby_struct_add_const(hby_State* h, const char* name, int _struct) {
-  Val s_val = val_at(h, _struct);
-  if (!is_struct(s_val)) {
-    hby_err(h, "Expected struct");
-    return;
-  }
+  hby_expect_struct(h, _struct);
 
-  GcStruct* s = as_struct(s_val);
+  GcStruct* s = as_struct(val_at(h, _struct));
   Val val = val_at(h, -1);
   GcStr* str_name = get_name_or(h, val, name);
   push(h, create_obj(str_name));
@@ -451,21 +447,27 @@ void hby_struct_add_const(hby_State* h, const char* name, int _struct) {
   pop(h); // constant
 }
 
+void hby_struct_get_const(hby_State* h, const char* name) {
+  hby_expect_struct(h, -1);
+
+  GcStruct* s = as_struct(val_at(h, -1));
+
+  GcStr* str_name = copy_str(h, name, strlen(name));
+  push(h, create_obj(str_name));
+
+  Val val;
+  get_map(&s->staticm, str_name, &val);
+
+  pop(h); // str_name
+  push(h, val);
+}
+
 void hby_struct_add_member(hby_State* h, hby_MethodType type, int _struct) {
-  Val s_val = val_at(h, _struct);
-  if (!is_struct(s_val)) {
-    hby_err(h, "Expected struct");
-    return;
-  }
+  hby_expect_struct(h, _struct);
+  hby_expect_cfunction(h, -1);
 
-  Val cfn_val = val_at(h, -1);
-  if (!is_c_fn(cfn_val)) {
-    hby_err(h, "Expected c function at the top of the stack");
-    return;
-  }
-
-  GcStruct* s = as_struct(s_val);
-  GcCFn* cfn = as_c_fn(cfn_val);
+  GcStruct* s = as_struct(val_at(h, _struct));
+  GcCFn* cfn = as_c_fn(val_at(h, -1));
   
   switch (type) {
     case hby_static_fn: {

@@ -65,8 +65,10 @@ static bool file_open(hby_State* h, int argc) {
   const char* mode = hby_get_string(h, 2, NULL);
 
   File* file = (File*)hby_push_udata(h, sizeof(File));
-  hby_get_global(h, "File");
-  hby_udata_set_metastruct(h, -2);
+  hby_get_global(h, "io");
+  hby_struct_get_const(h, "File");
+  hby_udata_set_metastruct(h, -3);
+  hby_pop(h, 1); // io
   hby_udata_set_finalizer(h, file_gc);
 
   file->handle = fopen(path, mode);
@@ -147,17 +149,20 @@ hby_StructMethod io[] = {
 bool open_io(hby_State* h, int argc) {
   hby_push_struct(h, "io");
   hby_struct_add_members(h, io, -1);
-  hby_set_global(h, "io");
 
   hby_push_struct(h, "File");
   hby_struct_add_members(h, file, -1);
-  hby_set_global(h, "File");
+  hby_struct_add_const(h, NULL, -2); // File
+
+  hby_set_global(h, NULL); // io
 
   hby_get_global(h, "io");
 
   File* _stdout = (File*)hby_push_udata(h, sizeof(File));
-  hby_get_global(h, "File");
-  hby_udata_set_metastruct(h, -2);
+  hby_push(h, -2);
+  hby_struct_get_const(h, "File");
+  hby_udata_set_metastruct(h, -3);
+  hby_pop(h, 1);
   _stdout->handle = stdout;
   _stdout->size = 0;
   _stdout->closed = true;
@@ -165,8 +170,10 @@ bool open_io(hby_State* h, int argc) {
   hby_struct_add_const(h, "stdout", -2);
 
   File* _stderr = (File*)hby_push_udata(h, sizeof(File));
-  hby_get_global(h, "File");
-  hby_udata_set_metastruct(h, -2);
+  hby_push(h, -2);
+  hby_struct_get_const(h, "File");
+  hby_udata_set_metastruct(h, -3);
+  hby_pop(h, 1);
   _stderr->handle = stderr;
   _stderr->size = 0;
   _stderr->closed = true;
@@ -174,15 +181,17 @@ bool open_io(hby_State* h, int argc) {
   hby_struct_add_const(h, "stderr", -2);
 
   File* _stdin = (File*)hby_push_udata(h, sizeof(File));
-  hby_get_global(h, "File");
-  hby_udata_set_metastruct(h, -2);
+  hby_push(h, -2);
+  hby_struct_get_const(h, "File");
+  hby_udata_set_metastruct(h, -3);
+  hby_pop(h, 1);
   _stdin->handle = stdin;
   _stdin->size = 0;
   _stdin->closed = true;
 
   hby_struct_add_const(h, "stdin", -2);
 
-  hby_pop(h, 1);
+  hby_pop(h, 1); // io
 
   return false;
 }

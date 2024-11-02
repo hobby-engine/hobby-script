@@ -113,6 +113,7 @@ hby_api void hby_callon(hby_State* h, const char* mname, int argc);
 hby_api void hby_open_lib(hby_State* h, hby_CFn fn);
 
 hby_api void hby_struct_add_const(hby_State* h, const char* name, int _struct);
+hby_api void hby_struct_get_const(hby_State* h, const char* name);
 hby_api void hby_struct_add_member(hby_State* h, hby_MethodType type, int _struct);
 hby_api void hby_struct_add_members(hby_State* h, hby_StructMethod* members, int index);
 

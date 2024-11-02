@@ -441,14 +441,18 @@ static void mark_init(Parser* p) {
     p->compiler->scope;
 }
 
-static void and_(Parser* p, bool can_assign) {
+//
+// EXPRESSIONS
+//
+
+static void and_expr(Parser* p, bool can_assign) {
   int end_jmp = write_jmp(p, bc_false_jmp);
   write_bc(p, bc_pop);
   parse_prec(p, Prec_and);
   patch_jmp(p, end_jmp);
 }
 
-static void or_(Parser* p, bool can_assign) {
+static void or_expr(Parser* p, bool can_assign) {
   int else_jmp = write_jmp(p, bc_false_jmp);
   int end_jmp = write_jmp(p, bc_jmp);
   patch_jmp(p, else_jmp);
@@ -458,7 +462,7 @@ static void or_(Parser* p, bool can_assign) {
   patch_jmp(p, end_jmp);
 }
 
-static void binary(Parser* p, bool can_assign) {
+static void binary_expr(Parser* p, bool can_assign) {
   TokType op = p->prev.type;
   ParseRule* rule = get_rule(op);
   parse_prec(p, (Prec)(rule->prec + 1));
@@ -481,7 +485,7 @@ static void binary(Parser* p, bool can_assign) {
   }
 }
 
-static void literal(Parser* p, bool can_assign) {
+static void literal_expr(Parser* p, bool can_assign) {
   switch (p->prev.type) {
     case tok_false: write_bc(p, bc_false); break;
     case tok_true: write_bc(p, bc_true); break;
@@ -490,21 +494,21 @@ static void literal(Parser* p, bool can_assign) {
   }
 }
 
-static void grouping(Parser* p, bool can_assign) {
+static void grouping_expr(Parser* p, bool can_assign) {
   expr(p);
   expect(p, tok_rparen, err_msg_expect(")"));
 }
 
-static void num(Parser* p, bool can_assign) {
+static void num_expr(Parser* p, bool can_assign) {
   double val = strtod(p->prev.start, NULL);
   write_const(p, create_num(val));
 }
 
-static void str(Parser* p, bool can_assign) {
+static void str_expr(Parser* p, bool can_assign) {
   write_const(p, create_obj(as_obj(p->prev.val)));
 }
 
-static void strfmt(Parser* p, bool can_assign) {
+static void strfmt_expr(Parser* p, bool can_assign) {
   int count = 0;
 
   do {
@@ -522,7 +526,7 @@ static void strfmt(Parser* p, bool can_assign) {
   }
 }
 
-static void array(Parser* p, bool can_assign) {
+static void array_expr(Parser* p, bool can_assign) {
   write_bc(p, bc_array);
 
   while (!check(p, tok_rbracket) && !check(p, tok_eof)) {
@@ -555,12 +559,12 @@ static u8 arg_list(Parser* p) {
   return argc;
 }
 
-static void call(Parser* p, bool can_assign) {
+static void call_expr(Parser* p, bool can_assign) {
   u8 argc = arg_list(p);
   write_2bc(p, bc_call, argc);
 }
 
-static void instance(Parser* p, bool can_assign) {
+static void instance_expr(Parser* p, bool can_assign) {
   write_bc(p, bc_inst);
 
   while (!check(p, tok_rbrace) && !check(p, tok_eof)) {
@@ -580,7 +584,7 @@ static void instance(Parser* p, bool can_assign) {
   expect(p, tok_rbrace, err_msg_expect("}"));
 }
 
-static void dot(Parser* p, bool can_assign) {
+static void dot_expr(Parser* p, bool can_assign) {
   expect(p, tok_ident, err_msg_expect("."));
   u8 name = ident_const(p, &p->prev);
 
@@ -628,7 +632,7 @@ static void dot(Parser* p, bool can_assign) {
 #undef compound_op
 }
 
-static void subscript(Parser* p, bool can_assign) {
+static void subscript_expr(Parser* p, bool can_assign) {
   expr(p);
   expect(p, tok_rbracket, err_msg_expect("]"));
 
@@ -671,56 +675,14 @@ static void subscript(Parser* p, bool can_assign) {
 #undef compound_op
 }
 
-static void static_dot(Parser* p, bool can_assign) {
+static void static_dot_expr(Parser* p, bool can_assign) {
   expect(p, tok_ident, err_msg_expect_ident);
   u8 name = ident_const(p, &p->prev);
   write_2bc(p, bc_get_static, name);
 }
 
-static void function(Parser* p, FnType type, bool is_lambda) {
-  mark_init(p);
-
-  Compiler compiler;
-  init_compiler(p, &compiler, type);
-  // begin_scope(p);
-
-  expect(p, tok_lparen, err_msg_expect("("));
-  if (!check(p, tok_rparen)) {
-    do {
-      if (p->compiler->fn->arity == UINT8_MAX) {
-        err_cur(p, err_msg_max_param);
-      }
-      p->compiler->fn->arity++;
-      parse_var(p, err_msg_expect_ident, false);
-      mark_init(p);
-    } while (consume(p, tok_comma));
-  }
-  expect(p, tok_rparen, err_msg_expect(")"));
-
-  if (consume(p, tok_rarrow)) {
-    expr(p);
-    write_bc(p, bc_ret);
-
-    if (!is_lambda) {
-      // When a function is not a lambda, it doesn't check for a semicolon.
-      expect(p, tok_semicolon, err_msg_expect(";"));
-    }
-  } else if (consume(p, tok_lbrace)) {
-    block(p);
-  } else {
-    err(p, err_msg_expect_fn_body);
-  }
-
-  GcFn* fn = end_compiler(p);
-  write_2bc(p, bc_closure, create_const(p, create_obj(fn)));
-
-  for (int i = 0; i < fn->upvalc; i++) {
-    write_bc(p, compiler.upvals[i].is_local ? 1 : 0);
-    write_bc(p, compiler.upvals[i].index);
-  }
-}
-
-static void anon_fn(Parser* p, bool can_assign) {
+static void function(Parser* p, FnType type, bool is_lambda);
+static void function_expr(Parser* p, bool can_assign) {
   function(p, FnType_fn, true);
 }
 
@@ -844,20 +806,20 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
 #undef compound_op
 }
 
-static void var(Parser* p, bool can_assign) {
+static void var_expr(Parser* p, bool can_assign) {
   named_var(p, p->prev, can_assign);
 }
 
-static void self(Parser* p, bool can_assign) {
+static void self_expr(Parser* p, bool can_assign) {
   if (!p->within_struct) {
     err(p, err_msg_bad_self);
     return;
   }
 
-  var(p, false);
+  var_expr(p, false);
 }
 
-static void ternary(Parser* p, bool can_assign) {
+static void ternary_expr(Parser* p, bool can_assign) {
   expect(p, tok_lparen, err_msg_expect("("));
   expr(p);
   expect(p, tok_rparen, err_msg_expect(")"));
@@ -878,7 +840,7 @@ static void ternary(Parser* p, bool can_assign) {
   patch_jmp(p, else_jmp);
 }
 
-static void unary(Parser* p, bool can_assign) {
+static void unary_expr(Parser* p, bool can_assign) {
   TokType op = p->prev.type;
 
   parse_prec(p, Prec_unary);
@@ -891,52 +853,52 @@ static void unary(Parser* p, bool can_assign) {
 }
 
 ParseRule rules[] = {
-  [tok_lparen]      = {grouping, call, Prec_call},
+  [tok_lparen]      = {grouping_expr, call_expr, Prec_call},
   [tok_rparen]      = {NULL, NULL, Prec_none},
-  [tok_lbrace]      = {NULL, instance, Prec_call},
+  [tok_lbrace]      = {NULL, instance_expr, Prec_call},
   [tok_rbrace]      = {NULL, NULL, Prec_none},
-  [tok_lbracket]    = {array, subscript, Prec_subscript},
+  [tok_lbracket]    = {array_expr, subscript_expr, Prec_subscript},
   [tok_rbracket]    = {NULL, NULL, Prec_none},
   [tok_comma]       = {NULL, NULL, Prec_none},
-  [tok_dot]         = {NULL, dot, Prec_call},
-  [tok_minus]       = {unary, binary, Prec_term},
-  [tok_plus]        = {NULL, binary, Prec_term},
-  [tok_star]        = {NULL, binary, Prec_factor},
-  [tok_slash]       = {NULL, binary, Prec_factor},
+  [tok_dot]         = {NULL, dot_expr, Prec_call},
+  [tok_minus]       = {unary_expr, binary_expr, Prec_term},
+  [tok_plus]        = {NULL, binary_expr, Prec_term},
+  [tok_star]        = {NULL, binary_expr, Prec_factor},
+  [tok_slash]       = {NULL, binary_expr, Prec_factor},
   [tok_semicolon]   = {NULL, NULL, Prec_none},
-  [tok_bang]        = {unary, NULL, Prec_none},
-  [tok_lt]          = {NULL, binary, Prec_cmp},
-  [tok_gt]          = {NULL, binary, Prec_cmp},
+  [tok_bang]        = {unary_expr, NULL, Prec_none},
+  [tok_lt]          = {NULL, binary_expr, Prec_cmp},
+  [tok_gt]          = {NULL, binary_expr, Prec_cmp},
   [tok_eql]         = {NULL, NULL, Prec_none},
-  [tok_colon]       = {NULL, static_dot, Prec_call},
-  [tok_eql_eql]     = {NULL, binary, Prec_eql},
-  [tok_bang_eql]    = {NULL, binary, Prec_eql},
-  [tok_gte]         = {NULL, binary, Prec_cmp},
-  [tok_lte]         = {NULL, binary, Prec_cmp},
-  [tok_and]         = {NULL, and_, Prec_and},
-  [tok_or]          = {NULL, or_, Prec_or},
+  [tok_colon]       = {NULL, static_dot_expr, Prec_call},
+  [tok_eql_eql]     = {NULL, binary_expr, Prec_eql},
+  [tok_bang_eql]    = {NULL, binary_expr, Prec_eql},
+  [tok_gte]         = {NULL, binary_expr, Prec_cmp},
+  [tok_lte]         = {NULL, binary_expr, Prec_cmp},
+  [tok_and]         = {NULL, and_expr, Prec_and},
+  [tok_or]          = {NULL, or_expr, Prec_or},
   [tok_rarrow]      = {NULL, NULL, Prec_none},
-  [tok_dot_dot]     = {NULL, binary, Prec_term},
+  [tok_dot_dot]     = {NULL, binary_expr, Prec_term},
   [tok_plus_plus]   = {NULL, NULL, Prec_none},
   [tok_minus_minus] = {NULL, NULL, Prec_none},
-  [tok_ident]       = {var, NULL, Prec_none},
-  [tok_str]         = {str, NULL, Prec_none},
-  [tok_strfmt]      = {strfmt, NULL, Prec_none},
-  [tok_num]         = {num, NULL, Prec_none},
-  [tok_true]        = {literal, NULL, Prec_none},
-  [tok_false]       = {literal, NULL, Prec_none},
-  [tok_null]        = {literal, NULL, Prec_none},
+  [tok_ident]       = {var_expr, NULL, Prec_none},
+  [tok_str]         = {str_expr, NULL, Prec_none},
+  [tok_strfmt]      = {strfmt_expr, NULL, Prec_none},
+  [tok_num]         = {num_expr, NULL, Prec_none},
+  [tok_true]        = {literal_expr, NULL, Prec_none},
+  [tok_false]       = {literal_expr, NULL, Prec_none},
+  [tok_null]        = {literal_expr, NULL, Prec_none},
   [tok_struct]      = {NULL, NULL, Prec_none},
-  [tok_if]          = {ternary, NULL, Prec_none},
-  [tok_is]          = {NULL, binary, Prec_is},
+  [tok_if]          = {ternary_expr, NULL, Prec_none},
+  [tok_is]          = {NULL, binary_expr, Prec_is},
   [tok_else]        = {NULL, NULL, Prec_none},
   [tok_while]       = {NULL, NULL, Prec_none},
   [tok_for]         = {NULL, NULL, Prec_none},
   [tok_loop]        = {NULL, NULL, Prec_none},
   [tok_static]      = {NULL, NULL, Prec_none},
-  [tok_fn]          = {anon_fn, NULL, Prec_none},
+  [tok_fn]          = {function_expr, NULL, Prec_none},
   [tok_enum]        = {NULL, NULL, Prec_none},
-  [tok_self]        = {self, NULL, Prec_none},
+  [tok_self]        = {self_expr, NULL, Prec_none},
   [tok_return]      = {NULL, NULL, Prec_none},
   [tok_var]         = {NULL, NULL, Prec_none},
   [tok_const]       = {NULL, NULL, Prec_none},
@@ -949,7 +911,7 @@ ParseRule rules[] = {
   [tok_star_eql]    = {NULL, NULL, Prec_none},
   [tok_slash_eql]   = {NULL, NULL, Prec_none},
   [tok_percent_eql] = {NULL, NULL, Prec_none},
-  [tok_percent]     = {NULL, binary, Prec_factor},
+  [tok_percent]     = {NULL, binary_expr, Prec_factor},
   [tok_err]         = {NULL, NULL, Prec_none},
   [tok_eof]         = {NULL, NULL, Prec_none},
 };
@@ -992,6 +954,10 @@ static void block(Parser* p) {
 
   expect(p, tok_rbrace, err_msg_expect("}"));
 }
+
+//
+// DECLARATIONS
+//
 
 static void var_decl(Parser* p, bool is_const) {
   Tok names[UINT8_MAX];
@@ -1038,7 +1004,50 @@ static void var_decl(Parser* p, bool is_const) {
   expect(p, tok_semicolon, err_msg_expect(";"));
 }
 
-static void fn_decl(Parser* p) {
+static void function(Parser* p, FnType type, bool is_lambda) {
+  mark_init(p);
+
+  Compiler compiler;
+  init_compiler(p, &compiler, type);
+  // begin_scope(p);
+
+  expect(p, tok_lparen, err_msg_expect("("));
+  if (!check(p, tok_rparen)) {
+    do {
+      if (p->compiler->fn->arity == UINT8_MAX) {
+        err_cur(p, err_msg_max_param);
+      }
+      p->compiler->fn->arity++;
+      parse_var(p, err_msg_expect_ident, false);
+      mark_init(p);
+    } while (consume(p, tok_comma));
+  }
+  expect(p, tok_rparen, err_msg_expect(")"));
+
+  if (consume(p, tok_rarrow)) {
+    expr(p);
+    write_bc(p, bc_ret);
+
+    if (!is_lambda) {
+      // When a function is not a lambda, it doesn't check for a semicolon.
+      expect(p, tok_semicolon, err_msg_expect(";"));
+    }
+  } else if (consume(p, tok_lbrace)) {
+    block(p);
+  } else {
+    err(p, err_msg_expect_fn_body);
+  }
+
+  GcFn* fn = end_compiler(p);
+  write_2bc(p, bc_closure, create_const(p, create_obj(fn)));
+
+  for (int i = 0; i < fn->upvalc; i++) {
+    write_bc(p, compiler.upvals[i].is_local ? 1 : 0);
+    write_bc(p, compiler.upvals[i].index);
+  }
+}
+
+static void function_decl(Parser* p) {
   parse_var(p, err_msg_expect_ident, true);
   mark_init(p);
   function(p, FnType_fn, false);
@@ -1061,41 +1070,8 @@ static u8 method(Parser* p, bool is_static) {
   return name_const;
 }
 
-static void enum_body(Parser* p, u8 name_const) {
-  write_2bc(p, bc_enum, name_const);
-
-  u8 enum_names[UINT8_MAX];
-  int enumc = 0;
-
-  expect(p, tok_lbrace, err_msg_expect("{"));
-  while (!check(p, tok_rbrace) && !check(p, tok_eof)) {
-    expect(p, tok_ident, err_msg_expect_ident);
-    if (enumc == UINT8_MAX) {
-      err(p, err_msg_max_enum);
-      return;
-    }
-    u8 enum_name = ident_const(p, &p->prev);
-    enum_names[enumc++] = enum_name;
-    expect(p, tok_comma, err_msg_expect(","));
-  }
-  expect(p, tok_rbrace, err_msg_expect("}"));
-
-  write_bc(p, enumc);
-  for (int i = 0; i < enumc; i++) {
-    write_bc(p, enum_names[i]);
-  }
-}
-
-static void struct_body(Parser* p, bool all_static);
-
-static void sub_struct_decl(Parser* p, bool all_static) {
-  expect(p, tok_lbrace, err_msg_expect("{"));
-
-  while (!check(p, tok_rbrace) && !check(p, tok_eof)) {
-    struct_body(p, all_static);
-  }
-  expect(p, tok_rbrace, err_msg_expect("}"));
-}
+static void sub_struct_decl(Parser* p, bool all_static);
+static void enum_body(Parser* p, u8 name_const);
 
 static void struct_body(Parser* p, bool all_static) {
   bool is_static = all_static;
@@ -1162,6 +1138,15 @@ static void struct_body(Parser* p, bool all_static) {
   }
 }
 
+static void sub_struct_decl(Parser* p, bool all_static) {
+  expect(p, tok_lbrace, err_msg_expect("{"));
+
+  while (!check(p, tok_rbrace) && !check(p, tok_eof)) {
+    struct_body(p, all_static);
+  }
+  expect(p, tok_rbrace, err_msg_expect("}"));
+}
+
 static void struct_decl(Parser* p, bool all_static) {
   if (p->compiler->type != FnType_script || p->compiler->scope != 0) {
     err(p, err_msg_bad_decl_scope("struct"));
@@ -1204,6 +1189,31 @@ static void struct_decl(Parser* p, bool all_static) {
   p->within_struct = false;
 }
 
+static void enum_body(Parser* p, u8 name_const) {
+  write_2bc(p, bc_enum, name_const);
+
+  u8 enum_names[UINT8_MAX];
+  int enumc = 0;
+
+  expect(p, tok_lbrace, err_msg_expect("{"));
+  while (!check(p, tok_rbrace) && !check(p, tok_eof)) {
+    expect(p, tok_ident, err_msg_expect_ident);
+    if (enumc == UINT8_MAX) {
+      err(p, err_msg_max_enum);
+      return;
+    }
+    u8 enum_name = ident_const(p, &p->prev);
+    enum_names[enumc++] = enum_name;
+    expect(p, tok_comma, err_msg_expect(","));
+  }
+  expect(p, tok_rbrace, err_msg_expect("}"));
+
+  write_bc(p, enumc);
+  for (int i = 0; i < enumc; i++) {
+    write_bc(p, enum_names[i]);
+  }
+}
+
 static void enum_decl(Parser* p) {
   if (p->compiler->type != FnType_script || p->compiler->scope != 0) {
     err(p, err_msg_bad_decl_scope("enum"));
@@ -1217,6 +1227,10 @@ static void enum_decl(Parser* p) {
 
   enum_body(p, name_const);
 }
+
+//
+// STATEMENTS
+//
 
 static void expr_stat(Parser* p) {
   p->in_expr_stat = true;
@@ -1504,7 +1518,7 @@ static void decl(Parser* p) {
   } else if (consume(p, tok_enum)) {
     enum_decl(p);
   } else if (consume(p, tok_fn)) {
-    fn_decl(p);
+    function_decl(p);
   } else {
     stat(p);
   }

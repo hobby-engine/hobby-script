@@ -54,9 +54,7 @@ int print_bc(hby_State* h, Chunk *c, int idx) {
   switch (bc) {
     case bc_pop: return simple_bc("pop", idx);
     case bc_close_upval: return simple_bc("close_upval", idx);
-    case bc_def_global: return const_bc(h, "def_global", c, idx);
     case bc_get_global: return const_bc(h, "get_global", c, idx);
-    case bc_set_global: return const_bc(h, "set_global", c, idx);
     case bc_get_local: return byte_bc("get_local", c, idx);
     case bc_set_local: return byte_bc("set_local", c, idx);
     case bc_get_upval: return byte_bc("get_upval", c, idx);

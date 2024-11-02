@@ -533,28 +533,6 @@ static hby_InterpretResult run(hby_State* h) {
         close_upvals(h, h->top - 1);
         pop(h);
         break;
-      case bc_def_gconst: {
-        GcStr* name = read_str();
-        set_map(h, &h->global_consts, name, peek(h, 0));
-        pop(h);
-        break;
-      }
-      case bc_get_gconst: {
-        GcStr* name = read_str();
-        Val v;
-        if (!get_map(&h->global_consts, name, &v)) {
-          runtime_err(h, err_msg_undef_var, name->chars);
-          return hby_result_runtime_err;
-        }
-        push(h, v);
-        break;
-      }
-      case bc_def_global: {
-        GcStr* name = read_str();
-        set_map(h, &h->globals, name, peek(h, 0));
-        pop(h);
-        break;
-      }
       case bc_get_global: {
         GcStr* name = read_str();
         Val v;
@@ -563,15 +541,6 @@ static hby_InterpretResult run(hby_State* h) {
           return hby_result_runtime_err;
         }
         push(h, v);
-        break;
-      }
-      case bc_set_global: {
-        GcStr* name = read_str();
-        if (set_map(h, &h->globals, name, peek(h, 0))) {
-          rem_map(&h->globals, name);
-          runtime_err(h, err_msg_undef_var, name->chars);
-          return hby_result_runtime_err;
-        }
         break;
       }
       case bc_get_local: {

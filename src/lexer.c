@@ -243,7 +243,6 @@ static TokType get_keyword(Lexer* l) {
         }
       }
       break;
-    case 'g': return check_keyword(l, 1, 5, "lobal", tok_global);
     case 'i':
       if (l->cur - l->start > 1) {
         switch (l->start[1]) {

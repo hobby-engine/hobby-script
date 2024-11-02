@@ -32,9 +32,8 @@ typedef enum {
   tok_while, tok_for, tok_loop, // while for loop
   tok_fn, tok_enum, tok_self, // fn enum self
   tok_return, tok_var, tok_const, // return var const
-  tok_global, tok_switch, tok_case, // global switch case
-  tok_break, tok_continue, tok_static, // break continue
-  tok_is, // is
+  tok_switch, tok_case, tok_break, // switch case break
+  tok_continue, tok_static, tok_is, // continue static is
 
   tok_eof, tok_err,
 } TokType;

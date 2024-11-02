@@ -8,11 +8,7 @@
 
 typedef enum {
   bc_pop,
-  bc_def_gconst,
-  bc_get_gconst,
-  bc_def_global,
   bc_get_global,
-  bc_set_global,
   bc_get_local,
   bc_set_local,
   bc_get_upval,

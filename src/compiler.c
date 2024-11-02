@@ -330,7 +330,7 @@ static void end_scope(Parser* p) {
 }
 
 static void expr(Parser* p);
-static void decl(Parser* p, bool is_global);
+static void decl(Parser* p);
 static void stat(Parser* p);
 static void block(Parser* p);
 static void parse_prec(Parser* p, Prec prec);
@@ -410,11 +410,7 @@ static void add_local(Parser* p, Tok name, bool is_const) {
   local->is_const = is_const;
 }
 
-static void decl_var(Parser* p, bool is_global, bool is_const) {
-  if (is_global) {
-    return;
-  }
-
+static void decl_var(Parser* p, bool is_const) {
   Tok* name = &p->prev;
 
   for (int i = p->compiler->localc - 1; i >= 0; i--) {
@@ -431,40 +427,18 @@ static void decl_var(Parser* p, bool is_global, bool is_const) {
   add_local(p, *name, is_const);
 }
 
-static u8 parse_var(Parser* p, const char* msg, bool is_global, bool is_const) {
+static void parse_var(Parser* p, const char* msg, bool is_const) {
   expect(p, tok_ident, msg);
 
   p->last_name_valid = true;
   p->last_name = p->prev;
 
-  decl_var(p, is_global, is_const);
-  if (!is_global) {
-    return 0;
-  }
-
-  return ident_const(p, &p->prev);
+  decl_var(p, is_const);
 }
 
 static void mark_init(Parser* p) {
   p->compiler->locals[p->compiler->localc - 1].depth =
     p->compiler->scope;
-}
-
-static void def_var(Parser* p, u8 global, bool is_global, bool is_const) {
-  if (!is_global) {
-    mark_init(p);
-    return;
-  }
-
-  if (!is_const) {
-    write_2bc(p, bc_def_global, global);
-  } else {
-    p->h->gc.can_gc = false;
-    GcStr* name = as_str(p->compiler->fn->chunk.consts.items[global]);
-    set_map(p->h, &p->h->global_consts, name, create_null());
-    p->h->gc.can_gc = true;
-    write_2bc(p, bc_def_gconst, global);
-  }
 }
 
 static void and_(Parser* p, bool can_assign) {
@@ -717,8 +691,8 @@ static void function(Parser* p, FnType type, bool is_lambda) {
         err_cur(p, err_msg_max_param);
       }
       p->compiler->fn->arity++;
-      u8 c = parse_var(p, err_msg_expect_ident, false, false);
-      def_var(p, c, false, false);
+      parse_var(p, err_msg_expect_ident, false);
+      mark_init(p);
     } while (consume(p, tok_comma));
   }
   expect(p, tok_rparen, err_msg_expect(")"));
@@ -762,9 +736,8 @@ static void check_const(Parser* p, u8 setter, int arg) {
         err(p, err_msg_assign_const);
       }
       break;
-    case bc_def_gconst:
+    case bc_get_global:
       err(p, err_msg_assign_const);
-      break;
     default:
       break;
   }
@@ -803,7 +776,7 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
         if (get_map(&p->h->global_consts, name, &v)) {
           err(p, err_msg_assign_const);
         }
-        setter = bc_set_global;
+        setter = bc_get_global;
       }
 
       write_2bc(p, bc_destruct_array, i);
@@ -824,15 +797,8 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
     setter = bc_set_upval;
   } else {
     arg = ident_const(p, &name);
-    GcStr* name = as_str(p->compiler->fn->chunk.consts.items[arg]);
-    Val v;
-    if (get_map(&p->h->global_consts, name, &v)) {
-      getter = bc_get_gconst;
-      setter = bc_def_gconst;
-    } else {
-      getter = bc_get_global;
-      setter = bc_set_global;
-    }
+    getter = bc_get_global;
+    setter = bc_get_global;
   }
 
 #define shorthand_op(op) \
@@ -974,7 +940,6 @@ ParseRule rules[] = {
   [tok_return]      = {NULL, NULL, Prec_none},
   [tok_var]         = {NULL, NULL, Prec_none},
   [tok_const]       = {NULL, NULL, Prec_none},
-  [tok_global]      = {NULL, NULL, Prec_none},
   [tok_switch]      = {NULL, NULL, Prec_none},
   [tok_case]        = {NULL, NULL, Prec_none},
   [tok_break]       = {NULL, NULL, Prec_none},
@@ -1022,14 +987,13 @@ static void expr(Parser* p) {
 
 static void block(Parser* p) {
   while (!check(p, tok_rbrace) && !check(p, tok_eof)) {
-    decl(p, false);
+    decl(p);
   }
 
   expect(p, tok_rbrace, err_msg_expect("}"));
 }
 
-static void var_decl(Parser* p, bool is_global, bool is_const) {
-  u8 vars[UINT8_MAX];
+static void var_decl(Parser* p, bool is_const) {
   Tok names[UINT8_MAX];
   int count = 0;
 
@@ -1040,13 +1004,12 @@ static void var_decl(Parser* p, bool is_global, bool is_const) {
     }
 
     Tok name = p->cur;
-    u8 name_const = parse_var(p, err_msg_expect_ident, is_global, is_const);
-    vars[count] = name_const;
+    parse_var(p, err_msg_expect_ident, is_const);
     names[count] = name;
     count++;
 
-    if (!is_global && (check(p, tok_comma) || count > 1)) {
-      def_var(p, 0, false, is_const);
+    if (check(p, tok_comma) || count > 1) {
+      mark_init(p);
       write_bc(p, bc_null); // Reserve this slot
     }
   } while (consume(p, tok_comma));
@@ -1060,28 +1023,25 @@ static void var_decl(Parser* p, bool is_global, bool is_const) {
   if (count > 1) { // Multiple assignment
     for (int i = 0; i < count; i++) {
       write_2bc(p, bc_destruct_array, i);
-      def_var(p, vars[i], is_global, is_const);
+      mark_init(p);
 
-      if (!is_global) {
-        uint8_t local = resolve_local(p, p->compiler, &names[i]);
-        write_2bc(p, bc_set_local, local);
-        write_bc(p, bc_pop);
-      }
+      uint8_t local = resolve_local(p, p->compiler, &names[i]);
+      write_2bc(p, bc_set_local, local);
+      write_bc(p, bc_pop);
     }
     write_bc(p, bc_pop); // The expression result
   } else { // Single assignment
 
-    def_var(p, vars[0], is_global, is_const);
+    mark_init(p);
   }
 
   expect(p, tok_semicolon, err_msg_expect(";"));
 }
 
-static void fn_decl(Parser* p, bool is_global) {
-  u8 global = parse_var(p, err_msg_expect_ident, is_global, true);
+static void fn_decl(Parser* p) {
+  parse_var(p, err_msg_expect_ident, true);
   mark_init(p);
   function(p, FnType_fn, false);
-  def_var(p, global, is_global, true);
 }
 
 static u8 method(Parser* p, bool is_static) {
@@ -1141,9 +1101,7 @@ static void struct_body(Parser* p, bool all_static) {
   bool is_static = all_static;
   u8 static_name = 0;
 
-  /* if (consume(p, tok_global)) { // Global declarations inside struct
-    decl(p, true);
-  } else */ if (consume(p, tok_fn)) { // Member functions
+  if (consume(p, tok_fn)) { // Member functions
     static_name = method(p, all_static);
   } else if (consume(p, tok_var)) { // Member variables
     // TODO: Error here on `all_static`
@@ -1204,7 +1162,7 @@ static void struct_body(Parser* p, bool all_static) {
   }
 }
 
-static void struct_decl(Parser* p, bool is_global, bool all_static) {
+static void struct_decl(Parser* p, bool all_static) {
   if (p->compiler->type != FnType_script || p->compiler->scope != 0) {
     err(p, err_msg_bad_decl_scope("struct"));
   }
@@ -1214,10 +1172,10 @@ static void struct_decl(Parser* p, bool is_global, bool all_static) {
   expect(p, tok_ident, err_msg_expect_ident);
   Tok name = p->prev;
   u8 name_const = ident_const(p, &name);
-  decl_var(p, is_global, true);
+  decl_var(p, true);
 
   write_2bc(p, bc_struct, name_const);
-  def_var(p, name_const, is_global, true);
+  mark_init(p);
   
   named_var(p, name, false);
 
@@ -1246,7 +1204,7 @@ static void struct_decl(Parser* p, bool is_global, bool all_static) {
   p->within_struct = false;
 }
 
-static void enum_decl(Parser* p, bool is_global) {
+static void enum_decl(Parser* p) {
   if (p->compiler->type != FnType_script || p->compiler->scope != 0) {
     err(p, err_msg_bad_decl_scope("enum"));
   }
@@ -1254,8 +1212,8 @@ static void enum_decl(Parser* p, bool is_global) {
   expect(p, tok_ident, err_msg_expect_ident);
   Tok name = p->prev;
   u8 name_const = ident_const(p, &name);
-  decl_var(p, is_global, true);
-  def_var(p, name_const, is_global, true);
+  decl_var(p, true);
+  mark_init(p);
 
   enum_body(p, name_const);
 }
@@ -1393,8 +1351,7 @@ static void for_stat(Parser* p) {
   // Loop variable
   expect(p, tok_lparen, err_msg_expect("("));
   if (!consume(p, tok_semicolon)) {
-    // bool is_global = consume(p, tok_global);
-    var_decl(p, false, false);
+    var_decl(p, false);
   }
 
   Loop loop;
@@ -1513,7 +1470,6 @@ static void sync(Parser* p) {
       case tok_fn:
       case tok_var:
       case tok_const:
-      case tok_global:
       case tok_static:
       case tok_if:
       case tok_else:
@@ -1535,27 +1491,21 @@ static void sync(Parser* p) {
   }
 }
 
-static void decl(Parser* p, bool is_global) {
-  /* if (consume(p, tok_global)) {
-    decl(p, true);
-  } else */ if (consume(p, tok_static)) {
+static void decl(Parser* p) {
+  if (consume(p, tok_static)) {
     expect(p, tok_struct, err_msg_bad_static_struct);
-    struct_decl(p, is_global, true);
+    struct_decl(p, true);
   } else if (consume(p, tok_var)) {
-    var_decl(p, is_global, false);
+    var_decl(p, false);
   } else if (consume(p, tok_const)) {
-    var_decl(p, is_global, true);
+    var_decl(p, true);
   } else if (consume(p, tok_struct)) {
-    struct_decl(p, is_global, false);
+    struct_decl(p, false);
   } else if (consume(p, tok_enum)) {
-    enum_decl(p, is_global);
+    enum_decl(p);
   } else if (consume(p, tok_fn)) {
-    fn_decl(p, is_global);
+    fn_decl(p);
   } else {
-    if (is_global) {
-      err(p, err_msg_bad_global);
-    }
-
     stat(p);
   }
 
@@ -1611,7 +1561,7 @@ GcFn* compile_hby(hby_State* h, const char* path, const char* src) {
 
   advance(p);
   while (!consume(p, tok_eof)) {
-    decl(p, false);
+    decl(p);
   }
   expect(p, tok_eof, err_msg_expect_eof);
 

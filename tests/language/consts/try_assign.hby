@@ -1,0 +1,2 @@
+const local = 12;
+local = 4; // expect error

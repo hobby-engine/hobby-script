@@ -33,6 +33,7 @@ hby_State* create_state() {
   h->args = create_arr(h);
 
   init_map(&h->globals);
+  init_map(&h->global_consts);
   init_map(&h->strs);
   init_map(&h->files);
   reset_stack(h);
@@ -57,6 +58,7 @@ hby_State* create_state() {
 void free_state(hby_State* h) {
   release(h, Parser, h->parser);
   free_map(h, &h->globals);
+  free_map(h, &h->global_consts);
   free_map(h, &h->strs);
   free_map(h, &h->files);
   free_objs(h);

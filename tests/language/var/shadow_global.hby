@@ -1,3 +1,4 @@
+// nontest
 global var a = "global";
 {
   var a = "shadow";

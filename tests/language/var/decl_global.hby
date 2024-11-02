@@ -1,3 +1,5 @@
+// nontest
+
 global var x = "abc";
 {
   global var y = "abcd";

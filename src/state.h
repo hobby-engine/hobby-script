@@ -45,6 +45,7 @@ struct hby_State {
   Val* top;
 
   Map globals;
+  Map global_consts;
   Map strs;
   Map files;
   struct GcUpval* open_upvals;

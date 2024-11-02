@@ -57,6 +57,7 @@ typedef struct {
   Tok name;
   int depth; // Scope depth
   bool captured; // Is this value captured by a closure?
+  bool is_const; // Is this variable a constant?
 } Local;
 
 typedef struct {
@@ -64,6 +65,7 @@ typedef struct {
   // Is this upvalue on a stack, or do we need to steal it from
   // an outer closure?
   bool is_local; 
+  bool is_const; // Is this variable a constant?
 } Upval;
 
 typedef enum {
@@ -367,6 +369,7 @@ static int add_upvalue(Parser* p, Compiler* compiler, u8 index, bool is_local) {
   }
 
   compiler->upvals[upvalc].is_local = is_local;
+  compiler->upvals[upvalc].is_const = compiler->locals[index].is_const;
   compiler->upvals[upvalc].index = index;
   return compiler->fn->upvalc++;
 }
@@ -394,7 +397,7 @@ static int resolve_upval(Parser* p, Compiler* compiler, Tok* name) {
   return -1;
 }
 
-static void add_local(Parser* p, Tok name) {
+static void add_local(Parser* p, Tok name, bool is_const) {
   if (p->compiler->localc == uint8_count) {
     err(p, err_msg_max_locals);
     return;
@@ -404,9 +407,10 @@ static void add_local(Parser* p, Tok name) {
   local->name = name;
   local->depth = -1;
   local->captured = false;
+  local->is_const = is_const;
 }
 
-static void decl_var(Parser* p, bool is_global) {
+static void decl_var(Parser* p, bool is_global, bool is_const) {
   if (is_global) {
     return;
   }
@@ -424,16 +428,16 @@ static void decl_var(Parser* p, bool is_global) {
     }
   }
 
-  add_local(p, *name);
+  add_local(p, *name, is_const);
 }
 
-static u8 parse_var(Parser* p, const char* msg, bool is_global) {
+static u8 parse_var(Parser* p, const char* msg, bool is_global, bool is_const) {
   expect(p, tok_ident, msg);
 
   p->last_name_valid = true;
   p->last_name = p->prev;
 
-  decl_var(p, is_global);
+  decl_var(p, is_global, is_const);
   if (!is_global) {
     return 0;
   }
@@ -446,13 +450,21 @@ static void mark_init(Parser* p) {
     p->compiler->scope;
 }
 
-static void def_var(Parser* p, u8 global, bool is_global) {
+static void def_var(Parser* p, u8 global, bool is_global, bool is_const) {
   if (!is_global) {
     mark_init(p);
     return;
   }
 
-  write_2bc(p, bc_def_global, global);
+  if (!is_const) {
+    write_2bc(p, bc_def_global, global);
+  } else {
+    p->h->gc.can_gc = false;
+    GcStr* name = as_str(p->compiler->fn->chunk.consts.items[global]);
+    set_map(p->h, &p->h->global_consts, name, create_null());
+    p->h->gc.can_gc = true;
+    write_2bc(p, bc_def_gconst, global);
+  }
 }
 
 static void and_(Parser* p, bool can_assign) {
@@ -705,8 +717,8 @@ static void function(Parser* p, FnType type, bool is_lambda) {
         err_cur(p, err_msg_max_param);
       }
       p->compiler->fn->arity++;
-      u8 c = parse_var(p, err_msg_expect_ident, false);
-      def_var(p, c, false);
+      u8 c = parse_var(p, err_msg_expect_ident, false, false);
+      def_var(p, c, false, false);
     } while (consume(p, tok_comma));
   }
   expect(p, tok_rparen, err_msg_expect(")"));
@@ -738,6 +750,26 @@ static void anon_fn(Parser* p, bool can_assign) {
   function(p, FnType_fn, true);
 }
 
+static void check_const(Parser* p, u8 setter, int arg) {
+  switch (setter) {
+    case bc_set_local:
+      if (p->compiler->locals[arg].is_const) {
+        err(p, err_msg_assign_const);
+      }
+      break;
+    case bc_set_upval:
+      if (p->compiler->upvals[arg].is_const) {
+        err(p, err_msg_assign_const);
+      }
+      break;
+    case bc_def_gconst:
+      err(p, err_msg_assign_const);
+      break;
+    default:
+      break;
+  }
+}
+
 static void named_var(Parser* p, Tok name, bool can_assign) {
   if (p->in_expr_stat && consume(p, tok_comma)) { // Multiple assignment
     Tok names[UINT8_MAX];
@@ -766,6 +798,11 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
         setter = bc_set_upval;
       } else {
         arg = ident_const(p, &names[i]);
+        GcStr* name = as_str(p->compiler->fn->chunk.consts.items[arg]);
+        Val v;
+        if (get_map(&p->h->global_consts, name, &v)) {
+          err(p, err_msg_assign_const);
+        }
         setter = bc_set_global;
       }
 
@@ -787,12 +824,20 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
     setter = bc_set_upval;
   } else {
     arg = ident_const(p, &name);
-    getter = bc_get_global;
-    setter = bc_set_global;
+    GcStr* name = as_str(p->compiler->fn->chunk.consts.items[arg]);
+    Val v;
+    if (get_map(&p->h->global_consts, name, &v)) {
+      getter = bc_get_gconst;
+      setter = bc_def_gconst;
+    } else {
+      getter = bc_get_global;
+      setter = bc_set_global;
+    }
   }
 
 #define shorthand_op(op) \
   do { \
+    check_const(p, setter, arg); \
     write_2bc(p, getter, (u8)arg); \
     expr(p); \
     write_bc(p, op); \
@@ -800,6 +845,7 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
   } while (false)
 #define compound_op(op) \
   do { \
+    check_const(p, setter, arg); \
     write_2bc(p, getter, (u8)arg); \
     write_2bc(p, bc_const, create_const(p, create_num(1))); \
     write_bc(p, op); \
@@ -807,6 +853,7 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
   } while (false)
 
   if (can_assign && consume(p, tok_eql)) {
+    check_const(p, setter, arg);
     expr(p);
     write_2bc(p, setter, (u8)arg);
   } else if (can_assign && consume(p, tok_plus_eql)) {
@@ -981,7 +1028,7 @@ static void block(Parser* p) {
   expect(p, tok_rbrace, err_msg_expect("}"));
 }
 
-static void var_decl(Parser* p, bool is_global) {
+static void var_decl(Parser* p, bool is_global, bool is_const) {
   u8 vars[UINT8_MAX];
   Tok names[UINT8_MAX];
   int count = 0;
@@ -993,13 +1040,13 @@ static void var_decl(Parser* p, bool is_global) {
     }
 
     Tok name = p->cur;
-    u8 name_const = parse_var(p, err_msg_expect_ident, is_global);
+    u8 name_const = parse_var(p, err_msg_expect_ident, is_global, is_const);
     vars[count] = name_const;
     names[count] = name;
     count++;
 
     if (!is_global && (check(p, tok_comma) || count > 1)) {
-      def_var(p, 0, false);
+      def_var(p, 0, false, is_const);
       write_bc(p, bc_null); // Reserve this slot
     }
   } while (consume(p, tok_comma));
@@ -1013,7 +1060,7 @@ static void var_decl(Parser* p, bool is_global) {
   if (count > 1) { // Multiple assignment
     for (int i = 0; i < count; i++) {
       write_2bc(p, bc_destruct_array, i);
-      def_var(p, vars[i], is_global);
+      def_var(p, vars[i], is_global, is_const);
 
       if (!is_global) {
         uint8_t local = resolve_local(p, p->compiler, &names[i]);
@@ -1024,17 +1071,17 @@ static void var_decl(Parser* p, bool is_global) {
     write_bc(p, bc_pop); // The expression result
   } else { // Single assignment
 
-    def_var(p, vars[0], is_global);
+    def_var(p, vars[0], is_global, is_const);
   }
 
   expect(p, tok_semicolon, err_msg_expect(";"));
 }
 
 static void fn_decl(Parser* p, bool is_global) {
-  u8 global = parse_var(p, err_msg_expect_ident, is_global);
+  u8 global = parse_var(p, err_msg_expect_ident, is_global, true);
   mark_init(p);
   function(p, FnType_fn, false);
-  def_var(p, global, is_global);
+  def_var(p, global, is_global, true);
 }
 
 static u8 method(Parser* p, bool is_static) {
@@ -1094,11 +1141,12 @@ static void struct_body(Parser* p, bool all_static) {
   bool is_static = all_static;
   u8 static_name = 0;
 
-  if (consume(p, tok_global)) { // Global declarations inside struct
+  /* if (consume(p, tok_global)) { // Global declarations inside struct
     decl(p, true);
-  } else if (consume(p, tok_fn)) { // Member functions
+  } else */ if (consume(p, tok_fn)) { // Member functions
     static_name = method(p, all_static);
   } else if (consume(p, tok_var)) { // Member variables
+    // TODO: Error here on `all_static`
     expect(p, tok_ident, err_msg_expect_ident);
     Tok name = p->prev;
 
@@ -1110,6 +1158,19 @@ static void struct_body(Parser* p, bool all_static) {
 
     write_2bc(p, bc_member, ident_const(p, &name));
     expect(p, tok_semicolon, err_msg_expect(";"));
+  } else if (consume(p, tok_const)) { // Static consts
+    expect(p, tok_ident, err_msg_expect_ident);
+    Tok name = p->prev;
+
+    if (consume(p, tok_eql)) {
+      expr(p);
+    } else {
+      write_bc(p, bc_null);
+    }
+
+    static_name = ident_const(p, &name);
+    expect(p, tok_semicolon, err_msg_expect(";"));
+    is_static = true;
   } else if (consume(p, tok_static)) { // Static functions or sub-structs
     if (consume(p, tok_fn)) { // Static functions
       static_name = method(p, true);
@@ -1153,10 +1214,10 @@ static void struct_decl(Parser* p, bool is_global, bool all_static) {
   expect(p, tok_ident, err_msg_expect_ident);
   Tok name = p->prev;
   u8 name_const = ident_const(p, &name);
-  decl_var(p, is_global);
+  decl_var(p, is_global, true);
 
   write_2bc(p, bc_struct, name_const);
-  def_var(p, name_const, is_global);
+  def_var(p, name_const, is_global, true);
   
   named_var(p, name, false);
 
@@ -1193,8 +1254,8 @@ static void enum_decl(Parser* p, bool is_global) {
   expect(p, tok_ident, err_msg_expect_ident);
   Tok name = p->prev;
   u8 name_const = ident_const(p, &name);
-  decl_var(p, is_global);
-  def_var(p, name_const, is_global);
+  decl_var(p, is_global, true);
+  def_var(p, name_const, is_global, true);
 
   enum_body(p, name_const);
 }
@@ -1332,8 +1393,8 @@ static void for_stat(Parser* p) {
   // Loop variable
   expect(p, tok_lparen, err_msg_expect("("));
   if (!consume(p, tok_semicolon)) {
-    bool is_global = consume(p, tok_global);
-    var_decl(p, is_global);
+    // bool is_global = consume(p, tok_global);
+    var_decl(p, false, false);
   }
 
   Loop loop;
@@ -1475,13 +1536,15 @@ static void sync(Parser* p) {
 }
 
 static void decl(Parser* p, bool is_global) {
-  if (consume(p, tok_global)) {
+  /* if (consume(p, tok_global)) {
     decl(p, true);
-  } else if (consume(p, tok_static)) {
+  } else */ if (consume(p, tok_static)) {
     expect(p, tok_struct, err_msg_bad_static_struct);
     struct_decl(p, is_global, true);
   } else if (consume(p, tok_var)) {
-    var_decl(p, is_global);
+    var_decl(p, is_global, false);
+  } else if (consume(p, tok_const)) {
+    var_decl(p, is_global, true);
   } else if (consume(p, tok_struct)) {
     struct_decl(p, is_global, false);
   } else if (consume(p, tok_enum)) {

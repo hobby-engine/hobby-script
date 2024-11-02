@@ -232,6 +232,7 @@ static void mark_roots(hby_State* h) {
   }
 
   mark_map(h, &h->globals);
+  mark_map(h, &h->global_consts);
   mark_map(h, &h->files);
   mark_obj(h, (GcObj*)h->args);
   mark_compiler_roots(h->parser);

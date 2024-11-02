@@ -1,0 +1,18 @@
+var file = io:File:open("tests/std/io/File/read_test.txt", "r");
+if (file == null) {
+  io:stderr.write("could not open file");
+  return;
+}
+
+var contents = file.readall();
+if (contents == null) {
+  io:stderr.write("could not read file");
+  return;
+}
+
+file.close();
+
+io:print(contents);
+// expect: Reading Test
+// expect: 
+io:print(file); // expect: <File 'tests/std/io/File/read_test.txt'>

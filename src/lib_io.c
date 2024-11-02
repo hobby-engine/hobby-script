@@ -46,8 +46,10 @@ static bool io_input(hby_State* h, int argc) {
 
 typedef struct {
   FILE* handle;
-  bool closed;
+  char* path;
+  size_t path_len;
   size_t size;
+  bool closed;
 } File;
 
 static bool file_gc(hby_State* h, int argc) {
@@ -56,6 +58,8 @@ static bool file_gc(hby_State* h, int argc) {
     file->closed = true;
     fclose(file->handle);
   }
+
+  release_arr(h, char, file->path, file->path_len);
   return false;
 }
 
@@ -80,6 +84,11 @@ static bool file_open(hby_State* h, int argc) {
 
   file->closed = false;
 
+  file->path = allocate(h, char, path_len + 1);
+  memcpy(file->path, path, path_len);
+  file->path[path_len] = '\0';
+  file->path_len = path_len;
+
   fseek(file->handle, 0L, SEEK_END);
   file->size = ftell(file->handle);
   rewind(file->handle);
@@ -88,6 +97,11 @@ static bool file_open(hby_State* h, int argc) {
 
 static bool file_write(hby_State* h, int argc) {
   File* file = (File*)hby_get_udata(h, 0);
+  if (file->closed) {
+    hby_push_bool(h, false);
+    return true;
+  }
+
   size_t data_len;
   const char* data = hby_get_string(h, 1, &data_len);
   size_t bytes_written = fwrite(data, sizeof(char), data_len, file->handle);
@@ -103,6 +117,10 @@ static bool file_write(hby_State* h, int argc) {
 
 static bool file_readall(hby_State* h, int argc) {
   File* file = (File*)hby_get_udata(h, 0);
+  if (file->closed) {
+    return false;
+  }
+
   char* buf = (char*)malloc(file->size + 1);
   if (buf == NULL) {
     return false;
@@ -131,11 +149,23 @@ static bool file_close(hby_State* h, int argc) {
   return false;
 }
 
+static bool file_tostr(hby_State* h, int argc) {
+  File* file = (File*)hby_get_udata(h, 0);
+
+  hby_push_strcpy(h, "<File '");
+  hby_push_lstrcpy(h, file->path, file->path_len);
+  hby_concat(h);
+  hby_push_strcpy(h, "'>");
+  hby_concat(h);
+  return true;
+}
+
 hby_StructMethod file[] = {
   {"open", file_open, 2, hby_static_fn},
   {"close", file_close, 0, hby_method},
   {"write", file_write, 1, hby_method},
   {"readall", file_readall, 0, hby_method},
+  {"tostr", file_tostr, 0, hby_method},
   {NULL, NULL, 0, 0},
 };
 

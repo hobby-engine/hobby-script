@@ -6,7 +6,6 @@ LDFLAG = -lm
 
 RM = rm -f
 MKDIR = mkdir -p
-RMDIR = rmdir 2>/dev/null
 FRMDIR = rm -rf
 
 TARGET_SUFFIX = 
@@ -14,6 +13,9 @@ TARGET_SUFFIX =
 ifeq (,$(findstring Windows,$(OS)))
 	HOST_SYS = $(shell uname -s)
 else
+	RM = del /q
+	MKDIR = mkdir
+	FRMDIR = del /s /q
 	HOST_SYS = Windows
 endif
 

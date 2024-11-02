@@ -11,7 +11,6 @@ static bool is_whitespace(char c) {
 }
 
 static bool str_len(hby_State* h, int argc) {
-  hby_expect_string(h, 0);
   hby_push_num(h, hby_len(h, 0));
   return true;
 }
@@ -209,6 +208,72 @@ static bool str_tolow(hby_State* h, int argc) {
   return true;
 }
 
+static bool str_contains(hby_State* h, int argc) {
+  size_t len;
+  const char* str = hby_get_string(h, 0, &len);
+
+  hby_expect_str(h, 1);
+  size_t sub_len;
+  const char* sub = hby_get_string(h, 1, &sub_len);
+
+  if (len < sub_len) {
+    hby_push_bool(h, false);
+    return true;
+  }
+
+  for (size_t i = 0; i < len - sub_len + 1; i++) {
+    bool contained = true;
+    for (size_t j = 0; j < sub_len; j++) {
+      if (str[i + j] != sub[j]) {
+        contained = false;
+        break;
+      }
+    }
+
+    if (contained) {
+      hby_push_bool(h, true);
+      return true;
+    }
+  }
+
+  hby_push_bool(h, false);
+  return true;
+}
+
+static bool str_startswith(hby_State* h, int argc) {
+  size_t len;
+  const char* str = hby_get_string(h, 0, &len);
+
+  hby_expect_str(h, 1);
+  size_t start_len;
+  const char* start = hby_get_string(h, 1, &start_len);
+
+  if (len < start_len) {
+    hby_push_bool(h, false);
+    return true;
+  }
+
+  hby_push_bool(h, memcmp(str, start, start_len) == 0);
+  return true;
+}
+
+static bool str_endswith(hby_State* h, int argc) {
+  size_t len;
+  const char* str = hby_get_string(h, 0, &len);
+
+  hby_expect_str(h, 1);
+  size_t end_len;
+  const char* end = hby_get_string(h, 1, &end_len);
+
+  if (len < end_len) {
+    hby_push_bool(h, false);
+    return true;
+  }
+
+  hby_push_bool(h, memcmp(str + (len - end_len), end, end_len) == 0);
+  return true;
+}
+
 static bool str_isdigit(hby_State* h, int argc) {
   size_t str_len;
   const char* str = hby_get_string(h, 0, &str_len);
@@ -284,6 +349,9 @@ hby_StructMethod str_methods[] = {
   {"split", str_split, 1, hby_method},
   {"toup", str_toup, 0, hby_method},
   {"tolow", str_tolow, 0, hby_method},
+  {"contains", str_contains, 1, hby_method},
+  {"startswith", str_startswith, 1, hby_method},
+  {"endswith", str_endswith, 1, hby_method},
   {"isdigit", str_isdigit, 0, hby_method},
   {"isalpha", str_isalpha, 0, hby_method},
   {"isalphanum", str_isalphanum, 0, hby_method},

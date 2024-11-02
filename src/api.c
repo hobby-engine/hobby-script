@@ -44,7 +44,7 @@ static GcStr* obj_to_string(hby_State* h, int index) {
   if (is_inst(val) && hby_has_prop(h, "tostr", index)) {
     hby_push(h, index);
     hby_callon(h, "tostr", 0);
-    if (!hby_is_string(h, -1)) {
+    if (!hby_is_str(h, -1)) {
       hby_err(h, "expected string to be returned from 'tostr'");
     }
 
@@ -55,7 +55,7 @@ static GcStr* obj_to_string(hby_State* h, int index) {
     hby_push(h, index);
     hby_callon(h, "tostr", 0);
 
-    if (!hby_is_string(h, -1)) {
+    if (!hby_is_str(h, -1)) {
       hby_err(h, "expected string to be returned from 'tostr'");
     }
 
@@ -224,7 +224,7 @@ hby_CFn hby_get_cfunction(hby_State* h, int index) {
 }
 
 const char* hby_get_string(hby_State* h, int index, size_t* len_out) {
-  hby_expect_string(h, index);
+  hby_expect_str(h, index);
   Val val = val_at(h, index);
 
   GcStr* str = as_str(val);

@@ -128,7 +128,7 @@ hby_api void hby_add_enum(hby_State* h, const char* name, int _enum);
 #define hby_is_num(h, index)          (hby_get_type(h, index) == hby_type_number)
 #define hby_is_bool(h, index)         (hby_get_type(h, index) == hby_type_bool)
 #define hby_is_null(h, index)         (hby_get_type(h, index) == hby_type_null)
-#define hby_is_string(h, index)       (hby_get_type(h, index) == hby_type_string)
+#define hby_is_str(h, index)          (hby_get_type(h, index) == hby_type_string)
 #define hby_is_instance(h, index)     (hby_get_type(h, index) == hby_type_instance)
 #define hby_is_struct(h, index)       (hby_get_type(h, index) == hby_type_struct)
 #define hby_is_enum(h, index)         (hby_get_type(h, index) == hby_type_enum)
@@ -140,7 +140,7 @@ hby_api void hby_add_enum(hby_State* h, const char* name, int _enum);
 #define hby_expect_num(h, index)       hby_expect_type(h, index, hby_type_number);
 #define hby_expect_bool(h, index)      hby_expect_type(h, index, hby_type_bool);
 #define hby_expect_null(h, index)      hby_expect_type(h, index, hby_type_null);
-#define hby_expect_string(h, index)    hby_expect_type(h, index, hby_type_string);
+#define hby_expect_str(h, index)       hby_expect_type(h, index, hby_type_string);
 #define hby_expect_instance(h, index)  hby_expect_type(h, index, hby_type_instance);
 #define hby_expect_struct(h, index)    hby_expect_type(h, index, hby_type_struct);
 #define hby_expect_enum(h, index)      hby_expect_type(h, index, hby_type_enum);

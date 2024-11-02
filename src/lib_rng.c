@@ -107,9 +107,9 @@ hby_StructMethod rng_struct[] = {
   {"seed", rng_seed, -1, hby_method},
   {"next", rng_next, 0, hby_method},
   {"bool", rng_bool, 0, hby_method},
+  {"pick", rng_pick, 1, hby_method},
   {"irange", rng_irange, 2, hby_method},
   {"frange", rng_frange, 2, hby_method},
-  {"pick", rng_pick, 1, hby_method},
   {NULL, NULL, 0, 0},
 };
 

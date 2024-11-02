@@ -1,0 +1,17 @@
+var rng = Rng:new();
+rng.seed(100);
+
+for (i = 0; i < 10; i++) {
+  io:print(rng.bool());
+}
+
+// expect: true
+// expect: false
+// expect: true
+// expect: true
+// expect: false
+// expect: true
+// expect: false
+// expect: false
+// expect: true
+// expect: true

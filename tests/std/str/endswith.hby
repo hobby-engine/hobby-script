@@ -1,0 +1,3 @@
+io:print("hello, world!".endswith("world!")); // expect: true
+io:print("hello, world!".endswith("hello,")); // expect: false
+io:print("hello, world!".endswith("not contained")); // expect: false

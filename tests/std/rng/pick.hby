@@ -1,0 +1,19 @@
+var rng = Rng:new();
+rng.seed(100);
+
+var arr = "i am typing random words wow".split(' ');
+
+for (i = 0; i < 10; i++) {
+  io:print(rng.pick(arr));
+}
+
+// expect: am
+// expect: words
+// expect: am
+// expect: typing
+// expect: wow
+// expect: i
+// expect: wow
+// expect: random
+// expect: typing
+// expect: am

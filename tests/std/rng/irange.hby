@@ -1,0 +1,17 @@
+var rng = Rng:new();
+rng.seed(100);
+
+for (i = 0; i < 10; i++) {
+  io:print(rng.irange(0, 10));
+}
+
+// expect: 3
+// expect: 9
+// expect: 2
+// expect: 4
+// expect: 10
+// expect: 1
+// expect: 9
+// expect: 6
+// expect: 5
+// expect: 2

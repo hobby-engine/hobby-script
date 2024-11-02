@@ -1,0 +1,4 @@
+io:print("Hello, world!".contains("Hello,")); // expect: true
+io:print("Hello, world!".contains("world!")); // expect: true
+io:print("Hello, world!".contains(", ")); // expect: true
+io:print("Hello, world!".contains("not contained")); // expect: false

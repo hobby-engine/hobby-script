@@ -52,7 +52,7 @@ HBY_SO = $(BIN)/libhobbyc$(TARGET_SUFFIX).so
 HBY_SRC = \
 	src/hby.c src/api.c src/arr.c src/chunk.c src/compiler.c src/debug.c \
   src/lexer.c src/lib_arr.c src/lib_core.c src/lib_ease.c src/lib_io.c \
-  src/lib_math.c src/lib_rand.c src/lib_str.c src/lib_sys.c src/map.c \
+  src/lib_math.c src/lib_rng.c src/lib_str.c src/lib_sys.c src/map.c \
   src/mem.c src/obj.c src/state.c src/tostr.c src/val.c src/vm.c
 
 HBY_OBJ = $(HBY_SRC:%.c=$(BIN)/%$(TARGET_SUFFIX).o)

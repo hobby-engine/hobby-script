@@ -47,7 +47,7 @@ hby_State* create_state() {
   hby_open_lib(h, open_ease);
   hby_open_lib(h, open_io);
   hby_open_lib(h, open_math);
-  hby_open_lib(h, open_rand);
+  hby_open_lib(h, open_rng);
   hby_open_lib(h, open_str);
   hby_open_lib(h, open_sys);
 

@@ -52,7 +52,7 @@ static bool rng_new(hby_State* h, int argc) {
   return true;
 }
 
-static bool rand_seed(hby_State* h, int argc) {
+static bool rng_seed(hby_State* h, int argc) {
   int seed = time(NULL);
   if (argc == 1) {
     seed = hby_get_num(h, 1);
@@ -65,7 +65,28 @@ static bool rand_seed(hby_State* h, int argc) {
   return false;
 }
 
-static bool rand_irange(hby_State* h, int argc) {
+static bool rng_next(hby_State* h, int argc) {
+  Rng* rng = (Rng*)hby_get_udata(h, 0);
+  hby_push_num(h, next_double(rng));
+  return true;
+}
+
+static bool rng_bool(hby_State* h, int argc) {
+  Rng* rng = (Rng*)hby_get_udata(h, 0);
+  hby_push_bool(h, next_double(rng) < 0.5);
+  return true;
+}
+
+static bool rng_pick(hby_State* h, int argc) {
+  Rng* rng = (Rng*)hby_get_udata(h, 0);
+  hby_expect_array(h, 1);
+  int len = hby_len(h, 1);
+  int index = floor(range(rng, 0, len));
+  hby_array_index(h, 1, index);
+  return true;
+}
+
+static bool rng_irange(hby_State* h, int argc) {
   Rng* rng = (Rng*)hby_get_udata(h, 0);
   int low = hby_get_num(h, 1);
   int high = hby_get_num(h, 2) + 1;
@@ -73,7 +94,7 @@ static bool rand_irange(hby_State* h, int argc) {
   return true;
 }
 
-static bool rand_frange(hby_State* h, int argc) {
+static bool rng_frange(hby_State* h, int argc) {
   Rng* rng = (Rng*)hby_get_udata(h, 0);
   int low = hby_get_num(h, 1);
   int high = hby_get_num(h, 2);
@@ -81,22 +102,18 @@ static bool rand_frange(hby_State* h, int argc) {
   return true;
 }
 
-static bool rand_next(hby_State* h, int argc) {
-  Rng* rng = (Rng*)hby_get_udata(h, 0);
-  hby_push_num(h, next_double(rng));
-  return true;
-}
-
 hby_StructMethod rng_struct[] = {
   {"new", rng_new, 0, hby_static_fn},
-  {"seed", rand_seed, -1, hby_method},
-  {"next", rand_next, 0, hby_method},
-  {"irange", rand_irange, 2, hby_method},
-  {"frange", rand_frange, 2, hby_method},
+  {"seed", rng_seed, -1, hby_method},
+  {"next", rng_next, 0, hby_method},
+  {"bool", rng_bool, 0, hby_method},
+  {"irange", rng_irange, 2, hby_method},
+  {"frange", rng_frange, 2, hby_method},
+  {"pick", rng_pick, 1, hby_method},
   {NULL, NULL, 0, 0},
 };
 
-bool open_rand(hby_State* h, int argc) {
+bool open_rng(hby_State* h, int argc) {
   hby_push_struct(h, "Rng");
   hby_struct_add_members(h, rng_struct, -1);
   hby_set_global(h, "Rng");

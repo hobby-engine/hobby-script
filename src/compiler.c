@@ -1079,15 +1079,26 @@ static void enum_body(Parser* p, u8 name_const) {
   }
 }
 
+static void struct_body(Parser* p, bool all_static);
+
+static void sub_struct_decl(Parser* p, bool all_static) {
+  expect(p, tok_lbrace, err_msg_expect("{"));
+
+  while (!check(p, tok_rbrace) && !check(p, tok_eof)) {
+    struct_body(p, all_static);
+  }
+  expect(p, tok_rbrace, err_msg_expect("}"));
+}
+
 static void struct_body(Parser* p, bool all_static) {
   bool is_static = all_static;
   u8 static_name = 0;
 
-  if (consume(p, tok_global)) {
+  if (consume(p, tok_global)) { // Global declarations inside struct
     decl(p, true);
-  } else if (consume(p, tok_fn)) {
+  } else if (consume(p, tok_fn)) { // Member functions
     static_name = method(p, all_static);
-  } else if (consume(p, tok_var)) {
+  } else if (consume(p, tok_var)) { // Member variables
     expect(p, tok_ident, err_msg_expect_ident);
     Tok name = p->prev;
 
@@ -1099,14 +1110,28 @@ static void struct_body(Parser* p, bool all_static) {
 
     write_2bc(p, bc_member, ident_const(p, &name));
     expect(p, tok_semicolon, err_msg_expect(";"));
-  } else if (consume(p, tok_static)) {
-    expect(p, tok_fn, err_msg_bad_static_fn);
-    static_name = method(p, true);
+  } else if (consume(p, tok_static)) { // Static functions or sub-structs
+    if (consume(p, tok_fn)) { // Static functions
+      static_name = method(p, true);
+    } else if (consume(p, tok_struct)) { // Static structs
+      expect(p, tok_ident, err_msg_expect_ident);
+      static_name = ident_const(p, &p->prev);
+      write_2bc(p, bc_struct, static_name);
+      sub_struct_decl(p, true);
+    } else {
+      err(p, err_msg_bad_static_member);
+    }
     is_static = true;
-  } else if (consume(p, tok_enum)) {
+  } else if (consume(p, tok_enum)) { // Enums
     expect(p, tok_ident, err_msg_expect_ident);
     static_name = ident_const(p, &p->prev);
     enum_body(p, static_name);
+    is_static = true;
+  } else if (consume(p, tok_struct)) { // Sub-structs
+    expect(p, tok_ident, err_msg_expect_ident);
+    static_name = ident_const(p, &p->prev);
+    write_2bc(p, bc_struct, static_name);
+    sub_struct_decl(p, false);
     is_static = true;
   } else {
     err_cur(p, err_msg_bad_struct_member);

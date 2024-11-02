@@ -1,0 +1,9 @@
+struct foo {
+  struct bar {
+    static fn baz() {
+      io:print("output");
+    }
+  }
+}
+
+foo:bar:baz(); // expect: output

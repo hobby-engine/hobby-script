@@ -8,12 +8,14 @@
 #define err_msg_shadow_prev_enum "enum value '%s' is already defined"
 #define err_msg_bad_argc "expected %d args, but %d were passed"
 #define err_msg_bad_callee "cannot call that value"
-#define err_msg_bad_static_access "cannot access static properties on that value"
+#define err_msg_bad_static_access \
+  "cannot access static properties on that value"
 #define err_msg_bad_prop_access "cannot access properties on that value"
 #define err_msg_bad_destruct_val "cannot destruct that value"
 #define err_msg_bad_destruct_len "variable count and array length mismatch"
 #define err_msg_bad_sub_get "subscript access is not supported for that value"
-#define err_msg_bad_sub_set "subscript assignment is not supported for that value"
+#define err_msg_bad_sub_set \
+  "subscript assignment is not supported for that value"
 #define err_msg_bad_inst "cannot instance that value"
 #define err_msg_undef_prop "undefined property '%s'"
 #define err_msg_undef_static_prop "undefined static property '%s'"
@@ -35,11 +37,13 @@
 #define err_msg_bad_loop_label "could not resolve loop label"
 #define err_msg_bad_self "cannot use 'self' outside of a struct"
 #define err_msg_bad_assign "invalid assignment target"
-#define err_msg_bad_static_fn "expected function declaration after 'static'"
+#define err_msg_bad_static_member \
+  "expected struct or function declaration after 'static'"
 #define err_msg_bad_static_struct "expected struct declaration after 'static'"
 #define err_msg_bad_struct_member "structs can only contain declarations"
 #define err_msg_bad_struct_stat "struct statement must be on line #1"
-#define err_msg_bad_decl_scope(type) type " declaration must not be declared in a scope"
+#define err_msg_bad_decl_scope(type) \
+  type " declaration must not be declared in a scope"
 #define err_msg_bad_else_case "'else' case must be the last case in a switch"
 #define err_msg_max_consts "too many constants in one chunk"
 #define err_msg_max_locals "too many local variables in one chunk"

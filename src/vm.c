@@ -66,7 +66,7 @@ void hby_err(hby_State* h, const char* fmt, ...) {
   show_err(h, fmt, args);
   va_end(args);
 
-  longjmp(h->err_jmp, 1);
+  longjmp(h->err_jmp->buf, 1);
 }
 
 static Val peek(hby_State* h, int dist) {
@@ -103,8 +103,11 @@ static bool call_c(hby_State* h, GcCFn* c_fn, int argc) {
     return false;
   }
 
-
-  if (setjmp(h->err_jmp) == 0) {
+  LongJmp jmp;
+  jmp.prev = h->err_jmp;
+  h->err_jmp = &jmp;
+  
+  if (setjmp(jmp.buf) == 0) {
     CallFrame* frame = ++h->frame;
     frame->fn.c = c_fn;
     frame->ip = NULL;
@@ -117,8 +120,11 @@ static bool call_c(hby_State* h, GcCFn* c_fn, int argc) {
     push(h, val);
     h->frame--;
 
+    h->err_jmp = jmp.prev;
     return true;
   }
+
+  h->err_jmp = jmp.prev;
   return false;
 }
 

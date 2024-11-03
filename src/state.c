@@ -20,6 +20,7 @@ hby_State* create_state() {
 
   h->parser = allocate(h, Parser, 1);
   h->parser->compiler = NULL;
+  h->err_jmp = NULL;
 
   h->gc.objs = NULL;
   h->gc.udata = NULL;

@@ -26,6 +26,11 @@ typedef struct {
   CallType type;
 } CallFrame;
 
+typedef struct LongJmp {
+  struct LongJmp* prev;
+  jmp_buf buf;
+} LongJmp;
+
 typedef struct {
   bool can_gc;
   size_t alloced;
@@ -59,7 +64,7 @@ struct hby_State {
   struct GcStruct* udata_struct;
 
   GcState gc;
-  jmp_buf err_jmp;
+  LongJmp* err_jmp;
 
   struct Parser* parser;
 };

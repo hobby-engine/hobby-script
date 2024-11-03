@@ -39,10 +39,7 @@ struct NumNode {
 
   static fn new(num) -> NumNode{num=num};
 
-  fn execute() {
-    return self.num;
-  }
-
+  fn execute() -> self.num;
   fn tostr() -> tostr(self.num);
 }
 

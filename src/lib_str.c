@@ -53,9 +53,9 @@ static char* concat(
 
 static bool str_find(hby_State* h, int argc) {
   size_t substr_len;
-  const char* substr = hby_get_tostring(h, 1, &substr_len);
+  const char* substr = hby_get_tostr(h, 1, &substr_len);
   size_t str_len;
-  const char* str = hby_get_string(h, 0, &str_len);
+  const char* str = hby_get_str(h, 0, &str_len);
 
   hby_push_num(h, find_substr(str, str_len, substr, substr_len));
   return true;
@@ -63,7 +63,7 @@ static bool str_find(hby_State* h, int argc) {
 
 static bool str_rem(hby_State* h, int argc) {
   size_t str_len;
-  const char* str = hby_get_string(h, 0, &str_len);
+  const char* str = hby_get_str(h, 0, &str_len);
 
   int start = get_idx(h, str_len, hby_get_num(h, 1));
   int len = hby_get_num(h, 2);
@@ -91,7 +91,7 @@ static bool str_rem(hby_State* h, int argc) {
 
 static bool str_trim(hby_State* h, int argc) {
   size_t str_len;
-  const char* str = hby_get_string(h, 0, &str_len);
+  const char* str = hby_get_str(h, 0, &str_len);
 
   int start = 0;
   int end = str_len;
@@ -112,10 +112,10 @@ static bool str_trim(hby_State* h, int argc) {
 
 static bool str_split(hby_State* h, int argc) {
   size_t str_len;
-  const char* str = hby_get_string(h, 0, &str_len);
+  const char* str = hby_get_str(h, 0, &str_len);
 
   size_t delim_len;
-  const char* delim = hby_get_string(h, 1, &delim_len);
+  const char* delim = hby_get_str(h, 1, &delim_len);
 
   hby_push_array(h);
 
@@ -172,7 +172,7 @@ static bool is_upper(char c) {
 
 static bool str_toup(hby_State* h, int argc) {
   size_t len;
-  const char* str = hby_get_string(h, 0, &len);
+  const char* str = hby_get_str(h, 0, &len);
 
   char* upper = allocate(h, char, len + 1);
   upper[len] = '\0';
@@ -191,7 +191,7 @@ static bool str_toup(hby_State* h, int argc) {
 
 static bool str_tolow(hby_State* h, int argc) {
   size_t len;
-  const char* str = hby_get_string(h, 0, &len);
+  const char* str = hby_get_str(h, 0, &len);
 
   char* upper = allocate(h, char, len + 1);
   upper[len] = '\0';
@@ -210,11 +210,11 @@ static bool str_tolow(hby_State* h, int argc) {
 
 static bool str_contains(hby_State* h, int argc) {
   size_t len;
-  const char* str = hby_get_string(h, 0, &len);
+  const char* str = hby_get_str(h, 0, &len);
 
   hby_expect_str(h, 1);
   size_t sub_len;
-  const char* sub = hby_get_string(h, 1, &sub_len);
+  const char* sub = hby_get_str(h, 1, &sub_len);
 
   if (len < sub_len) {
     hby_push_bool(h, false);
@@ -242,11 +242,11 @@ static bool str_contains(hby_State* h, int argc) {
 
 static bool str_startswith(hby_State* h, int argc) {
   size_t len;
-  const char* str = hby_get_string(h, 0, &len);
+  const char* str = hby_get_str(h, 0, &len);
 
   hby_expect_str(h, 1);
   size_t start_len;
-  const char* start = hby_get_string(h, 1, &start_len);
+  const char* start = hby_get_str(h, 1, &start_len);
 
   if (len < start_len) {
     hby_push_bool(h, false);
@@ -259,11 +259,11 @@ static bool str_startswith(hby_State* h, int argc) {
 
 static bool str_endswith(hby_State* h, int argc) {
   size_t len;
-  const char* str = hby_get_string(h, 0, &len);
+  const char* str = hby_get_str(h, 0, &len);
 
   hby_expect_str(h, 1);
   size_t end_len;
-  const char* end = hby_get_string(h, 1, &end_len);
+  const char* end = hby_get_str(h, 1, &end_len);
 
   if (len < end_len) {
     hby_push_bool(h, false);
@@ -276,7 +276,7 @@ static bool str_endswith(hby_State* h, int argc) {
 
 static bool str_isdigit(hby_State* h, int argc) {
   size_t str_len;
-  const char* str = hby_get_string(h, 0, &str_len);
+  const char* str = hby_get_str(h, 0, &str_len);
 
   if (str_len == 0) {
     hby_push_bool(h, false);
@@ -297,7 +297,7 @@ static bool str_isdigit(hby_State* h, int argc) {
 
 static bool str_isalpha(hby_State* h, int argc) {
   size_t str_len;
-  const char* str = hby_get_string(h, 0, &str_len);
+  const char* str = hby_get_str(h, 0, &str_len);
 
   if (str_len == 0) {
     hby_push_bool(h, false);
@@ -319,7 +319,7 @@ static bool str_isalpha(hby_State* h, int argc) {
 
 static bool str_isalphanum(hby_State* h, int argc) {
   size_t str_len;
-  const char* str = hby_get_string(h, 0, &str_len);
+  const char* str = hby_get_str(h, 0, &str_len);
 
   if (str_len == 0) {
     hby_push_bool(h, false);
@@ -362,7 +362,7 @@ bool open_str(hby_State* h, int argc) {
   hby_push_struct(h, "String");
   h->string_struct = as_struct(*(h->top - 1));
   hby_struct_add_members(h, str_methods, -1);
-  hby_set_global(h, NULL);
+  hby_set_global(h, NULL, -1);
 
   return false;
 }

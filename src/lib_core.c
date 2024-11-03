@@ -14,8 +14,8 @@ static bool core_tonum(hby_State* h, int argc) {
     case hby_type_number:
       hby_push(h, 1);
       return true;
-    case hby_type_string:
-      hby_push_num(h, strtod(hby_get_string(h, 1, NULL), NULL));
+    case hby_type_str:
+      hby_push_num(h, strtod(hby_get_str(h, 1, NULL), NULL));
       return true;
     case hby_type_bool:
       hby_push_num(h, hby_get_bool(h, 1) ? 1 : 0);
@@ -32,7 +32,7 @@ static bool core_tonum(hby_State* h, int argc) {
 
 static bool core_import(hby_State* h, int argc) {
   size_t len;
-  const char* path = hby_get_string(h, 1, &len);
+  const char* path = hby_get_str(h, 1, &len);
   if (file_imported(h, path)) {
     Val val;
     if (get_map(&h->files, copy_str(h, path, len), &val)) {
@@ -54,20 +54,20 @@ static bool core_import(hby_State* h, int argc) {
 }
 
 static bool core_err(hby_State* h, int argc) {
-  hby_err(h, hby_get_tostring(h, 1, NULL));
+  hby_err(h, hby_get_tostr(h, 1, NULL));
   return false;
 }
 
 static bool core_assert(hby_State* h, int argc) {
   if (!hby_get_bool(h, 1)) {
-    hby_err(h, hby_get_tostring(h, 2, NULL));
+    hby_err(h, hby_get_tostr(h, 2, NULL));
   }
   return false;
 }
 
 static bool core_typestr(hby_State* h, int argc) {
   size_t len;
-  const char* type_name = hby_typestr(hby_get_type(h, 1), &len);
+  const char* type_name = hby_get_type_name(hby_get_type(h, 1), &len);
   hby_push_lstrcpy(h, type_name, len);
   return true;
 }
@@ -84,25 +84,25 @@ hby_CFnArgs core_mod[] = {
 
 bool open_core(hby_State* h, int argc) {
   for (hby_CFnArgs* args = core_mod; args->name != NULL; args++) {
-    hby_push_cfunction(h, args->name, args->fn, args->argc);
-    hby_set_global(h, NULL);
+    hby_push_cfunc(h, args->name, args->fn, args->argc);
+    hby_set_global(h, NULL, -1);
   }
 
   hby_push_struct(h, "Number");
   h->number_struct = as_struct(*(h->top - 1));
-  hby_set_global(h, NULL);
+  hby_set_global(h, NULL, -1);
 
   hby_push_struct(h, "Boolean");
   h->boolean_struct = as_struct(*(h->top - 1));
-  hby_set_global(h, NULL);
+  hby_set_global(h, NULL, -1);
 
   hby_push_struct(h, "Function");
   h->function_struct = as_struct(*(h->top - 1));
-  hby_set_global(h, NULL);
+  hby_set_global(h, NULL, -1);
 
   hby_push_struct(h, "UData");
   h->udata_struct = as_struct(*(h->top - 1));
-  hby_set_global(h, NULL);
+  hby_set_global(h, NULL, -1);
 
   return false;
 }

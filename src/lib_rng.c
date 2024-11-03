@@ -82,7 +82,7 @@ static bool rng_pick(hby_State* h, int argc) {
   hby_expect_array(h, 1);
   int len = hby_len(h, 1);
   int index = floor(range(rng, 0, len));
-  hby_array_index(h, 1, index);
+  hby_array_get_index(h, 1, index);
   return true;
 }
 
@@ -116,7 +116,7 @@ hby_StructMethod rng_struct[] = {
 bool open_rng(hby_State* h, int argc) {
   hby_push_struct(h, "Rng");
   hby_struct_add_members(h, rng_struct, -1);
-  hby_set_global(h, "Rng");
+  hby_set_global(h, "Rng", -1);
 
   return false;
 }

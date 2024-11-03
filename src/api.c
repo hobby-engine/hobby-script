@@ -70,7 +70,7 @@ void hby_expect_type(hby_State* h, int index, hby_ValueType expect) {
   if (type != expect) {
     hby_err(
       h, "expected '%s', got '%s'",
-      hby_typestr(expect, NULL), hby_typestr(type, NULL));
+      hby_get_type_name(expect, NULL), hby_get_type_name(type, NULL));
   }
 }
 
@@ -82,23 +82,22 @@ void hby_push(hby_State* h, int index) {
   push(h, val_at(h, index));
 }
 
-void hby_set_global(hby_State* h, const char* name) {
-  Val val = val_at(h, -1);
+void hby_set_global(hby_State* h, const char* name, int index) {
+  Val val = val_at(h, index);
 
   GcStr* sname = get_name_or(h, val, name);
   push(h, create_obj(sname));
   set_map(h, &h->globals, sname, val);
-
-  hby_pop(h, 2);
+  pop(h);
 }
 
-void hby_get_global(hby_State* h, const char* name) {
+bool hby_get_global(hby_State* h, const char* name) {
   Val val;
   if (get_map(&h->globals, copy_str(h, name, strlen(name)), &val)) {
     push(h, val);
-    return;
+    return true;
   }
-  hby_err(h, "No global named '%s' (C API)", name);
+  return false;
 }
 
 hby_ValueType hby_get_type(hby_State* h, int index) {
@@ -112,7 +111,7 @@ hby_ValueType hby_get_type(hby_State* h, int index) {
     return hby_type_null;
   } else if (is_obj(val)) {
     switch (obj_type(val)) {
-      case obj_str: return hby_type_string;
+      case obj_str: return hby_type_str;
       case obj_struct: return hby_type_struct;
       case obj_enum: return hby_type_enum;
       case obj_method:
@@ -164,7 +163,7 @@ bool hby_has_prop(hby_State* h, const char* name, int index) {
   return false;
 }
 
-void hby_get_prop(hby_State* h, const char* name, int index) {
+bool hby_get_prop(hby_State* h, const char* name, int index) {
   Val val = val_at(h, index);
   GcStr* str_name = copy_str(h, name, strlen(name));
 
@@ -175,34 +174,32 @@ void hby_get_prop(hby_State* h, const char* name, int index) {
         Val val;
         if (get_map(&inst->fields, str_name, &val)) {
           push(h, val);
-          return;
+          return true;
         }
 
         if (get_map(&inst->_struct->methods, str_name, &val)) {
           push(h, val);
-          return;
+          return true;
         }
 
-        hby_err(h, "Undefined property '%s'", name);
-        return;
+        return false;
       }
       case obj_udata: {
         GcUData* udata = as_udata(val);
         Val val;
         if (get_map(&udata->metastruct->methods, str_name, &val)) {
           push(h, val);
-          return;
+          return true;
         }
 
-        hby_err(h, "Undefined property '%s'", name);
-        return;
+        return false;
       }
       default:
         break;
     }
   }
 
-  hby_err(h, "Expected instance or udata for call to 'hby_get_prop'");
+  return false;
 }
 
 
@@ -217,13 +214,13 @@ bool hby_get_bool(hby_State* h, int index) {
   return !(is_null(val) || (is_bool(val) && !as_bool(val)));
 }
 
-hby_CFn hby_get_cfunction(hby_State* h, int index) {
+hby_CFn hby_get_cfunc(hby_State* h, int index) {
   hby_expect_cfunction(h, index);
   Val val = val_at(h, index);
   return as_c_fn(val)->fn;
 }
 
-const char* hby_get_string(hby_State* h, int index, size_t* len_out) {
+const char* hby_get_str(hby_State* h, int index, size_t* len_out) {
   hby_expect_str(h, index);
   Val val = val_at(h, index);
 
@@ -235,7 +232,7 @@ const char* hby_get_string(hby_State* h, int index, size_t* len_out) {
   return str->chars;
 }
 
-const char* hby_get_tostring(hby_State* h, int index, size_t* len_out) {
+const char* hby_get_tostr(hby_State* h, int index, size_t* len_out) {
   GcStr* str = obj_to_string(h, index);
   if (len_out != NULL) {
     *len_out = str->len;
@@ -244,9 +241,9 @@ const char* hby_get_tostring(hby_State* h, int index, size_t* len_out) {
   return str->chars;
 }
 
-hby_api void* hby_get_udata(hby_State* h, int udata) {
-  hby_expect_udata(h, udata);
-  return as_udata(val_at(h, udata))->data;
+hby_api void* hby_get_udata(hby_State* h, int index) {
+  hby_expect_udata(h, index);
+  return as_udata(val_at(h, index))->data;
 }
 
 
@@ -264,19 +261,19 @@ hby_api bool hby_opt_bool(hby_State* h, int index, bool opt) {
   return hby_get_num(h, index);
 }
 
-hby_api hby_CFn hby_opt_cfunction(hby_State* h, int index, hby_CFn opt) {
+hby_api hby_CFn hby_opt_cfunc(hby_State* h, int index, hby_CFn opt) {
   if (hby_is_null(h, index)) {
     return opt;
   }
-  return hby_get_cfunction(h, index);
+  return hby_get_cfunc(h, index);
 }
 
-hby_api const char* hby_opt_string(
+hby_api const char* hby_opt_str(
     hby_State* h, int index, size_t* len_out, const char* opt) {
   if (hby_is_null(h, index)) {
     return opt;
   }
-  return hby_get_string(h, index, len_out);
+  return hby_get_str(h, index, len_out);
 }
 
 
@@ -308,7 +305,7 @@ void hby_push_enum(hby_State* h, const char* name) {
   push(h, create_obj(s));
 }
 
-void hby_push_cfunction(hby_State* h, const char* name, hby_CFn fn, int argc) {
+void hby_push_cfunc(hby_State* h, const char* name, hby_CFn fn, int argc) {
   GcStr* s = copy_str(h, name, strlen(name));
   push(h, create_obj(s));
   GcCFn* cfn = create_c_fn(h, s, fn, argc);
@@ -342,13 +339,13 @@ void hby_push_array(hby_State* h) {
   push(h, create_obj(create_arr(h)));
 }
 
-void hby_instance(hby_State* h, int _struct) {
-  hby_expect_struct(h, _struct);
-  push(h, create_obj(create_inst(h, as_struct(val_at(h, _struct)))));
+void hby_instance(hby_State* h, int index) {
+  hby_expect_struct(h, index);
+  push(h, create_obj(create_inst(h, as_struct(val_at(h, index)))));
 }
 
 
-const char* hby_typestr(hby_ValueType type, size_t* len_out) {
+const char* hby_get_type_name(hby_ValueType type, size_t* len_out) {
   size_t dummy;
   if (len_out == NULL) {
     len_out = &dummy;
@@ -364,7 +361,7 @@ const char* hby_typestr(hby_ValueType type, size_t* len_out) {
     case hby_type_null:
       *len_out = 5;
       return "null";
-    case hby_type_string:
+    case hby_type_str:
       *len_out = 6;
       return "string";
     case hby_type_instance:
@@ -404,7 +401,7 @@ int hby_len(hby_State* h, int index) {
   switch(hby_get_type(h, index)) {
     case hby_type_array:
       return as_arr(val)->varr.len;
-    case hby_type_string:
+    case hby_type_str:
       return as_str(val)->len;
     default:
       return 0;
@@ -429,16 +426,16 @@ void hby_callon(hby_State* h, const char* mname, int argc) {
 }
 
 void hby_open_lib(hby_State* h, hby_CFn fn) {
-  hby_push_cfunction(h, "open_lib", fn, 0);
+  hby_push_cfunc(h, "open_lib", fn, 0);
   hby_call(h, 0);
   hby_pop(h, 1);
 }
 
 
-void hby_struct_add_const(hby_State* h, const char* name, int _struct) {
-  hby_expect_struct(h, _struct);
+void hby_struct_add_const(hby_State* h, const char* name, int index) {
+  hby_expect_struct(h, index);
 
-  GcStruct* s = as_struct(val_at(h, _struct));
+  GcStruct* s = as_struct(val_at(h, index));
   Val val = val_at(h, -1);
   GcStr* str_name = get_name_or(h, val, name);
   push(h, create_obj(str_name));
@@ -462,11 +459,11 @@ void hby_struct_get_const(hby_State* h, const char* name) {
   push(h, val);
 }
 
-void hby_struct_add_member(hby_State* h, hby_MethodType type, int _struct) {
-  hby_expect_struct(h, _struct);
+void hby_struct_add_member(hby_State* h, hby_MethodType type, int index) {
+  hby_expect_struct(h, index);
   hby_expect_cfunction(h, -1);
 
-  GcStruct* s = as_struct(val_at(h, _struct));
+  GcStruct* s = as_struct(val_at(h, index));
   GcCFn* cfn = as_c_fn(val_at(h, -1));
   
   switch (type) {
@@ -483,52 +480,52 @@ void hby_struct_add_member(hby_State* h, hby_MethodType type, int _struct) {
   pop(h); // c fn
 }
 
-void hby_struct_add_members(hby_State* h, hby_StructMethod* members, int _struct) {
+void hby_struct_add_members(hby_State* h, hby_StructMethod* members, int index) {
   // The struct's index will be offset by the c function being on the stack
-  if (_struct < 0) {
-    _struct--;
+  if (index < 0) {
+    index--;
   }
 
   for (hby_StructMethod* method = members; method->name != NULL; method++) {
-    hby_push_cfunction(h, method->name, method->fn, method->argc);
-    hby_struct_add_member(h, method->mtype, _struct);
+    hby_push_cfunc(h, method->name, method->fn, method->argc);
+    hby_struct_add_member(h, method->mtype, index);
   }
 }
 
-hby_api void hby_udata_set_metastruct(hby_State* h, int udata) {
-  hby_expect_udata(h, udata);
+void hby_udata_set_metastruct(hby_State* h, int index) {
+  hby_expect_udata(h, index);
   hby_expect_struct(h, -1);
 
-  GcUData* u = as_udata(val_at(h, udata));
+  GcUData* u = as_udata(val_at(h, index));
   u->metastruct = as_struct(pop(h));
 }
 
-hby_api void hby_udata_set_finalizer(hby_State* h, hby_CFn fn) {
+void hby_udata_set_finalizer(hby_State* h, hby_CFn fn) {
   hby_expect_udata(h, -1);
   GcUData* u = as_udata(val_at(h, -1));
 
-  hby_push_cfunction(h, "gc", fn, 1);
+  hby_push_cfunc(h, "gc", fn, 1);
   u->finalizer = as_c_fn(val_at(h, -1));
   pop(h);
 }
 
-void hby_array_add(hby_State* h, int array) {
-  hby_expect_array(h, array);
-  GcArr* arr = as_arr(val_at(h, array));
+void hby_array_add(hby_State* h, int index) {
+  hby_expect_array(h, index);
+  GcArr* arr = as_arr(val_at(h, index));
   push_varr(h, &arr->varr, val_at(h, -1));
   pop(h);
 }
 
-void hby_array_index(hby_State* h, int array, int index) {
-  hby_expect_array(h, array);
-  GcArr* arr = as_arr(val_at(h, array));
+void hby_array_get_index(hby_State* h, int array_index, int index) {
+  hby_expect_array(h, array_index);
+  GcArr* arr = as_arr(val_at(h, array_index));
   push(h, arr->varr.items[index]);
 }
 
-void hby_add_enum(hby_State* h, const char* name, int _enum) {
-  hby_expect_enum(h, _enum);
+void hby_add_enum(hby_State* h, const char* name, int index) {
+  hby_expect_enum(h, index);
 
-  GcEnum* e = as_enum(val_at(h, _enum));
+  GcEnum* e = as_enum(val_at(h, index));
   GcStr* sname = copy_str(h, name, strlen(name));
   push(h, create_obj(sname));
   int i = e->vals.count;

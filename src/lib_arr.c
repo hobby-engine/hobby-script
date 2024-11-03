@@ -155,8 +155,8 @@ static bool arr_eqls(hby_State* h, int argc) {
   }
 
   for (int i = 0; i < len; i++) {
-    hby_array_index(h, 0, i);
-    hby_array_index(h, 1, i);
+    hby_array_get_index(h, 0, i);
+    hby_array_get_index(h, 1, i);
 
     if (!vals_eql(h->top[-1], h->top[-2])) {
       hby_pop(h, 2);
@@ -190,7 +190,7 @@ bool open_arr(hby_State* h, int argc) {
   hby_push_struct(h, "Array");
   h->array_struct = as_struct(*(h->top - 1));
   hby_struct_add_members(h, arr_methods, -1);
-  hby_set_global(h, NULL);
+  hby_set_global(h, NULL, -1);
 
   return false;
 }

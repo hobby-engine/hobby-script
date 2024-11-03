@@ -11,12 +11,12 @@ static bool sys_clock(hby_State* h, int argc) {
 }
 
 static bool sys_command(hby_State* h, int argc) {
-  hby_push_num(h, system(hby_get_string(h, 1, NULL)));
+  hby_push_num(h, system(hby_get_str(h, 1, NULL)));
   return true;
 }
 
 static bool sys_getenv(hby_State* h, int argc) {
-  const char* chars = getenv(hby_get_string(h, 1, NULL));
+  const char* chars = getenv(hby_get_str(h, 1, NULL));
   hby_push_lstrcpy(h, chars, strlen(chars));
   return true;
 }
@@ -41,7 +41,7 @@ bool open_sys(hby_State* h, int argc) {
   push(h, create_obj(h->args));
   hby_struct_add_const(h, "argv", -2);
 
-  hby_set_global(h, "sys");
+  hby_set_global(h, "sys", -1);
 
   return false;
 }

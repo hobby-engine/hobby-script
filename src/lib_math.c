@@ -200,7 +200,7 @@ bool open_math(hby_State* h, int argc) {
   hby_push_num(h, INFINITY);
   hby_struct_add_const(h, "inf", -2);
 
-  hby_set_global(h, "math");
+  hby_set_global(h, "math", -1);
   hby_pop(h, 2);
   
   return false;

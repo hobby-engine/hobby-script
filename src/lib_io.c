@@ -4,14 +4,14 @@
 
 static bool io_write(hby_State* h, int argc) {
   size_t len;
-  const char* str = hby_get_string(h, 1, &len);
+  const char* str = hby_get_str(h, 1, &len);
   fwrite(str, sizeof(char), len, stdout);
   return false;
 }
 
 static bool io_print(hby_State* h, int argc) {
   for (int i = 1; i <= argc; i++) {
-    const char* s = hby_get_tostring(h, i, NULL);
+    const char* s = hby_get_tostr(h, i, NULL);
     if (i > 1) {
       putc('\t', stdout);
     }
@@ -65,8 +65,8 @@ static bool file_gc(hby_State* h, int argc) {
 
 static bool file_open(hby_State* h, int argc) {
   size_t path_len;
-  const char* path = hby_get_string(h, 1, &path_len);
-  const char* mode = hby_get_string(h, 2, NULL);
+  const char* path = hby_get_str(h, 1, &path_len);
+  const char* mode = hby_get_str(h, 2, NULL);
 
   File* file = (File*)hby_push_udata(h, sizeof(File));
   hby_get_global(h, "io");
@@ -103,7 +103,7 @@ static bool file_write(hby_State* h, int argc) {
   }
 
   size_t data_len;
-  const char* data = hby_get_string(h, 1, &data_len);
+  const char* data = hby_get_str(h, 1, &data_len);
   size_t bytes_written = fwrite(data, sizeof(char), data_len, file->handle);
 
   if (bytes_written < data_len) {
@@ -184,7 +184,7 @@ bool open_io(hby_State* h, int argc) {
   hby_struct_add_members(h, file, -1);
   hby_struct_add_const(h, NULL, -2); // File
 
-  hby_set_global(h, NULL); // io
+  hby_set_global(h, NULL, -1); // io
 
   hby_get_global(h, "io");
 

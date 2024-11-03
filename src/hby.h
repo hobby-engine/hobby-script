@@ -15,17 +15,19 @@
 typedef struct hby_State hby_State;
 typedef bool (*hby_CFn)(hby_State* h, int argc);
 
+// Result of running hobbyscript
 typedef enum {
   hby_result_ok,
   hby_result_runtime_err,
   hby_result_compile_err,
 } hby_InterpretResult;
 
+// Represents the various types in Hobbyscript
 typedef enum {
   hby_type_number,
   hby_type_bool,
   hby_type_null,
-  hby_type_string,
+  hby_type_str,
   hby_type_instance,
   hby_type_struct,
   hby_type_enum,
@@ -54,81 +56,140 @@ typedef struct {
   int argc;
 } hby_CFnArgs;
 
+// Create a Hobbyscript state
 hby_api hby_State* create_state();
+// Free a Hobbyscript state
 hby_api void free_state(hby_State* h);
 
+// Set the CLI arguments
 hby_api void hby_cli_args(hby_State* h, int argc, const char** args);
+// Run a file at a specified path
 hby_api hby_InterpretResult hby_run(hby_State* h, const char* path);
-hby_api hby_InterpretResult hby_run_string(
+// Run a given string
+hby_api hby_InterpretResult hby_run_str(
     hby_State* h, const char* file_name, const char* str);
 
+// Throw an error
 hby_api void hby_err(hby_State* h, const char* fmt, ...);
+// Throw an error if the type at `index` does not match `expect`
 hby_api void hby_expect_type(hby_State* h, int index, hby_ValueType expect);
+// Pop `c` values off the stack
 hby_api void hby_pop(hby_State* h, int c);
+// Push the value at `index` to the top of the stack
 hby_api void hby_push(hby_State* h, int index);
-hby_api void hby_set_global(hby_State* h, const char* name);
-hby_api void hby_get_global(hby_State* h, const char* name);
+// Set the global variable `name` to the value at `index`
+// Passing NULL to `name` will try to infer the name, if possible
+hby_api void hby_set_global(hby_State* h, const char* name, int index);
+// Push the global variable `name` to the top of the stack
+// Returns false if the variable does not exist
+hby_api bool hby_get_global(hby_State* h, const char* name);
+// Get the type of the value at `index`
 hby_api hby_ValueType hby_get_type(hby_State* h, int index);
 
+// Check if the value at `index` has the property `name`
 hby_api bool hby_has_prop(hby_State* h, const char* name, int index);
-hby_api void hby_get_prop(hby_State* h, const char* name, int index);
+// Push the property `name` from the value at `index` onto the top of the stack
+hby_api bool hby_get_prop(hby_State* h, const char* name, int index);
 
+// Get a number at `index`
 hby_api double hby_get_num(hby_State* h, int index);
+// Get a boolean at `index`
 hby_api bool hby_get_bool(hby_State* h, int index);
-hby_api hby_CFn hby_get_cfunction(hby_State* h, int index);
-hby_api const char* hby_get_string(hby_State* h, int index, size_t* len_out);
-hby_api const char* hby_get_tostring(hby_State* h, int index, size_t* len_out);
-hby_api void* hby_get_udata(hby_State* h, int udata);
+// Get a C function at `index`
+hby_api hby_CFn hby_get_cfunc(hby_State* h, int index);
+// Get a string at `index`, put the length into `len_out`
+hby_api const char* hby_get_str(hby_State* h, int index, size_t* len_out);
+// Convert the value at `index` to a string, put the length into `len_out`
+hby_api const char* hby_get_tostr(hby_State* h, int index, size_t* len_out);
+// Get the userdata at `index`
+hby_api void* hby_get_udata(hby_State* h, int index);
 
+// Get a number at `index`, or `opt` if it's null
 hby_api double hby_opt_num(hby_State* h, int index, double opt);
+// Get a boolean at `index`, or `opt` if it's null
 hby_api bool hby_opt_bool(hby_State* h, int index, bool opt);
-hby_api hby_CFn hby_opt_cfunction(hby_State* h, int index, hby_CFn opt);
-hby_api const char* hby_opt_string(
+// Get a C function at `index`, or `opt` if it's null
+hby_api hby_CFn hby_opt_cfunc(hby_State* h, int index, hby_CFn opt);
+// Get a string at `index`, or `opt` if it's null
+hby_api const char* hby_opt_str(
   hby_State* h, int index, size_t* len_out, const char* opt);
 
+// Push the number `num` to the top of the stack
 hby_api void hby_push_num(hby_State* h, double num);
+// Push the boolean `b` to the top of the stack
 hby_api void hby_push_bool(hby_State* h, bool b);
+// Push null to the top of the stack
 hby_api void hby_push_null(hby_State* h);
+// Push a struct to the top of the stack
 hby_api void hby_push_struct(hby_State* h, const char* name);
+// Push an enum to the top of the stack
 hby_api void hby_push_enum(hby_State* h, const char* name);
-hby_api void hby_push_cfunction(hby_State* h, const char* name, hby_CFn fn, int argc);
+// Push a C function to the top of the stack
+hby_api void hby_push_cfunc(hby_State* h, const char* name, hby_CFn fn, int argc);
+// Copy and push a string to the top of the stack
 hby_api void hby_push_lstrcpy(hby_State* h, const char* chars, size_t len);
+// Take ownership of, and push a string to the top of the stack
 hby_api void hby_push_lstr(hby_State* h, char* chars, size_t len);
+// Copy and push a string to the top of the stack
 hby_api void hby_push_strcpy(hby_State* h, const char* chars);
+// Take ownership of, and push a string to the top of the stack
 hby_api void hby_push_str(hby_State* h, char* chars);
+// Push a userdata with the size of `size` to the top of the stack
 hby_api void* hby_push_udata(hby_State* h, size_t size);
+// Push an array to the top of the stack
 hby_api void hby_push_array(hby_State* h);
-hby_api void hby_instance(hby_State* h, int _struct);
+// Create an instance from the struct at `index`
+hby_api void hby_instance(hby_State* h, int index);
 
-hby_api const char* hby_typestr(hby_ValueType type, size_t* len_out);
+// Get the type of the value at the top of the stack in a string form
+hby_api const char* hby_get_type_name(hby_ValueType type, size_t* len_out);
+// Convert a value to a string and push it to the top of the stack
 hby_api void hby_tostr(hby_State* h, int index);
+// Concatenate the top two values on the stack
 hby_api void hby_concat(hby_State* h);
+// Get the length of the value at `index`
 hby_api int hby_len(hby_State* h, int index);
+// Push the struct representing a builtin type on top of the stack
 hby_api void hby_push_typestruct(hby_State* h, int index);
 
+// Call a function
+// Stack must look like: [func] [args]
 hby_api void hby_call(hby_State* h, int argc);
+// Call a protected function
 hby_api void hby_pcall(hby_State* h, int argc); // TODO
+// Call a protected C function
 hby_api void hby_pccall(hby_State* h, hby_CFn fn, int argc); // TODO
+// Call a method on a value
 hby_api void hby_callon(hby_State* h, const char* mname, int argc);
+// Open a library
 hby_api void hby_open_lib(hby_State* h, hby_CFn fn);
 
+// Add a static constant to a struct
 hby_api void hby_struct_add_const(hby_State* h, const char* name, int _struct);
+// Push a static constant from a struct to the top of the stack
 hby_api void hby_struct_get_const(hby_State* h, const char* name);
+// Add a method to a struct
 hby_api void hby_struct_add_member(hby_State* h, hby_MethodType type, int _struct);
+// Add multiple methods to a struct
 hby_api void hby_struct_add_members(hby_State* h, hby_StructMethod* members, int index);
 
-hby_api void hby_udata_set_metastruct(hby_State* h, int udata);
+// Set the metastruct on the top of the stack to a userdata at `index`
+hby_api void hby_udata_set_metastruct(hby_State* h, int index);
+// Set a finalizer for userdata
 hby_api void hby_udata_set_finalizer(hby_State* h, hby_CFn fn);
 
-hby_api void hby_array_add(hby_State* h, int array);
-hby_api void hby_array_index(hby_State* h, int array, int index);
+// Add an element at the top of the stack to an array at `index`
+hby_api void hby_array_add(hby_State* h, int index);
+// Push the value at `index` in the array at `array_index` to the top of the stack
+hby_api void hby_array_get_index(hby_State* h, int array_index, int index);
 
-hby_api void hby_add_enum(hby_State* h, const char* name, int _enum);
+// Add a value to an enum at `index`
+hby_api void hby_add_enum(hby_State* h, const char* name, int index);
 
 #define hby_is_num(h, index)          (hby_get_type(h, index) == hby_type_number)
 #define hby_is_bool(h, index)         (hby_get_type(h, index) == hby_type_bool)
 #define hby_is_null(h, index)         (hby_get_type(h, index) == hby_type_null)
-#define hby_is_str(h, index)          (hby_get_type(h, index) == hby_type_string)
+#define hby_is_str(h, index)          (hby_get_type(h, index) == hby_type_str)
 #define hby_is_instance(h, index)     (hby_get_type(h, index) == hby_type_instance)
 #define hby_is_struct(h, index)       (hby_get_type(h, index) == hby_type_struct)
 #define hby_is_enum(h, index)         (hby_get_type(h, index) == hby_type_enum)
@@ -140,7 +201,7 @@ hby_api void hby_add_enum(hby_State* h, const char* name, int _enum);
 #define hby_expect_num(h, index)       hby_expect_type(h, index, hby_type_number);
 #define hby_expect_bool(h, index)      hby_expect_type(h, index, hby_type_bool);
 #define hby_expect_null(h, index)      hby_expect_type(h, index, hby_type_null);
-#define hby_expect_str(h, index)       hby_expect_type(h, index, hby_type_string);
+#define hby_expect_str(h, index)       hby_expect_type(h, index, hby_type_str);
 #define hby_expect_instance(h, index)  hby_expect_type(h, index, hby_type_instance);
 #define hby_expect_struct(h, index)    hby_expect_type(h, index, hby_type_struct);
 #define hby_expect_enum(h, index)      hby_expect_type(h, index, hby_type_enum);

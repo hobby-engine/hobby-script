@@ -329,13 +329,6 @@ static void end_scope(Parser* p) {
   p->compiler->localc -= discarded;
 }
 
-static void expr(Parser* p);
-static void decl(Parser* p);
-static void stat(Parser* p);
-static void block(Parser* p);
-static void parse_prec(Parser* p, Prec prec);
-static ParseRule* get_rule(TokType type);
-
 static u8 ident_const(Parser* p, Tok* name) {
   return create_const(p, create_obj(copy_str(p->h, name->start, name->len)));
 }
@@ -444,6 +437,13 @@ static void mark_init(Parser* p) {
 //
 // EXPRESSIONS
 //
+
+static void expr(Parser* p);
+static void decl(Parser* p);
+static void stat(Parser* p);
+static void block(Parser* p);
+static void parse_prec(Parser* p, Prec prec);
+static ParseRule* get_rule(TokType type);
 
 static void and_expr(Parser* p, bool can_assign) {
   int end_jmp = write_jmp(p, bc_false_jmp);

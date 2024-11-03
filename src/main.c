@@ -37,7 +37,7 @@ static void repl(hby_State* h) {
       break;
     }
 
-    hby_run_string(h, "repl", line);
+    hby_run_str(h, "repl", line);
   }
 }
 
@@ -133,7 +133,7 @@ int main(int argc, const char* args[]) {
   hby_cli_args(h, collected.argc, collected.args);
 
   if (collected.flags & doexpr_flag) {
-    hby_run_string(h, "<cli>", collected.doexpr_str);
+    hby_run_str(h, "<cli>", collected.doexpr_str);
   } else if (collected.path == NULL) {
     repl(h);
   } else {

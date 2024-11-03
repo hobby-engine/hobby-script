@@ -309,16 +309,20 @@ struct Parser {
   }
 }
 
-loop {
-  io:write("> ");
-  var src = io:input();
+if (sys:argv.len() == 0) {
+  io:stderr.write("expected at least 1 argument");
+  return;
+}
+
+for (i = 0; i < sys:argv.len(); i++) {
+  var src = sys:argv[i];
   var parser = Parser:new(src);
   var res = parser.expr();
 
   if (res.error != Error:ok) {
-    io:print($"Error: {error_to_str(res.error)}");
+    io:print($"{src} = error: {error_to_str(res.error)}");
     continue;
   }
 
-  io:print(res.node.execute());
+  io:print($"{src} = {res.node.execute()}");
 }

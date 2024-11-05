@@ -418,11 +418,15 @@ void hby_push_typestruct(hby_State* h, int index) {
 
 
 void hby_call(hby_State* h, int argc) {
-  vm_call(h, h->top[-1 - argc], argc);
+  vm_call(h, h->top[-1 - argc], argc, call_type_reenter);
+}
+
+void hby_pcall(hby_State* h, int argc) {
+  vm_pcall(h, h->top[-1 - argc], argc, call_type_reenter);
 }
 
 void hby_callon(hby_State* h, const char* mname, int argc) {
-  vm_invoke(h, copy_str(h, mname, strlen(mname)), argc);
+  vm_invoke(h, copy_str(h, mname, strlen(mname)), argc, call_type_reenter);
 }
 
 void hby_open_lib(hby_State* h, hby_CFn fn) {

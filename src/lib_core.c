@@ -43,9 +43,9 @@ static bool core_import(hby_State* h, int argc) {
     return true;
   }
 
-  hby_InterpretResult res = hby_run(h, path);
+  hby_Res res = hby_run(h, path);
   // TODO: Handle this better
-  if (res == hby_result_compile_err) {
+  if (res == hby_res_compile_err) {
     hby_err(h, "Compile error");
   }
 
@@ -72,6 +72,18 @@ static bool core_typestr(hby_State* h, int argc) {
   return true;
 }
 
+static bool core_pcall(hby_State* h, int argc) {
+  hby_expect_function(h, 1);
+  hby_push(h, 1);
+
+  for (int i = 2; i <= argc - 1; i++) {
+    hby_push(h, i);
+  }
+
+  hby_pcall(h, argc - 1);
+  return true;
+}
+
 hby_CFnArgs core_mod[] = {
   {"tostr", core_tostr, 1},
   {"tonum", core_tonum, 1},
@@ -79,6 +91,7 @@ hby_CFnArgs core_mod[] = {
   {"assert", core_assert, 2},
   {"import", core_import, 1},
   {"typestr", core_typestr, 1},
+  {"pcall", core_pcall, -1},
   {NULL, NULL, 0},
 };
 

@@ -35,15 +35,15 @@ static char* read_file(const char* path) {
   return buf;
 }
 
-hby_InterpretResult hby_run_str(
+hby_Res hby_run_str(
     hby_State* h, const char* file_name, const char* str) {
-  hby_InterpretResult res = vm_interp(h, file_name, str);
+  hby_Res res = vm_interp(h, file_name, str);
   return res;
 }
 
-hby_InterpretResult hby_run(hby_State* h, const char* path) {
+hby_Res hby_run(hby_State* h, const char* path) {
   char* src = read_file(path);
-  hby_InterpretResult res = hby_run_str(h, path, src);
+  hby_Res res = hby_run_str(h, path, src);
   free(src);
   return res;
 }

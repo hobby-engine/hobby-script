@@ -17,10 +17,10 @@ typedef bool (*hby_CFn)(hby_State* h, int argc);
 
 // Result of running hobbyscript
 typedef enum {
-  hby_result_ok,
-  hby_result_runtime_err,
-  hby_result_compile_err,
-} hby_InterpretResult;
+  hby_res_ok = 0,
+  hby_res_runtime_err,
+  hby_res_compile_err,
+} hby_Res;
 
 // Represents the various types in Hobbyscript
 typedef enum {
@@ -64,9 +64,9 @@ hby_api void free_state(hby_State* h);
 // Set the CLI arguments
 hby_api void hby_cli_args(hby_State* h, int argc, const char** args);
 // Run a file at a specified path
-hby_api hby_InterpretResult hby_run(hby_State* h, const char* path);
+hby_api hby_Res hby_run(hby_State* h, const char* path);
 // Run a given string
-hby_api hby_InterpretResult hby_run_str(
+hby_api hby_Res hby_run_str(
     hby_State* h, const char* file_name, const char* str);
 
 // Throw an error
@@ -156,7 +156,7 @@ hby_api void hby_push_typestruct(hby_State* h, int index);
 // Stack must look like: [func] [args]
 hby_api void hby_call(hby_State* h, int argc);
 // Call a protected function
-hby_api void hby_pcall(hby_State* h, int argc); // TODO
+hby_api void hby_pcall(hby_State* h, int argc);
 // Call a protected C function
 hby_api void hby_pccall(hby_State* h, hby_CFn fn, int argc); // TODO
 // Call a method on a value

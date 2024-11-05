@@ -111,6 +111,12 @@ static Args collect_args(int argc, const char* args[]) {
   return collected;
 }
 
+bool err_handler(hby_State* h, int argc) {
+  const char* err_msg = hby_get_str(h, 1, NULL);
+  fprintf(stderr, "[error] %s\n", err_msg);
+  return false;
+}
+
 int main(int argc, const char* args[]) {
   Args collected = collect_args(argc, args);
 
@@ -137,15 +143,15 @@ int main(int argc, const char* args[]) {
   } else if (collected.path == NULL) {
     repl(h);
   } else {
-    hby_InterpretResult res = hby_run(h, collected.path);
+    hby_Res res = hby_run(h, collected.path);
 
     if (collected.flags & replafter_flag) {
       repl(h);
     } else {
-      if (res == hby_result_compile_err) {
+      if (res == hby_res_compile_err) {
         free_state(h);
         return 65;
-      } else if (res == hby_result_runtime_err) {
+      } else if (res == hby_res_runtime_err) {
         free_state(h);
         return 70;
       }

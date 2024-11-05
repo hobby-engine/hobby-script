@@ -53,20 +53,13 @@ static void show_err(hby_State* h, const char* fmt, va_list args) {
   reset_stack(h);
 }
 
-static void runtime_err(hby_State* h, const char* fmt, ...) {
-  va_list args;
-  va_start(args, fmt);
-  show_err(h, fmt, args);
-  va_end(args);
-}
-
 void hby_err(hby_State* h, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
   show_err(h, fmt, args);
   va_end(args);
 
-  longjmp(h->err_jmp->buf, 1);
+  longjmp(h->err_jmp->buf, hby_res_runtime_err);
 }
 
 static Val peek(hby_State* h, int dist) {
@@ -75,12 +68,12 @@ static Val peek(hby_State* h, int dist) {
 
 static bool call_fn(hby_State* h, GcClosure* closure, int argc) {
   if (argc != closure->fn->arity) {
-    runtime_err(h, err_msg_bad_argc, closure->fn->arity, argc);
+    hby_err(h, err_msg_bad_argc, closure->fn->arity, argc);
     return false;
   }
   
   if (h->frame - h->frame_stack == frames_max) {
-    runtime_err(h, err_msg_stack_overflow);
+    hby_err(h, err_msg_stack_overflow);
     return false;
   }
 
@@ -94,38 +87,30 @@ static bool call_fn(hby_State* h, GcClosure* closure, int argc) {
 
 static bool call_c(hby_State* h, GcCFn* c_fn, int argc) {
   if (c_fn->arity != -1 && argc != c_fn->arity) {
-    runtime_err(h, err_msg_bad_argc, c_fn->arity, argc);
+    hby_err(h, err_msg_bad_argc, c_fn->arity, argc);
     return false;
   }
 
   if (h->frame - h->frame_stack == frames_max) {
-    runtime_err(h, err_msg_stack_overflow);
+    hby_err(h, err_msg_stack_overflow);
     return false;
   }
 
-  LongJmp jmp;
-  jmp.prev = h->err_jmp;
-  h->err_jmp = &jmp;
+  // TODO: To support pcalls, remove this error handling?
+  // All errors should now jump straight to some point with the result
   
-  if (setjmp(jmp.buf) == 0) {
-    CallFrame* frame = ++h->frame;
-    frame->fn.c = c_fn;
-    frame->ip = NULL;
-    frame->type = call_type_c;
-    frame->base = h->top - argc - 1;
+  CallFrame* frame = ++h->frame;
+  frame->fn.c = c_fn;
+  frame->ip = NULL;
+  frame->type = call_type_c;
+  frame->base = h->top - argc - 1;
+  Val val = c_fn->fn(h, argc) ? pop(h) : create_null();
 
-    volatile Val val = c_fn->fn(h, argc) ? pop(h) : create_null();
+  h->top = h->frame->base;
+  push(h, val);
+  h->frame--;
 
-    h->top = h->frame->base;
-    push(h, val);
-    h->frame--;
-
-    h->err_jmp = jmp.prev;
-    return true;
-  }
-
-  h->err_jmp = jmp.prev;
-  return false;
+  return true;
 }
 
 bool call_val(hby_State* h, Val val, int argc) {
@@ -143,14 +128,14 @@ bool call_val(hby_State* h, Val val, int argc) {
       default: break;
     }
   }
-  runtime_err(h, err_msg_bad_callee);
+  hby_err(h, err_msg_bad_callee);
   return false;
 }
 
 bool builtin_invoke(hby_State* h, GcStruct* _struct, GcStr* name, int argc) {
   Val method;
   if (!get_map(&_struct->methods, name, &method)) {
-    runtime_err(h, err_msg_undef_prop, name->chars);
+    hby_err(h, err_msg_undef_prop, name->chars);
     return false;
   }
   return call_c(h, as_c_fn(method), argc);
@@ -172,7 +157,7 @@ bool invoke(hby_State* h, GcStr* name, int argc) {
 
         Val method;
         if (!get_map(&inst->_struct->methods, name, &method)) {
-          runtime_err(h, err_msg_undef_prop, name->chars);
+          hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
 
@@ -189,13 +174,13 @@ bool invoke(hby_State* h, GcStr* name, int argc) {
         GcUData* udata = as_udata(reciever);
         
         if (udata->metastruct == NULL) {
-          runtime_err(h, err_msg_undef_prop, name->chars);
+          hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
         
         Val cfn;
         if (!get_map(&udata->metastruct->methods, name, &cfn)) {
-          runtime_err(h, err_msg_undef_prop, name->chars);
+          hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
         
@@ -206,7 +191,7 @@ bool invoke(hby_State* h, GcStr* name, int argc) {
     }
   }
 
-  runtime_err(h, err_msg_bad_prop_access);
+  hby_err(h, err_msg_bad_prop_access);
   return false;
 }
 
@@ -223,7 +208,7 @@ static bool static_access(hby_State* h, Val val, GcStr* prop) {
           return true;
         }
 
-        runtime_err(h, err_msg_undef_static_prop, prop->chars);
+        hby_err(h, err_msg_undef_static_prop, prop->chars);
         return false;
       }
       case obj_enum: {
@@ -236,14 +221,14 @@ static bool static_access(hby_State* h, Val val, GcStr* prop) {
           return true;
         }
 
-        runtime_err(h, err_msg_undef_static_prop, prop->chars);
+        hby_err(h, err_msg_undef_static_prop, prop->chars);
         return false;
       }
       default: break;
     }
   }
 
-  runtime_err(h, err_msg_bad_static_access);
+  hby_err(h, err_msg_bad_static_access);
   return false;
 }
 
@@ -252,7 +237,7 @@ static bool subscript_get(hby_State* h, Val container, Val k) {
     switch (obj_type(container)) {
       case obj_arr: {
         if (!is_num(k)) {
-          runtime_err(h, err_msg_bad_operand("number"));
+          hby_err(h, err_msg_bad_operand("number"));
           return false;
         }
 
@@ -263,7 +248,7 @@ static bool subscript_get(hby_State* h, Val container, Val k) {
         }
 
         if (idx < 0 || idx >= arr->varr.len) {
-          runtime_err(h, err_msg_index_out_of_bounds);
+          hby_err(h, err_msg_index_out_of_bounds);
           return false;
         }
         push(h, arr->varr.items[idx]);
@@ -271,7 +256,7 @@ static bool subscript_get(hby_State* h, Val container, Val k) {
       }
       case obj_str: {
         if (!is_num(k)) {
-          runtime_err(h, err_msg_bad_operand("number"));
+          hby_err(h, err_msg_bad_operand("number"));
           return false;
         }
         int idx = (int)as_num(k);
@@ -281,7 +266,7 @@ static bool subscript_get(hby_State* h, Val container, Val k) {
         }
 
         if (idx < 0 || idx >= str->len) {
-          runtime_err(h, err_msg_index_out_of_bounds);
+          hby_err(h, err_msg_index_out_of_bounds);
           return false;
         }
         push(h, create_obj(copy_str(h, &str->chars[idx], 1)));
@@ -292,7 +277,7 @@ static bool subscript_get(hby_State* h, Val container, Val k) {
     }
   }
 
-  runtime_err(h, err_msg_bad_sub_get);
+  hby_err(h, err_msg_bad_sub_get);
   return false;
 }
 
@@ -301,7 +286,7 @@ static bool subscript_set(hby_State* h, Val container, Val k, Val val) {
     switch (obj_type(container)) {
       case obj_arr: {
         if (!is_num(k)) {
-          runtime_err(h, err_msg_bad_operand("number"));
+          hby_err(h, err_msg_bad_operand("number"));
           return false;
         }
 
@@ -312,7 +297,7 @@ static bool subscript_set(hby_State* h, Val container, Val k, Val val) {
         }
 
         if (idx < 0 || idx >= arr->varr.len) {
-          runtime_err(h, err_msg_index_out_of_bounds);
+          hby_err(h, err_msg_index_out_of_bounds);
           return false;
         }
         arr->varr.items[idx] = val;
@@ -323,14 +308,14 @@ static bool subscript_set(hby_State* h, Val container, Val k, Val val) {
     }
   }
 
-  runtime_err(h, err_msg_bad_sub_set);
+  hby_err(h, err_msg_bad_sub_set);
   return false;
 }
 
 static bool bind_method(hby_State* h, GcStruct* _struct, GcStr* name) {
   Val val;
   if (!get_map(&_struct->methods, name, &val)) {
-    runtime_err(h, err_msg_undef_prop, name->chars);
+    hby_err(h, err_msg_undef_prop, name->chars);
     return false;
   }
 
@@ -473,7 +458,7 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
       case obj_arr: {
         Val cfn;
         if (!get_map(&h->array_struct->methods, name, &cfn)) {
-          runtime_err(h, err_msg_undef_prop, name->chars);
+          hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
 
@@ -486,13 +471,13 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
         GcUData* udata = as_udata(owner);
         
         if (udata->metastruct == NULL) {
-          runtime_err(h, err_msg_undef_prop, name->chars);
+          hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
         
         Val cfn;
         if (!get_map(&udata->metastruct->methods, name, &cfn)) {
-          runtime_err(h, err_msg_undef_prop, name->chars);
+          hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
         
@@ -506,11 +491,11 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
     }
   }
 
-  runtime_err(h, err_msg_bad_prop_access);
+  hby_err(h, err_msg_bad_prop_access);
   return false;
 }
 
-static hby_InterpretResult run(hby_State* h) {
+static void run(hby_State* h) {
 #define read_byte() (*h->frame->ip++)
 #define read_short() \
   (h->frame->ip += 2, (u16)((h->frame->ip[-2] << 8) | h->frame->ip[-1]))
@@ -543,8 +528,8 @@ static hby_InterpretResult run(hby_State* h) {
         GcStr* name = read_str();
         Val v;
         if (!get_map(&h->globals, name, &v)) {
-          runtime_err(h, err_msg_undef_var, name->chars);
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_undef_var, name->chars);
+          return;
         }
         push(h, v);
         break;
@@ -573,8 +558,8 @@ static hby_InterpretResult run(hby_State* h) {
         // Difference between push_prop and get_prop is that this one leaves the
         // struct on the stack
         if (!is_inst(peek(h, 0))) {
-          runtime_err(h, err_msg_bad_prop_access);
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_prop_access);
+          return;
         }
 
         GcInst* inst = as_inst(peek(h, 0));
@@ -587,7 +572,7 @@ static hby_InterpretResult run(hby_State* h) {
         }
 
         if (!bind_method(h, inst->_struct, name)) {
-          return hby_result_runtime_err;
+          return;
         }
         break;
       }
@@ -595,21 +580,21 @@ static hby_InterpretResult run(hby_State* h) {
         Val val = peek(h, 0);
         GcStr* name = read_str();
         if (!get_property(h, val, name)) {
-          return hby_result_runtime_err;
+          return;
         }
         break;
       }
       case bc_set_prop: {
         if (!is_inst(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_prop_access);
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_prop_access);
+          return;
         }
 
         GcInst* inst = as_inst(peek(h, 1));
         GcStr* name = read_str();
         if (set_map(h, &inst->fields, name, peek(h, 0))) {
-          runtime_err(h, err_msg_undef_prop, name->chars);;
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_undef_prop, name->chars);;
+          return;
         }
 
         Val val = pop(h); // Value assigned
@@ -623,8 +608,8 @@ static hby_InterpretResult run(hby_State* h) {
         GcInst* inst = as_inst(peek(h, 1));
         GcStr* name = read_str();
         if (set_map(h, &inst->fields, name, peek(h, 0))) {
-          runtime_err(h, err_msg_undef_prop, name->chars);
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_undef_prop, name->chars);
+          return;
         }
         pop(h);
         break;
@@ -633,7 +618,7 @@ static hby_InterpretResult run(hby_State* h) {
         Val k = pop(h);
         Val container = pop(h);
         if (!subscript_get(h, container, k)) {
-          return hby_result_runtime_err;
+          return;
         }
         break;
       }
@@ -642,7 +627,7 @@ static hby_InterpretResult run(hby_State* h) {
         Val k = pop(h);
         Val container = pop(h);
         if (!subscript_set(h, container, k, val)) {
-          return hby_result_runtime_err;
+          return;
         }
         push(h, val);
         break;
@@ -651,7 +636,7 @@ static hby_InterpretResult run(hby_State* h) {
         Val k = peek(h, 0);
         Val container = peek(h, 1);
         if (!subscript_get(h, container, k)) {
-          return hby_result_runtime_err;
+          return;
         }
         break;
       }
@@ -664,15 +649,15 @@ static hby_InterpretResult run(hby_State* h) {
         }
 
         if (!is_arr(peek(h, 0))) {
-          runtime_err(h, err_msg_bad_destruct_val);
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_destruct_val);
+          return;
         }
 
         GcArr* arr = as_arr(peek(h, 0));
 
         if (idx >= arr->varr.len) {
-          runtime_err(h, err_msg_bad_destruct_len);
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_destruct_len);
+          return;
         }
 
         push(h, arr->varr.items[idx]);
@@ -680,7 +665,7 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_get_static: {
         if (!static_access(h, peek(h, 0), read_str())) {
-          return hby_result_runtime_err;
+          return;
         }
         break;
       }
@@ -705,8 +690,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_add: {
         if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_operands("numbers"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("numbers"));
+          return;
         }
         double b = as_num(pop(h));
         double a = as_num(pop(h));
@@ -715,8 +700,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_sub: {
         if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_operands("numbers"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("numbers"));
+          return;
         }
         double b = as_num(pop(h));
         double a = as_num(pop(h));
@@ -725,8 +710,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_mul: {
         if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_operands("numbers"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("numbers"));
+          return;
         }
         double b = as_num(pop(h));
         double a = as_num(pop(h));
@@ -735,8 +720,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_div: {
         if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_operands("numbers"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("numbers"));
+          return;
         }
         double b = as_num(pop(h));
         double a = as_num(pop(h));
@@ -745,8 +730,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_mod: {
         if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_operands("numbers"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("numbers"));
+          return;
         }
         double b = as_num(pop(h));
         double a = as_num(pop(h));
@@ -767,8 +752,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_gte: {
         if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_operands("numbers"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("numbers"));
+          return;
         }
         double b = as_num(pop(h));
         double a = as_num(pop(h));
@@ -777,8 +762,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_lte: {
         if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_operands("numbers"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("numbers"));
+          return;
         }
         double b = as_num(pop(h));
         double a = as_num(pop(h));
@@ -787,8 +772,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_gt: {
         if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_operands("numbers"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("numbers"));
+          return;
         }
         double b = as_num(pop(h));
         double a = as_num(pop(h));
@@ -797,8 +782,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_lt: {
         if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          runtime_err(h, err_msg_bad_operands("numbers"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("numbers"));
+          return;
         }
         double b = as_num(pop(h));
         double a = as_num(pop(h));
@@ -810,15 +795,15 @@ static hby_InterpretResult run(hby_State* h) {
         break;
       case bc_is:
         if (!is_struct(peek(h, 0))) {
-          runtime_err(h, err_msg_bad_operands("type"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operands("type"));
+          return;
         }
         push(h, create_bool(vm_isop(h)));
         break;
       case bc_neg:
         if (!is_num(peek(h, 0))) {
-          runtime_err(h, err_msg_bad_operand("number"));
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_operand("number"));
+          return;
         }
         push(h, create_num(-as_num(pop(h))));
         break;
@@ -852,7 +837,7 @@ static hby_InterpretResult run(hby_State* h) {
       case bc_call: {
         int argc = read_byte();
         if (!call_val(h, peek(h, argc), argc)) {
-          return hby_result_runtime_err;
+          return;
         }
         break;
       }
@@ -860,7 +845,7 @@ static hby_InterpretResult run(hby_State* h) {
         GcStr* name = read_str();
         int argc = read_byte();
         if (!invoke(h, name, argc)) {
-          return hby_result_runtime_err;
+          return;
         }
         break;
       }
@@ -889,7 +874,7 @@ static hby_InterpretResult run(hby_State* h) {
 
         CallFrame* frame = h->frame--;
         if (frame->type == call_type_reenter || frame->type == call_type_script) {
-          return hby_result_ok;
+          return;
         }
 
         break;
@@ -928,8 +913,8 @@ static hby_InterpretResult run(hby_State* h) {
           GcStr* name = read_str();
           push(h, create_obj(name));
           if (!set_map(h, &_enum->vals, name, create_num(i))) {
-            runtime_err(h, err_msg_shadow_prev_enum, name->chars);
-            return hby_result_runtime_err;
+            hby_err(h, err_msg_shadow_prev_enum, name->chars);
+            return;
           }
           pop(h);
         }
@@ -938,8 +923,8 @@ static hby_InterpretResult run(hby_State* h) {
       }
       case bc_inst: {
         if (!is_struct(peek(h, 0))) {
-          runtime_err(h, err_msg_bad_inst);
-          return hby_result_runtime_err;
+          hby_err(h, err_msg_bad_inst);
+          return;
         }
 
         GcStruct* s = as_struct(peek(h, 0));
@@ -955,20 +940,19 @@ static hby_InterpretResult run(hby_State* h) {
 #undef read_str
 }
 
-hby_InterpretResult vm_interp(hby_State* h, const char* path, const char* src) {
+hby_Res vm_interp(hby_State* h, const char* path, const char* src) {
   GcFn* fn = compile_hby(h, path, src);
   if (fn == NULL) {
-    return hby_result_compile_err;
+    return hby_res_compile_err;
   }
   
   push(h, create_obj(fn));
   GcClosure* closure = create_closure(h, fn);
   pop(h);
   push(h, create_obj(closure));
-  call_fn(h, closure, 0);
-  h->frame->type = call_type_script;
+  hby_Res res = vm_pcall(h, create_obj(closure), 0, call_type_script);
 
-  hby_InterpretResult res = run(h);
+  // run(h);
 
   GcStr* obj_path = copy_str(h, path, strlen(path));
   push(h, create_obj(obj_path));
@@ -978,20 +962,48 @@ hby_InterpretResult vm_interp(hby_State* h, const char* path, const char* src) {
   return res;
 }
 
-void vm_invoke(hby_State* h, GcStr* name, int argc) {
+void vm_invoke(hby_State* h, GcStr* name, int argc, CallType call_type) {
   invoke(h, name, argc);
 
   if (h->frame->ip != NULL) {
-    h->frame->type = call_type_reenter;
+    h->frame->type = call_type;
     run(h);
   }
 }
 
-void vm_call(hby_State* h, Val val, int argc) {
+void vm_call(hby_State* h, Val val, int argc, CallType call_type) {
   call_val(h, val, argc);
 
   if (is_fn(val)) {
-    h->frame->type = call_type_reenter;
+    h->frame->type = call_type;
     run(h);
   }
 }
+
+hby_Res vm_pcall(hby_State* h, Val val, int argc, CallType call_type) {
+  LongJmp jmp;
+  jmp.prev = h->err_jmp;
+  h->err_jmp = &jmp;
+
+  CallFrame* old_frame = h->frame;
+
+  hby_Res res;
+  if ((res = setjmp(jmp.buf)) == 0) {
+    call_val(h, val, argc);
+
+    if (is_closure(val)) {
+      h->frame->type = call_type;
+      run(h);
+    }
+
+    // No error
+    h->err_jmp = jmp.prev;
+    return res;
+  }
+
+  // Error
+  h->frame = old_frame;
+  h->err_jmp = jmp.prev;
+  return res;
+}
+

@@ -953,6 +953,8 @@ hby_Res vm_pcall(hby_State* h, Val val, int argc) {
   // Error
   h->frame = old_frame;
   h->err_jmp = jmp.prev;
+
+  push(h, create_null());
   return res;
 }
 

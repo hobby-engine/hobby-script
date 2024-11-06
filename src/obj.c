@@ -119,7 +119,7 @@ GcUData* create_udata(hby_State* h, size_t size) {
   h->gc.udata = (GcObj*)udata;
 
 #ifdef hby_log_gc
-  printf("%p udata allocated %zu for type %d\n", (void*)obj, size, type);
+  printf("%p udata allocated %zu for type %d\n", (void*)udata, size, obj_udata);
 #endif
 
   udata->metastruct = NULL;

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "parser.h"
 #include "state.h"
 #include "vm.h"
 
@@ -35,15 +36,21 @@ static char* read_file(const char* path) {
   return buf;
 }
 
-hby_Res hby_run_str(
-    hby_State* h, const char* file_name, const char* str) {
-  hby_Res res = vm_interp(h, file_name, str);
-  return res;
+int hby_compile_file(hby_State* h, const char* file_path) {
+  char* src = read_file(file_path);
+  int errc = hby_compile(h, file_path, src);
+  free(src);
+  return errc;
 }
 
-hby_Res hby_run(hby_State* h, const char* path) {
-  char* src = read_file(path);
-  hby_Res res = hby_run_str(h, path, src);
-  free(src);
-  return res;
+int hby_compile(hby_State* h, const char* name, const char* src) {
+  GcFn* fn = compile_hby(h, name, src);
+  if (fn == NULL) {
+    return h->parser->errc;
+  }
+  push(h, create_obj(fn));
+  GcClosure* closure = create_closure(h, fn);
+  pop(h);
+  push(h, create_obj(closure));
+  return 0;
 }

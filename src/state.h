@@ -11,8 +11,7 @@
 
 typedef enum {
   call_type_c, // This is a C function
-  call_type_script, // This is a script
-  call_type_reenter, // This is called from the C API
+  call_type_capi, // This is called from the C API
   call_type_hby, // This is called from other Hobby code
 } CallType;
 

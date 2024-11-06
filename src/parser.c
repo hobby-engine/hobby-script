@@ -92,22 +92,32 @@ static Chunk* cur_chunk(Parser* p) {
   return &p->compiler->fn->chunk;
 }
 
+static int err_msg(char* buf, int len, Parser* p, Tok* t, const char* msg) {
+  int total_len = snprintf(buf, len, "%s:%d", p->file_path, t->line);
+
+  if (t->type == tok_eof) {
+    total_len += snprintf(buf + total_len, len, " near end");
+  } else if (t->type != tok_err) {
+    total_len += snprintf(buf + total_len, len, " near '%.*s'", t->len, t->start);
+  }
+
+  total_len += snprintf(buf + total_len, len, ": %s", msg);
+  return total_len;
+}
+
 static void err_at(Parser* p, Tok* t, const char* msg) {
   if (p->panic) {
     return;
   }
   p->panic = true;
 
-  fprintf(stderr, "[error] %s:%d", p->file_path, t->line);
+  int len = err_msg(NULL, 0, p, t, msg);
+  char* err_str = (char*)malloc(sizeof(char) * len + 1);
+  err_msg(err_str, len, p, t, msg);
 
-  if (t->type == tok_eof) {
-    fprintf(stderr, " near end");
-  } else if (t->type != tok_err) {
-    fprintf(stderr, " near '%.*s'", t->len, t->start);
-  }
+  hby_push_lstr(p->h, err_str, len);
 
-  fprintf(stderr, ": %s\n", msg);
-  p->erred = true;
+  p->errc++;
 }
 
 static void err(Parser* p, const char* msg) {
@@ -1569,7 +1579,7 @@ GcFn* compile_hby(hby_State* h, const char* path, const char* src) {
 
   p->in_expr_stat = false;
   p->last_name_valid = false;
-  p->erred = false;
+  p->errc = 0;
   p->panic = false;
   p->within_struct = false;
 
@@ -1580,7 +1590,7 @@ GcFn* compile_hby(hby_State* h, const char* path, const char* src) {
   expect(p, tok_eof, err_msg_expect_eof);
 
   GcFn* fn = end_compiler(p);
-  return p->erred ? NULL : fn;
+  return p->errc > 0 ? NULL : fn;
 }
 
 void mark_compiler_roots(Parser* p) {

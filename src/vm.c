@@ -30,8 +30,7 @@ static void show_err(hby_State* h, const char* fmt, va_list args) {
         fprintf(stderr, "\t[C] %s()\n", frame->fn.c->name->chars);
         break;
       case call_type_hby:
-      case call_type_script:
-      case call_type_reenter: {
+      case call_type_capi: {
         GcFn* fn = frame->fn.hby->fn;
         size_t bc = frame->ip - fn->chunk.code - 1;
         fprintf(stderr, "\t%s:%d in ", fn->path->chars, fn->chunk.lines[bc]);
@@ -495,12 +494,28 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
   return false;
 }
 
+#define op_add(a, b) (a + b)
+#define op_sub(a, b) (a - b)
+#define op_mul(a, b) (a * b)
+#define op_div(a, b) (a / b)
+#define op_mod(a, b) fmod(a, b)
+
 static void run(hby_State* h) {
 #define read_byte() (*h->frame->ip++)
 #define read_short() \
   (h->frame->ip += 2, (u16)((h->frame->ip[-2] << 8) | h->frame->ip[-1]))
 #define read_const() (h->frame->fn.hby->fn->chunk.consts.items[read_byte()])
 #define read_str() as_str(read_const())
+#define bin_op(op) \
+    do { \
+        if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) { \
+          hby_err(h, err_msg_bad_operands("numbers")); \
+          return; \
+        } \
+        double b = as_num(pop(h)); \
+        double a = as_num(pop(h)); \
+        push(h, create_num(op(a, b))); \
+    } while (false)
 
   while (true) {
 #ifdef hby_trace_exec
@@ -688,56 +703,11 @@ static void run(hby_State* h) {
         pop(h);
         break;
       }
-      case bc_add: {
-        if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          hby_err(h, err_msg_bad_operands("numbers"));
-          return;
-        }
-        double b = as_num(pop(h));
-        double a = as_num(pop(h));
-        push(h, create_num(a + b));
-        break;
-      }
-      case bc_sub: {
-        if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          hby_err(h, err_msg_bad_operands("numbers"));
-          return;
-        }
-        double b = as_num(pop(h));
-        double a = as_num(pop(h));
-        push(h, create_num(a - b));
-        break;
-      }
-      case bc_mul: {
-        if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          hby_err(h, err_msg_bad_operands("numbers"));
-          return;
-        }
-        double b = as_num(pop(h));
-        double a = as_num(pop(h));
-        push(h, create_num(a * b));
-        break;
-      }
-      case bc_div: {
-        if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          hby_err(h, err_msg_bad_operands("numbers"));
-          return;
-        }
-        double b = as_num(pop(h));
-        double a = as_num(pop(h));
-        push(h, create_num(a / b));
-        break;
-      }
-      case bc_mod: {
-        if (!is_num(peek(h, 0)) || !is_num(peek(h, 1))) {
-          hby_err(h, err_msg_bad_operands("numbers"));
-          return;
-        }
-        double b = as_num(pop(h));
-        double a = as_num(pop(h));
-        push(h, create_num(fmod(a, b)));
-        break;
-      }
+      case bc_add: bin_op(op_add); break;
+      case bc_sub: bin_op(op_sub); break;
+      case bc_mul: bin_op(op_mul); break;
+      case bc_div: bin_op(op_div); break;
+      case bc_mod: bin_op(op_mod); break;
       case bc_eql: {
         Val b = pop(h);
         Val a = pop(h);
@@ -873,7 +843,7 @@ static void run(hby_State* h) {
         push(h, res);
 
         CallFrame* frame = h->frame--;
-        if (frame->type == call_type_reenter || frame->type == call_type_script) {
+        if (frame->type == call_type_capi) {
           return;
         }
 
@@ -934,53 +904,32 @@ static void run(hby_State* h) {
     }
   }
 
+#undef bin_op
 #undef read_byte
 #undef read_short
 #undef read_const
 #undef read_str
 }
 
-hby_Res vm_interp(hby_State* h, const char* path, const char* src) {
-  GcFn* fn = compile_hby(h, path, src);
-  if (fn == NULL) {
-    return hby_res_compile_err;
-  }
-  
-  push(h, create_obj(fn));
-  GcClosure* closure = create_closure(h, fn);
-  pop(h);
-  push(h, create_obj(closure));
-  hby_Res res = vm_pcall(h, create_obj(closure), 0, call_type_script);
-
-  // run(h);
-
-  GcStr* obj_path = copy_str(h, path, strlen(path));
-  push(h, create_obj(obj_path));
-  set_map(h, &h->files, obj_path, peek(h, 1));
-  pop(h);
-
-  return res;
-}
-
-void vm_invoke(hby_State* h, GcStr* name, int argc, CallType call_type) {
+void vm_invoke(hby_State* h, GcStr* name, int argc) {
   invoke(h, name, argc);
 
   if (h->frame->ip != NULL) {
-    h->frame->type = call_type;
+    h->frame->type = call_type_capi;
     run(h);
   }
 }
 
-void vm_call(hby_State* h, Val val, int argc, CallType call_type) {
+void vm_call(hby_State* h, Val val, int argc) {
   call_val(h, val, argc);
 
   if (is_fn(val)) {
-    h->frame->type = call_type;
+    h->frame->type = call_type_capi;
     run(h);
   }
 }
 
-hby_Res vm_pcall(hby_State* h, Val val, int argc, CallType call_type) {
+hby_Res vm_pcall(hby_State* h, Val val, int argc) {
   LongJmp jmp;
   jmp.prev = h->err_jmp;
   h->err_jmp = &jmp;
@@ -992,7 +941,7 @@ hby_Res vm_pcall(hby_State* h, Val val, int argc, CallType call_type) {
     call_val(h, val, argc);
 
     if (is_closure(val)) {
-      h->frame->type = call_type;
+      h->frame->type = call_type_capi;
       run(h);
     }
 

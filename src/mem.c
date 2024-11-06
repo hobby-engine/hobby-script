@@ -288,7 +288,7 @@ void gc(hby_State* h) {
 
 #ifdef hby_log_gc
   printf("-- GC BEGIN --\n");
-  size_t before = h->alloced;
+  size_t before = h->gc.alloced;
 #endif
 
   mark_roots(h);
@@ -305,7 +305,7 @@ void gc(hby_State* h) {
 #ifdef hby_log_gc
   printf(
     "COLLECTED %zu BYTES (FROM %zu TO %zu) NEXT AT %zu\n",
-    before - h->alloced, before, h->alloced, h->next_gc);
+    before - h->gc.alloced, before, h->gc.alloced, h->gc.next_gc);
   printf("-- GC END --\n");
 #endif
 }

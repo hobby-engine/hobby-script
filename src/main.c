@@ -37,7 +37,12 @@ static void repl(hby_State* h) {
       break;
     }
 
-    hby_run_str(h, "repl", line);
+    bool compiled_ok = hby_compile(h, "<repl>", line);
+    if (!compiled_ok) {
+      continue;
+    }
+
+    hby_pcall(h, 0);
   }
 }
 
@@ -139,22 +144,40 @@ int main(int argc, const char* args[]) {
   hby_cli_args(h, collected.argc, collected.args);
 
   if (collected.flags & doexpr_flag) {
-    hby_run_str(h, "<cli>", collected.doexpr_str);
+    int errc = hby_compile(h, "<cli>", collected.doexpr_str);
+    if (errc > 0) {
+      for (int i = errc - 1; i >= 0; i--) {
+        fprintf(stderr, "[error] %s\n", hby_get_str(h, -1 - i, NULL));
+      }
+      free_state(h);
+      return 65;
+    }
+    bool is_ok = hby_pcall(h, 0);
+    if (!is_ok) {
+      free_state(h);
+      return 70;
+    }
+    // hby_run_str(h, "<cli>", collected.doexpr_str);
   } else if (collected.path == NULL) {
     repl(h);
   } else {
-    hby_Res res = hby_run(h, collected.path);
+    int errc = hby_compile_file(h, collected.path);
+    if (errc > 0) {
+      for (int i = errc - 1; i >= 0; i--) {
+        fprintf(stderr, "[error] %s\n", hby_get_str(h, -1 - i, NULL));
+      }
+      free_state(h);
+      return 65;
+    }
+    
+    bool is_ok = hby_pcall(h, 0);
+    if (!is_ok) {
+      free_state(h);
+      return 70;
+    }
 
     if (collected.flags & replafter_flag) {
       repl(h);
-    } else {
-      if (res == hby_res_compile_err) {
-        free_state(h);
-        return 65;
-      } else if (res == hby_res_runtime_err) {
-        free_state(h);
-        return 70;
-      }
     }
   }
 

@@ -43,13 +43,12 @@ static bool core_import(hby_State* h, int argc) {
     return true;
   }
 
-  hby_Res res = hby_run(h, path);
-  // TODO: Handle this better
-  if (res == hby_res_compile_err) {
-    hby_err(h, "Compile error");
+  int errc = hby_compile_file(h, path);
+  if (errc > 0) {
+    hby_err(h, "%s", hby_get_str(h, -errc, NULL));
   }
 
-  hby_push(h, -1);
+  hby_pcall(h, 0);
   return true;
 }
 

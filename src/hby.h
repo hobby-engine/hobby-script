@@ -63,11 +63,10 @@ hby_api void free_state(hby_State* h);
 
 // Set the CLI arguments
 hby_api void hby_cli_args(hby_State* h, int argc, const char** args);
-// Run a file at a specified path
-hby_api hby_Res hby_run(hby_State* h, const char* path);
-// Run a given string
-hby_api hby_Res hby_run_str(
-    hby_State* h, const char* file_name, const char* str);
+// Compile a file
+hby_api int hby_compile_file(hby_State* h, const char* file_path);
+// Compile a string
+hby_api int hby_compile(hby_State* h, const char* name, const char* src);
 
 // Throw an error
 hby_api void hby_err(hby_State* h, const char* fmt, ...);
@@ -156,7 +155,7 @@ hby_api void hby_push_typestruct(hby_State* h, int index);
 // Stack must look like: [func] [args]
 hby_api void hby_call(hby_State* h, int argc);
 // Call a protected function
-hby_api void hby_pcall(hby_State* h, int argc);
+hby_api bool hby_pcall(hby_State* h, int argc);
 // Call a protected C function
 hby_api void hby_pccall(hby_State* h, hby_CFn fn, int argc); // TODO
 // Call a method on a value

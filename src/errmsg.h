@@ -62,7 +62,7 @@
 #define err_msg_expect_ident "expected an identifier"
 #define err_msg_expect_expr "expected an expression"
 #define err_msg_expect_eof "expected eof"
-#define err_msg_expect_fn_body "expected '{' or '=>'"
+#define err_msg_expect_fn_body "expected '{' or '->'"
 #define err_msg_expect(expected) "expected '" expected "'"
 
 #endif // __HBY_ERRMSG_H

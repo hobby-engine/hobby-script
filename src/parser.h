@@ -6,11 +6,11 @@
 #include "state.h"
 
 typedef struct Parser {
+  Lexer lexer;
   Tok cur;
   Tok prev;
   bool panic;
-  bool erred;
-  Lexer lexer;
+  int errc;
 
   bool in_expr_stat;
 

@@ -1,0 +1,4 @@
+const compile_error = import("tests/std/core/import/modules/compile.hby");
+// expect runtime error: tests/std/core/import/modules/compile.hby:3 near ')': expected an expression
+
+io:print("Shouldn't print");

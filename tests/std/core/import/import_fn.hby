@@ -1,0 +1,3 @@
+const say_hi = import("tests/std/core/import/modules/fn.hby");
+
+say_hi(); // expect: said hi

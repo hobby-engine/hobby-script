@@ -1,0 +1,1 @@
+const runtime_error = import("tests/std/core/import/modules/runtime.hby"); // expect runtime error: operands must be numbers

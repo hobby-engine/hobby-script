@@ -1,0 +1,3 @@
+const basic = import("tests/std/core/import/modules/basic.hby");
+
+basic:say_hi(); // expect: said hi

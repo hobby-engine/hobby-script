@@ -1,0 +1,3 @@
+// nontest
+
+return fn() -> io:print("said hi");

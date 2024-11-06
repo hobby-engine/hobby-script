@@ -1,0 +1,3 @@
+static struct basic;
+
+fn say_hi() -> io:print("said hi");

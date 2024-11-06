@@ -20,7 +20,7 @@ parser.add_argument('suite', nargs='?')
 
 args = parser.parse_args(sys.argv[1:])
 
-HL_APP = './bin/hobbyc' + args.suffix
+HL_APP = './hobbyc' + args.suffix
 
 EXPECT_PATTERN = re.compile(r'// expect: ?(.*)')
 EXPECT_ERROR_PATTERN = re.compile(r'// expect error(?! line)')

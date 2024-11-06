@@ -13,9 +13,6 @@ TARGET_SUFFIX =
 ifeq (,$(findstring Windows,$(OS)))
 	HOST_SYS = $(shell uname -s)
 else
-	RM = del /q
-	MKDIR = mkdir
-	FRMDIR = del /s /q
 	HOST_SYS = Windows
 endif
 
@@ -47,9 +44,8 @@ else
 	TARGET_SUFFIX = _debug
 endif
 
-BIN = bin
-HBY_EXE = $(BIN)/hobbyc$(TARGET_SUFFIX)
-HBY_SO = $(BIN)/libhobbyc$(TARGET_SUFFIX).so
+HBY_EXE = hobbyc
+HBY_SO = libhobbyc.so
 
 HBY_SRC = \
 	src/hby.c src/arr.c src/chunk.c src/parser.c src/debug.c src/lexer.c \
@@ -57,15 +53,15 @@ HBY_SRC = \
 	src/lib_rng.c src/lib_str.c src/lib_sys.c src/map.c src/mem.c src/obj.c \
 	src/state.c src/tostr.c src/val.c src/vm.c \
 
-HBY_OBJ = $(HBY_SRC:%.c=$(BIN)/%$(TARGET_SUFFIX).o)
+HBY_OBJ = $(HBY_SRC:%.c=%.o)
 HBY_DEPENDS = $(HBY_OBJ:.o=.d)
 
 HBY_EXE_SRC = src/main.c
-HBY_EXE_OBJ = $(HBY_EXE_SRC:%.c=$(BIN)/%$(TARGET_SUFFIX).o)
+HBY_EXE_OBJ = $(HBY_EXE_SRC:%.c=%.o)
 HBY_EXE_DEPENDS = $(HBY_EXE_OBJ:.o=.d)
 
 ALL_OBJ = $(HBY_OBJ) $(HBY_EXE_OBJ)
-ALL_TARGETS = $(HBY_EXE) $(HBY_A) $(HBY_SO)
+ALL_TARGETS = $(HBY_EXE) $(HBY_SO)
 ALL_GEN = $(ALL_OBJ) $(ALL_TARGETS)
 
 .PHONY: default all clean clangd_compile_flags
@@ -78,22 +74,19 @@ all: $(HBY_SO) $(HBY_EXE)
 	@echo "LDFLAG: $(LDFLAG)"
 
 $(HBY_EXE): $(HBY_OBJ) $(HBY_EXE_OBJ)
-	@$(MKDIR) $(@D)
 	@echo "compiling $@"
-	$(CC) -o $@ $(HBY_OBJ) $(HBY_EXE_OBJ) $(CFLAG) $(LDFLAG)
+	@$(CC) -o $@ $(HBY_OBJ) $(HBY_EXE_OBJ) $(CFLAG) $(LDFLAG)
 
 $(HBY_SO): $(HBY_OBJ)
-	@$(MKDIR) $(@D)
 	@echo "compiling $@"
 	@$(CC) -o $@ $(HBY_OBJ) $(CFLAG) -shared $(SHARED_FLAG) $(LDFLAG)
 
-$(BIN)/%$(TARGET_SUFFIX).o: %.c
-	@$(MKDIR) $(@D)
+%.o: %.c
 	@echo "compiling $< -> $@"
 	@$(CC) -o $@ -c $< $(CFLAG) -MMD -MD
 
 clean:
-	$(FRMDIR) $(BIN)
+	$(RM) $(ALL_GEN)
 
 clangd_compile_flags:
 	@echo "" > compile_flags.txt

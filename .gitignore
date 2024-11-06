@@ -1,1 +1,4 @@
-bin/
+*.d
+*.o
+hobbyc
+libhobbyc.so

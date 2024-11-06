@@ -110,6 +110,23 @@ static bool str_trim(hby_State* h, int argc) {
   return true;
 }
 
+static bool str_rep(hby_State* h, int argc) {
+  int n = hby_get_num(h, 1);
+  // FIXME:
+  // Could be optimized by exponentially concating the previous result to itself
+  // instead of concating the original onto the end of the result over and over
+  //
+  // The bigger issue here is probably that concating copies each character over
+
+  hby_push(h, 0);
+  for (int i = 0; i < n; i++) {
+    hby_push(h, 0);
+    hby_concat(h);
+  }
+
+  return true;
+}
+
 static bool str_split(hby_State* h, int argc) {
   size_t str_len;
   const char* str = hby_get_str(h, 0, &str_len);
@@ -346,6 +363,7 @@ hby_StructMethod str_methods[] = {
   {"find", str_find, 1, hby_method},
   {"rem", str_rem, 2, hby_method},
   {"trim", str_trim, 0, hby_method},
+  {"rep", str_rep, 1, hby_method},
   {"split", str_split, 1, hby_method},
   {"toup", str_toup, 0, hby_method},
   {"tolow", str_tolow, 0, hby_method},

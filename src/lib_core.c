@@ -1,5 +1,6 @@
 #include "lib.h"
 
+#include <stdio.h>
 #include "hby.h"
 #include "state.h"
 #include "obj.h"
@@ -72,10 +73,17 @@ static bool core_typestr(hby_State* h, int argc) {
 
 static bool core_pcall(hby_State* h, int argc) {
   // TODO: Allow c functions as well
-  hby_expect_function(h, 1);
-  hby_push(h, 1);
+  hby_ValueType type = hby_get_type(h, 1);
+  if (type != hby_type_function && type != hby_type_cfunction) {
+    hby_err(
+      h, "expected '%s' or '%s', got '%s'",
+      hby_get_type_name(hby_type_function, NULL),
+      hby_get_type_name(hby_type_cfunction, NULL),
+      hby_get_type_name(type, NULL));
+  }
 
-  for (int i = 2; i <= argc - 1; i++) {
+  hby_push(h, 1);
+  for (int i = 2; i <= argc; i++) {
     hby_push(h, i);
   }
 

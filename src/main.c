@@ -116,8 +116,12 @@ static Args collect_args(int argc, const char* args[]) {
   return collected;
 }
 
-bool err_handler(hby_State* h, int argc) {
+bool on_error(hby_State* h, int argc) {
   const char* err_msg = hby_get_str(h, 1, NULL);
+  fprintf(stderr, "stack trace:\n");
+  for (int i = 2; i < argc; i++) {
+    fprintf(stderr, "\t%s\n", hby_get_str(h, i, NULL));
+  }
   fprintf(stderr, "[error] %s\n", err_msg);
   return false;
 }

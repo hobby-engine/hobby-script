@@ -172,7 +172,7 @@ hby_ValueType hby_get_type(hby_State* h, int index) {
     }
   }
 
-  hby_err(h, "Internal value type, which should not be accessible (C API)");
+  hby_err(h, "Internal value type which should not be accessible (C API)");
   return 0;
 }
 

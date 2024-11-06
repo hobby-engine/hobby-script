@@ -1,4 +1,5 @@
 *.d
 *.o
+*.so
+*.a
 hobbyc
-libhobbyc.so

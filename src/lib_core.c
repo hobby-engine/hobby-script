@@ -33,22 +33,21 @@ static bool core_tonum(hby_State* h, int argc) {
 static bool core_import(hby_State* h, int argc) {
   size_t len;
   const char* path = hby_get_str(h, 1, &len);
-  if (file_imported(h, path)) {
-    Val val;
-    if (get_map(&h->files, copy_str(h, path, len), &val)) {
-      push(h, val);
-    } else {
-      hby_push_null(h);
+  GcStr* key = copy_str(h, path, len);
+  push(h, create_obj(key));
+
+  Val val;
+  if (get_map(&h->files, key, &val)) {
+    push(h, val);
+  } else {
+    int errc = hby_compile_file(h, path);
+    if (errc > 0) {
+      hby_err(h, "%s", hby_get_str(h, -errc, NULL));
     }
-    return true;
-  }
 
-  int errc = hby_compile_file(h, path);
-  if (errc > 0) {
-    hby_err(h, "%s", hby_get_str(h, -errc, NULL));
+    hby_call(h, 0);
+    set_map(h, &h->files, key, h->top[-1]);
   }
-
-  hby_pcall(h, 0);
   return true;
 }
 
@@ -72,6 +71,7 @@ static bool core_typestr(hby_State* h, int argc) {
 }
 
 static bool core_pcall(hby_State* h, int argc) {
+  // TODO: Allow c functions as well
   hby_expect_function(h, 1);
   hby_push(h, 1);
 

@@ -923,7 +923,7 @@ void vm_invoke(hby_State* h, GcStr* name, int argc) {
 void vm_call(hby_State* h, Val val, int argc) {
   call_val(h, val, argc);
 
-  if (is_fn(val)) {
+  if (is_closure(val)) {
     h->frame->type = call_type_capi;
     run(h);
   }

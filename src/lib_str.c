@@ -111,7 +111,7 @@ static bool str_trim(hby_State* h, int argc) {
 }
 
 static bool str_rep(hby_State* h, int argc) {
-  int n = hby_get_num(h, 1);
+  int n = hby_get_num(h, 1) - 1;
   // FIXME:
   // Could be optimized by exponentially concating the previous result to itself
   // instead of concating the original onto the end of the result over and over

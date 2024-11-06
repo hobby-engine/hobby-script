@@ -79,11 +79,6 @@ void hby_cli_args(hby_State* h, int argc, const char** args) {
   }
 }
 
-bool is_file_imported(hby_State* h, const char* name) {
-  Val val;
-  return get_map(&h->files, copy_str(h, name, strlen(name)), &val);
-}
-
 void reset_stack(hby_State* h) {
   h->top = h->stack;
   h->frame = h->frame_stack;

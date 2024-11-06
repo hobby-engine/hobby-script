@@ -68,7 +68,6 @@ struct hby_State {
   struct Parser* parser;
 };
 
-bool is_file_imported(hby_State* h, const char* name);
 void reset_stack(hby_State* h);
 
 inline void push(hby_State* h, Val val) {

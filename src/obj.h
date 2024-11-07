@@ -18,6 +18,7 @@ typedef enum {
   obj_method,
   obj_enum,
   obj_arr,
+  obj_map,
   obj_udata,
 } ObjType;
 
@@ -80,6 +81,18 @@ typedef struct GcArr {
 } GcArr;
 
 typedef struct {
+  Val key;
+  Val val;
+} MapItem;
+
+typedef struct {
+  GcObj obj;
+  int itemc;
+  int item_cap;
+  MapItem* items;
+} GcMap;
+
+typedef struct {
   GcObj obj; // Object header
   GcStruct* _struct; // The struct this instance is a child of
   Table fields; // Struct members
@@ -126,6 +139,7 @@ static inline bool obj_of_type(Val val, ObjType type) {
 #define is_fn(v)      obj_of_type(v, obj_fn)
 #define is_enum(v)    obj_of_type(v, obj_enum)
 #define is_arr(v)     obj_of_type(v, obj_arr)
+#define is_map(v)     obj_of_type(v, obj_map)
 #define is_str(v)     obj_of_type(v, obj_str)
 #define is_udata(v)   obj_of_type(v, obj_udata)
 
@@ -138,6 +152,7 @@ static inline bool obj_of_type(Val val, ObjType type) {
 #define as_fn(v)      ((GcFn*)as_obj(v))
 #define as_enum(v)    ((GcEnum*)as_obj(v))
 #define as_arr(v)     ((GcArr*)as_obj(v))
+#define as_map(v)     ((GcMap*)as_obj(v))
 #define as_udata(v)   ((GcUData*)as_obj(v))
 #define as_str(v)     ((GcStr*)as_obj(v))
 #define as_cstr(v)    (as_str(v)->chars)
@@ -152,6 +167,7 @@ GcFn* create_fn(hby_State* h, GcStr* file_path);
 GcClosure* create_closure(hby_State* h, GcFn* fn);
 GcEnum* create_enum(hby_State* h, GcStr* name);
 GcArr* create_arr(hby_State* h);
+GcMap* create_map(hby_State* h);
 GcUData* create_udata(hby_State* h, size_t size);
 GcStr* copy_str(hby_State* h, const char* chars, int len);
 GcStr* take_str(hby_State* h, char* chars, int len);

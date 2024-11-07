@@ -29,6 +29,8 @@ typedef enum {
   bc_false,
   bc_array,
   bc_array_item,
+  bc_map,
+  bc_map_item,
   bc_add,
   bc_sub,
   bc_mul,

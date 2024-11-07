@@ -16,7 +16,7 @@ static GcStr* fn_to_str(hby_State* h, GcFn* fn) {
   return str_fmt(h, "<fn @>", fn->name);
 }
 
-GcStr* arr_to_str(hby_State* h, GcArr* arr, int depth) {
+static GcStr* arr_to_str(hby_State* h, GcArr* arr, int depth) {
   if (depth > 2) {
     return copy_str(h, "[...]", 5);
   }
@@ -90,6 +90,8 @@ GcStr* to_str(hby_State* h, Val val) {
     return arr_to_str(h, as_arr(val), 1);
   } else if (is_udata(val)) {
     return copy_str(h, "<userdata>", 10);
+  } else if (is_map(val)) {
+    return copy_str(h, "<map>", 5);
   } else if (is_fn(val)) {
     return fn_to_str(h, as_fn(val));
   } else if (is_closure(val)) {

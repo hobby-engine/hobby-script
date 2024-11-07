@@ -18,6 +18,7 @@
   "subscript assignment is not supported for that value"
 #define err_msg_bad_inst "cannot instance that value"
 #define err_msg_undef_prop "undefined property '%s'"
+#define err_msg_undef_map_key "key '%s' is not defined on map"
 #define err_msg_undef_static_prop "undefined static property '%s'"
 #define err_msg_undef_var "undefined variable '%s'"
 #define err_msg_index_out_of_bounds "index out of bounds"

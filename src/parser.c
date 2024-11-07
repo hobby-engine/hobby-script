@@ -536,11 +536,29 @@ static void strfmt_expr(Parser* p, bool can_assign) {
   }
 }
 
+static void map_expr(Parser* p, bool can_assign) {
+  write_bc(p, bc_map);
+
+  while (!check(p, tok_rbrace) && !check(p, tok_eof)) {
+    expr(p);
+    expect(p, tok_rarrow, err_msg_expect("->"));
+    expr(p);
+
+    write_bc(p, bc_map_item);
+    if (!consume(p, tok_comma) && !check(p, tok_rbrace)) {
+      err(p, err_msg_expect(","));
+    }
+  }
+
+  expect(p, tok_rbrace, err_msg_expect("}"));
+}
+
 static void array_expr(Parser* p, bool can_assign) {
   write_bc(p, bc_array);
 
   while (!check(p, tok_rbracket) && !check(p, tok_eof)) {
     expr(p);
+
     write_bc(p, bc_array_item);
     if (!consume(p, tok_comma) && !check(p, tok_rbracket)) {
       err(p, err_msg_expect(","));
@@ -865,7 +883,7 @@ static void unary_expr(Parser* p, bool can_assign) {
 ParseRule rules[] = {
   [tok_lparen]      = {grouping_expr, call_expr, Prec_call},
   [tok_rparen]      = {NULL, NULL, Prec_none},
-  [tok_lbrace]      = {NULL, instance_expr, Prec_call},
+  [tok_lbrace]      = {map_expr, instance_expr, Prec_call},
   [tok_rbrace]      = {NULL, NULL, Prec_none},
   [tok_lbracket]    = {array_expr, subscript_expr, Prec_subscript},
   [tok_rbracket]    = {NULL, NULL, Prec_none},

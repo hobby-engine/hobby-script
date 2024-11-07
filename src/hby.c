@@ -580,7 +580,7 @@ void hby_add_enum(hby_State* h, const char* name, int index) {
   GcEnum* e = as_enum(val_at(h, index));
   GcStr* sname = copy_str(h, name, strlen(name));
   push(h, create_obj(sname));
-  int i = e->vals.count;
+  int i = e->vals.itemc;
   if (!set_table(h, &e->vals, sname, create_num(i))) {
     hby_err(h, err_msg_shadow_prev_enum, name);
   }

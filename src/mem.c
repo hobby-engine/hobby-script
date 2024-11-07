@@ -6,6 +6,7 @@
 #include "tostr.h"
 #include "val.h"
 #include "arr.h"
+#include "map.h"
 #include "state.h"
 #include "vm.h"
 #include "obj.h"
@@ -95,6 +96,12 @@ static void free_obj(hby_State* h, GcObj* obj) {
       GcArr* arr = (GcArr*)obj;
       free_varr(h, &arr->varr);
       release(h, GcArr, obj);
+      break;
+    }
+    case obj_map: {
+      GcMap* map = (GcMap*)obj;
+      release_arr(h, MapItem, map->items, map->item_cap);
+      release(h, GcMap, obj);
       break;
     }
     case obj_str: {
@@ -197,6 +204,9 @@ static void blacken_obj(hby_State* h, GcObj* obj) {
     }
     case obj_arr:
       mark_arr(h, &((GcArr*)obj)->varr);
+      break;
+    case obj_map:
+      mark_map(h, (GcMap*)obj);
       break;
     case obj_upval: {
       GcUpval* up = (GcUpval*)obj;

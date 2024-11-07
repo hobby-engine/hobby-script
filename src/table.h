@@ -7,13 +7,13 @@
 struct hby_State;
 
 typedef struct {
-  GcStr* k;
-  Val v;
+  GcStr* key;
+  Val val;
 } TableItem;
 
 typedef struct {
-  int count;
-  int cap;
+  int itemc;
+  int item_cap;
   TableItem* items;
 } Table;
 

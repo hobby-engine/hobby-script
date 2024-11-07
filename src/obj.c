@@ -111,6 +111,14 @@ GcArr* create_arr(hby_State* h) {
   return arr;
 }
 
+GcMap* create_map(hby_State* h) {
+  GcMap* map = alloc_obj(h, GcMap, obj_map);
+  map->itemc = 0;
+  map->item_cap = 0;
+  map->items = NULL;
+  return map;
+}
+
 GcUData* create_udata(hby_State* h, size_t size) {
   GcUData* udata = (GcUData*)reallocate(h, NULL, 0, sizeof(GcUData));
   udata->obj.type = obj_udata;

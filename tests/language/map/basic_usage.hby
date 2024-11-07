@@ -1,0 +1,13 @@
+const map = {
+  "a" -> 1,
+  "b" -> 2,
+  "c" -> 0,
+};
+
+map["c"] = 3;
+map["d"] = 4;
+
+io:print(map["a"]); // expect: 1
+io:print(map["b"]); // expect: 2
+io:print(map["c"]); // expect: 3
+io:print(map["d"]); // expect: 4

@@ -11,6 +11,7 @@
 #include "errmsg.h"
 #include "hby.h"
 #include "table.h"
+#include "map.h"
 #include "mem.h"
 #include "obj.h"
 #include "state.h"
@@ -253,6 +254,16 @@ static bool subscript_get(hby_State* h, Val container, Val k) {
         push(h, arr->varr.items[idx]);
         return true;
       }
+      case obj_map: {
+        GcMap* map = as_map(container);
+        Val val;
+        if (!get_map(map, k, &val)) {
+          hby_err(h, err_msg_undef_map_key, to_str(h, k)->chars);
+          return false;
+        }
+        push(h, val);
+        return true;
+      }
       case obj_str: {
         if (!is_num(k)) {
           hby_err(h, err_msg_bad_operand("number"));
@@ -300,6 +311,11 @@ static bool subscript_set(hby_State* h, Val container, Val k, Val val) {
           return false;
         }
         arr->varr.items[idx] = val;
+        return true;
+      }
+      case obj_map: {
+        GcMap* map = as_map(container);
+        set_map(h, map, k, val);
         return true;
       }
       default:
@@ -701,6 +717,20 @@ static void run(hby_State* h) {
         GcArr* arr = as_arr(peek(h, 1));
         push_varr(h, &arr->varr, peek(h, 0));
         pop(h);
+        break;
+      }
+      case bc_map: {
+        GcMap* map = create_map(h);
+        push(h, create_obj(map));
+        break;
+      }
+      case bc_map_item: {
+        GcMap* map = as_map(peek(h, 2));
+        Val val = peek(h, 0);
+        Val key = peek(h, 1);
+        set_map(h, map, key, val);
+        pop(h); // val
+        pop(h); // key
         break;
       }
       case bc_add: bin_op(op_add); break;

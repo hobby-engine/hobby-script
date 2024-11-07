@@ -1,0 +1,3 @@
+const map = {};
+
+io:print(map["undefined"]); // expect runtime error: key 'undefined' is not defined on map

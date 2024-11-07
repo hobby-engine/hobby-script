@@ -77,6 +77,8 @@ int print_bc(hby_State* h, Chunk *c, int idx) {
     case bc_null: return simple_bc("null", idx);
     case bc_array: return simple_bc("array", idx);
     case bc_array_item: return simple_bc("array_item", idx);
+    case bc_map: return simple_bc("map", idx);
+    case bc_map_item: return simple_bc("map_item", idx);
     case bc_add: return simple_bc("add", idx);
     case bc_sub: return simple_bc("sub", idx);
     case bc_mul: return simple_bc("mul", idx);
@@ -139,11 +141,10 @@ int print_bc(hby_State* h, Chunk *c, int idx) {
     case bc_def_static: return const_bc(h, "def_static", c, idx);
     case bc_inst: return simple_bc("inst", idx);
     case bc_break: return simple_bc("break", idx);
-    default: {
-      printf("Unknown bytecode %d\n", bc);
-      return idx + 1;
-    }
   }
+
+  printf("Unknown bytecode %d\n", bc);
+  return idx + 1;
 }
 
 void print_chunk(hby_State* h, Chunk* c, const char* name) {

@@ -43,6 +43,24 @@ static bool map_keys(hby_State* h, int argc) {
   return true;
 }
 
+static bool map_values(hby_State* h, int argc) {
+  GcMap* map = as_map(h->frame->base[0]);
+
+  hby_push_array(h);
+
+  for (int i = 0; i < map->item_cap; i++) {
+    MapItem* item = &map->items[i];
+    if (is_null(item->key)) {
+      continue;
+    }
+
+    push(h, item->val);
+    hby_array_add(h, -2);
+  }
+
+  return true;
+}
+
 static bool map_clear(hby_State* h, int argc) {
   GcMap* map = as_map(h->frame->base[0]);
   release_arr(h, MapItem, map->items, map->item_cap);
@@ -56,6 +74,7 @@ hby_StructMethod map_methods[] = {
   {"rem", map_rem, 1, hby_method},
   {"has", map_has, 1, hby_method},
   {"keys", map_keys, 0, hby_method},
+  {"values", map_values, 0, hby_method},
   {"clear", map_clear, 0, hby_method},
   {NULL, NULL, 0, 0},
 };

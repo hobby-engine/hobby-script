@@ -82,7 +82,7 @@ bin/%.o: src/%.c
 	@$(CC) -o $@ -c $< $(CFLAGS) -MMD -MD
 
 clean:
-	$(RM) $(HBY_CORE_O) $(HBY_EXE_O) $(HBY_EXE) $(HBY_SO) $(HBY_A)
+	$(RM) $(HBY_CORE_O) $(HBY_EXE_O) $(HBY_EXE) $(HBY_SO) $(HBY_A) $(HBY_CORE_D) $(HBY_EXE_D)
 
 clangd_compile_flags:
 	@echo "" > compile_flags.txt

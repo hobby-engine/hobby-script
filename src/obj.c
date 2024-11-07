@@ -139,7 +139,7 @@ GcUData* create_udata(hby_State* h, size_t size) {
   return udata;
 }
 
-static GcStr* alloc_str(hby_State* h, char* chars, int len, u32 hash) {
+static GcStr* alloc_str(hby_State* h, char* chars, int len, uint32_t hash) {
   GcStr* str = alloc_obj(h, GcStr, obj_str);
   str->len = len;
   str->chars = chars;
@@ -161,7 +161,7 @@ static uint32_t hash_str(const char* key, int length) {
 }
 
 GcStr* copy_str(hby_State* h, const char* chars, int len) {
-  u32 hash = hash_str(chars, len);
+  uint32_t hash = hash_str(chars, len);
   GcStr* interned = find_str_table(&h->strs, chars, len, hash);
   if (interned != NULL) {
     return interned;
@@ -174,7 +174,7 @@ GcStr* copy_str(hby_State* h, const char* chars, int len) {
 }
 
 GcStr* take_str(hby_State* h, char* chars, int len) {
-  u32 hash = hash_str(chars, len);
+  uint32_t hash = hash_str(chars, len);
   GcStr* interned = find_str_table(&h->strs, chars, len, hash);
   if (interned != NULL) {
     release_arr(h, char, chars, len + 1);

@@ -20,7 +20,7 @@ typedef struct {
     struct GcClosure* hby;
     struct GcCFn* c;
   } fn;
-  u8* ip;
+  uint8_t* ip;
   Val* base;
   CallType type;
 } CallFrame;

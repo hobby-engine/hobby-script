@@ -61,7 +61,7 @@ typedef struct {
 } Local;
 
 typedef struct {
-  u8 index; // The index that the upvalue lives on the stack
+  uint8_t index; // The index that the upvalue lives on the stack
   // Is this upvalue on a stack, or do we need to steal it from
   // an outer closure?
   bool is_local; 
@@ -163,11 +163,11 @@ static bool consume(Parser* p, TokType type) {
   return true;
 }
 
-static void write_bc(Parser* p, u8 byte) {
+static void write_bc(Parser* p, uint8_t byte) {
   write_chunk(p->h, cur_chunk(p), byte, p->prev.line);
 }
 
-static void write_2bc(Parser* p, u8 byte1, u8 byte2) {
+static void write_2bc(Parser* p, uint8_t byte1, uint8_t byte2) {
   write_bc(p, byte1);
   write_bc(p, byte2);
 }
@@ -184,7 +184,7 @@ static void write_loop(Parser* p, int loop_start) {
   write_bc(p, jmp & 0xFF);
 }
 
-static int write_jmp(Parser* p, u8 byte) {
+static int write_jmp(Parser* p, uint8_t byte) {
   write_bc(p, byte);
   write_bc(p, 0xFF);
   write_bc(p, 0xFF);
@@ -207,13 +207,13 @@ static void write_ret(Parser* p) {
   write_bc(p, bc_ret);
 }
 
-static u8 create_const(Parser* p, Val val) {
+static uint8_t create_const(Parser* p, Val val) {
   int c = add_const_chunk(p->h, cur_chunk(p), val);
   if (c > UINT8_MAX) {
     err(p, err_msg_max_consts);
     return 0;
   }
-  return (u8)c;
+  return (uint8_t)c;
 }
 
 static void write_const(Parser* p, Val val) {
@@ -339,7 +339,7 @@ static void end_scope(Parser* p) {
   p->compiler->localc -= discarded;
 }
 
-static u8 ident_const(Parser* p, Tok* name) {
+static uint8_t ident_const(Parser* p, Tok* name) {
   return create_const(p, create_obj(copy_str(p->h, name->start, name->len)));
 }
 
@@ -356,7 +356,7 @@ static int resolve_local(Parser* p, Compiler* compiler, Tok* name) {
   return -1;
 }
 
-static int add_upvalue(Parser* p, Compiler* compiler, u8 index, bool is_local) {
+static int add_upvalue(Parser* p, Compiler* compiler, uint8_t index, bool is_local) {
   int upvalc = compiler->fn->upvalc;
 
   for (int i = 0; i < upvalc; i++) {
@@ -387,13 +387,13 @@ static int resolve_upval(Parser* p, Compiler* compiler, Tok* name) {
   int local = resolve_local(p, compiler->enclosing, name);
   if (local != -1) {
     compiler->enclosing->locals[local].captured = true;
-    return add_upvalue(p, compiler, (u8)local, true);
+    return add_upvalue(p, compiler, (uint8_t)local, true);
   }
 
   // Steal upvalues from the outer scope.
   int upval = resolve_upval(p, compiler->enclosing, name);
   if (upval != -1) {
-    return add_upvalue(p, compiler, (u8)upval, false);
+    return add_upvalue(p, compiler, (uint8_t)upval, false);
   }
 
   // Could not find variable to capture
@@ -568,10 +568,10 @@ static void array_expr(Parser* p, bool can_assign) {
   expect(p, tok_rbracket, err_msg_expect("]"));
 }
 
-static u8 arg_list(Parser* p) {
+static uint8_t arg_list(Parser* p) {
   bool in_expr_stat = p->in_expr_stat;
   p->in_expr_stat = false;
-  u8 argc = 0;
+  uint8_t argc = 0;
   if (!check(p, tok_rparen)) {
     do {
       expr(p);
@@ -588,7 +588,7 @@ static u8 arg_list(Parser* p) {
 }
 
 static void call_expr(Parser* p, bool can_assign) {
-  u8 argc = arg_list(p);
+  uint8_t argc = arg_list(p);
   write_2bc(p, bc_call, argc);
 }
 
@@ -614,7 +614,7 @@ static void instance_expr(Parser* p, bool can_assign) {
 
 static void dot_expr(Parser* p, bool can_assign) {
   expect(p, tok_ident, err_msg_expect("."));
-  u8 name = ident_const(p, &p->prev);
+  uint8_t name = ident_const(p, &p->prev);
 
 #define shorthand_op(op) \
   do { \
@@ -635,7 +635,7 @@ static void dot_expr(Parser* p, bool can_assign) {
     expr(p);
     write_2bc(p, bc_set_prop, name);
   } else if (consume(p, tok_lparen)) {
-    u8 argc = arg_list(p);
+    uint8_t argc = arg_list(p);
     write_2bc(p, bc_invoke, name);
     write_bc(p, argc);
   } else if (can_assign && consume(p, tok_plus_eql)) {
@@ -705,7 +705,7 @@ static void subscript_expr(Parser* p, bool can_assign) {
 
 static void static_dot_expr(Parser* p, bool can_assign) {
   expect(p, tok_ident, err_msg_expect_ident);
-  u8 name = ident_const(p, &p->prev);
+  uint8_t name = ident_const(p, &p->prev);
   write_2bc(p, bc_get_static, name);
 }
 
@@ -714,7 +714,7 @@ static void function_expr(Parser* p, bool can_assign) {
   function(p, FnType_fn, true);
 }
 
-static void check_const(Parser* p, u8 setter, int arg) {
+static void check_const(Parser* p, uint8_t setter, int arg) {
   switch (setter) {
     case bc_set_local:
       if (p->compiler->locals[arg].is_const) {
@@ -753,7 +753,7 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
     expr(p);
 
     for (int i = 0; i < count; i++) {
-      u8 setter;
+      uint8_t setter;
       int arg = resolve_local(p, p->compiler, &names[i]);
       if (arg != -1) {
         setter = bc_set_local;
@@ -770,14 +770,14 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
       }
 
       write_2bc(p, bc_destruct_array, i);
-      write_2bc(p, setter, (u8)arg);
+      write_2bc(p, setter, (uint8_t)arg);
       write_bc(p, bc_pop);
     }
 
     return;
   }
 
-  u8 getter, setter;
+  uint8_t getter, setter;
   int arg = resolve_local(p, p->compiler, &name);
   if (arg != -1) {
     getter = bc_get_local;
@@ -794,24 +794,24 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
 #define shorthand_op(op) \
   do { \
     check_const(p, setter, arg); \
-    write_2bc(p, getter, (u8)arg); \
+    write_2bc(p, getter, (uint8_t)arg); \
     expr(p); \
     write_bc(p, op); \
-    write_2bc(p, setter, (u8)arg); \
+    write_2bc(p, setter, (uint8_t)arg); \
   } while (false)
 #define compound_op(op) \
   do { \
     check_const(p, setter, arg); \
-    write_2bc(p, getter, (u8)arg); \
+    write_2bc(p, getter, (uint8_t)arg); \
     write_2bc(p, bc_const, create_const(p, create_num(1))); \
     write_bc(p, op); \
-    write_2bc(p, setter, (u8)arg); \
+    write_2bc(p, setter, (uint8_t)arg); \
   } while (false)
 
   if (can_assign && consume(p, tok_eql)) {
     check_const(p, setter, arg);
     expr(p);
-    write_2bc(p, setter, (u8)arg);
+    write_2bc(p, setter, (uint8_t)arg);
   } else if (can_assign && consume(p, tok_plus_eql)) {
     shorthand_op(bc_add);
   } else if (can_assign && consume(p, tok_minus_eql)) {
@@ -827,7 +827,7 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
   } else if (can_assign && consume(p, tok_minus_minus)) {
     compound_op(bc_sub);
   } else {
-    write_2bc(p, getter, (u8)arg);
+    write_2bc(p, getter, (uint8_t)arg);
   }
 
 #undef shorthand_op
@@ -1081,14 +1081,14 @@ static void function_decl(Parser* p) {
   function(p, FnType_fn, false);
 }
 
-static u8 method(Parser* p, bool is_static) {
+static uint8_t method(Parser* p, bool is_static) {
   expect(p, tok_ident, err_msg_expect_ident);
 
   Tok name = p->prev;
   p->last_name_valid = true;
   p->last_name = name;
 
-  u8 name_const = ident_const(p, &name);
+  uint8_t name_const = ident_const(p, &name);
 
   FnType type = is_static ? FnType_fn : FnType_method;
   function(p, type, false);
@@ -1099,11 +1099,11 @@ static u8 method(Parser* p, bool is_static) {
 }
 
 static void sub_struct_decl(Parser* p, bool all_static);
-static void enum_body(Parser* p, u8 name_const);
+static void enum_body(Parser* p, uint8_t name_const);
 
 static void struct_body(Parser* p, bool all_static) {
   bool is_static = all_static;
-  u8 static_name = 0;
+  uint8_t static_name = 0;
 
   if (consume(p, tok_fn)) { // Member functions
     static_name = method(p, all_static);
@@ -1184,7 +1184,7 @@ static void struct_decl(Parser* p, bool all_static) {
 
   expect(p, tok_ident, err_msg_expect_ident);
   Tok name = p->prev;
-  u8 name_const = ident_const(p, &name);
+  uint8_t name_const = ident_const(p, &name);
   decl_var(p, true);
 
   write_2bc(p, bc_struct, name_const);
@@ -1217,10 +1217,10 @@ static void struct_decl(Parser* p, bool all_static) {
   p->within_struct = false;
 }
 
-static void enum_body(Parser* p, u8 name_const) {
+static void enum_body(Parser* p, uint8_t name_const) {
   write_2bc(p, bc_enum, name_const);
 
-  u8 enum_names[UINT8_MAX];
+  uint8_t enum_names[UINT8_MAX];
   int enumc = 0;
 
   expect(p, tok_lbrace, err_msg_expect("{"));
@@ -1230,7 +1230,7 @@ static void enum_body(Parser* p, u8 name_const) {
       err(p, err_msg_max_enum);
       return;
     }
-    u8 enum_name = ident_const(p, &p->prev);
+    uint8_t enum_name = ident_const(p, &p->prev);
     enum_names[enumc++] = enum_name;
     expect(p, tok_comma, err_msg_expect(","));
   }
@@ -1249,7 +1249,7 @@ static void enum_decl(Parser* p) {
 
   expect(p, tok_ident, err_msg_expect_ident);
   Tok name = p->prev;
-  u8 name_const = ident_const(p, &name);
+  uint8_t name_const = ident_const(p, &name);
   decl_var(p, true);
   mark_init(p);
 

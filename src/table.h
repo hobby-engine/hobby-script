@@ -23,7 +23,7 @@ bool get_table(Table* table, GcStr* k, Val* out_v);
 bool set_table(struct hby_State* h, Table* table, GcStr* k, Val v);
 bool rem_table(Table* table, GcStr* k);
 void copy_table(struct hby_State* h, Table* src, Table* dst);
-GcStr* find_str_table(Table* table, const char* chars, int len, u32 hash);
+GcStr* find_str_table(Table* table, const char* chars, int len, uint32_t hash);
 void mark_table(struct hby_State* h, Table* table);
 void rem_black_table(struct hby_State* h, Table* table);
 

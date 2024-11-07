@@ -14,7 +14,7 @@ void init_chunk(Chunk* c) {
 }
 
 void free_chunk(hby_State* h, Chunk* c) {
-  release_arr(h, u8, c->code, c->cap);
+  release_arr(h, uint8_t, c->code, c->cap);
   release_arr(h, int, c->lines, c->cap);
   free_varr(h, &c->consts);
   init_chunk(c);
@@ -24,7 +24,7 @@ void write_chunk(hby_State* h, Chunk* c, Bc bc, int line) {
   if (c->cap < c->len + 1) {
     int old_cap = c->cap;
     c->cap = grow_cap(old_cap);
-    c->code = grow_arr(h, u8, c->code, old_cap, c->cap);
+    c->code = grow_arr(h, uint8_t, c->code, old_cap, c->cap);
     c->lines = grow_arr(h, int, c->lines, old_cap, c->cap);
   }
 

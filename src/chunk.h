@@ -67,7 +67,7 @@ typedef enum {
 typedef struct {
   int len;
   int cap;
-  u8* code;
+  uint8_t* code;
   int* lines;
   VArr consts;
 } Chunk;

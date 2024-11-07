@@ -7,10 +7,10 @@
 #include "hby.h"
 
 typedef struct {
-  u64 a;
+  uint64_t a;
 } Rng;
 
-static u64 xorshift_next(Rng* rng) {
+static uint64_t xorshift_next(Rng* rng) {
   rng->a ^= rng->a >> 12;
   rng->a ^= rng->a << 25;
   rng->a ^= rng->a >> 27;
@@ -19,7 +19,7 @@ static u64 xorshift_next(Rng* rng) {
 
 // Thomas Wang's 64-bit integer hashing function:
 // https://web.archive.org/web/20110807030012/http://www.cris.com/%7ETtwang/tech/inthash.htm
-static u64 wang_hash64(u64 key)
+static uint64_t wang_hash64(uint64_t key)
 {
 	key = (~key) + (key << 21); // key = (key << 21) - key - 1;
 	key = key ^ (key >> 24);
@@ -32,9 +32,9 @@ static u64 wang_hash64(u64 key)
 }
 
 static double next_double(Rng* rng) {
-  u64 r = xorshift_next(rng);
+  uint64_t r = xorshift_next(rng);
 
-  union {u64 i; double d;} u;
+  union {uint64_t i; double d;} u;
   u.i = ((0x3FFULL) << 52) | (r >> 12);
 
   return u.d - 1;

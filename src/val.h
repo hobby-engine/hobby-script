@@ -12,22 +12,22 @@ typedef struct GcStr GcStr;
 
 #include <string.h>
 
-#define SIGN_BIT ((u64)0x8000000000000000)
-#define QNAN     ((u64)0x7ffc000000000000)
+#define SIGN_BIT ((uint64_t)0x8000000000000000)
+#define QNAN     ((uint64_t)0x7ffc000000000000)
 
 #define TAG_NULL  1
 #define TAG_FALSE 2
 #define TAG_TRUE  3
 
-typedef u64 Val;
+typedef uint64_t Val;
 
-#define false_val       ((Val)(u64)(QNAN | TAG_FALSE))
-#define true_val        ((Val)(u64)(QNAN | TAG_TRUE))
+#define false_val       ((Val)(uint64_t)(QNAN | TAG_FALSE))
+#define true_val        ((Val)(uint64_t)(QNAN | TAG_TRUE))
 
 #define create_bool(b)  ((b) ? true_val : false_val)
-#define create_null()   ((Val)(u64)(QNAN | TAG_NULL))
+#define create_null()   ((Val)(uint64_t)(QNAN | TAG_NULL))
 #define create_num(num) num_to_val(num)
-#define create_obj(obj) (Val)(SIGN_BIT | QNAN | (u64)(uintptr_t)(obj))
+#define create_obj(obj) (Val)(SIGN_BIT | QNAN | (uint64_t)(uintptr_t)(obj))
 
 #define as_bool(v)      ((v) == true_val)
 #define as_num(v)       val_to_num(v)

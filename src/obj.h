@@ -120,7 +120,7 @@ struct GcStr {
   GcObj obj; // Object header
   int len; // Length of the string
   char* chars; // String data
-  u32 hash; // String hash
+  uint32_t hash; // String hash
 };
 
 static inline bool obj_of_type(Val val, ObjType type) {

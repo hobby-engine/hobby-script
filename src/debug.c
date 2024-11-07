@@ -12,7 +12,7 @@ static int simple_bc(const char* name, int idx) {
 }
 
 static int const_bc(hby_State* h, const char* name, Chunk* c, int idx) {
-  u8 constant = c->code[idx + 1];
+  uint8_t constant = c->code[idx + 1];
   printf(
     "%-16s %4d '%s'\n", 
     name, constant, to_str(h, c->consts.items[constant])->chars);
@@ -20,21 +20,21 @@ static int const_bc(hby_State* h, const char* name, Chunk* c, int idx) {
 }
 
 static int byte_bc(const char* name, Chunk* c, int idx) {
-  u8 slot = c->code[idx + 1];
+  uint8_t slot = c->code[idx + 1];
   printf("%-16s %4d\n", name, slot);
   return idx + 2;
 }
 
 static int jmp_bc(const char* name, int sign, Chunk* c, int idx) {
-  u16 jmp = (u16)(c->code[idx + 1] << 8);
+  uint16_t jmp = (uint16_t)(c->code[idx + 1] << 8);
   jmp |= c->code[idx + 2];
   printf("%-16s %4d -> %d\n", name, idx, idx + 3 + sign * jmp);
   return idx + 3;
 }
 
 static int invoke_bc(hby_State* h, const char* name, Chunk* c, int offset) {
-  u8 constant = c->code[offset + 1];
-  u8 argc = c->code[offset + 2];
+  uint8_t constant = c->code[offset + 1];
+  uint8_t argc = c->code[offset + 2];
   printf(
     "%-16s (%d args) %4d '%s'\n",
     name, argc, constant, to_str(h, c->consts.items[constant])->chars);
@@ -50,7 +50,7 @@ int print_bc(hby_State* h, Chunk *c, int idx) {
     printf("%4d ", c->lines[idx]);
   }
 
-  u8 bc = c->code[idx];
+  uint8_t bc = c->code[idx];
   switch (bc) {
     case bc_pop: return simple_bc("pop", idx);
     case bc_close_upval: return simple_bc("close_upval", idx);
@@ -65,7 +65,7 @@ int print_bc(hby_State* h, Chunk *c, int idx) {
     case bc_get_subscript: return simple_bc("get_subscript", idx);
     case bc_set_subscript: return simple_bc("set_subscript", idx);
     case bc_destruct_array: {
-      u8 element = c->code[idx + 1];
+      uint8_t element = c->code[idx + 1];
       printf("%-16s %4d\n", "destruct_array", element);
       return idx + 2;
     }
@@ -102,7 +102,7 @@ int print_bc(hby_State* h, Chunk *c, int idx) {
     case bc_invoke: return invoke_bc(h, "invoke", c, idx);
     case bc_closure: {
       idx++;
-      u8 constant = c->code[idx++];
+      uint8_t constant = c->code[idx++];
       printf(
         "%-16s %4d %s\n",
         "closure", constant, to_str(h, c->consts.items[constant])->chars);
@@ -124,14 +124,14 @@ int print_bc(hby_State* h, Chunk *c, int idx) {
     case bc_method: return const_bc(h, "method", c, idx);
     case bc_enum: {
       idx++;
-      u8 name = c->code[idx++];
-      u8 count = c->code[idx++];
+      uint8_t name = c->code[idx++];
+      uint8_t count = c->code[idx++];
       printf(
         "%-16s %4d '%s' %4d\n",
         "enum", name, as_cstr(c->consts.items[name]), count);
 
       for (int i = 0; i < count; i++) {
-        u8 name = c->code[idx++];
+        uint8_t name = c->code[idx++];
         printf(
           "%04d      |                   %s\n",
           idx - 2, as_cstr(c->consts.items[name]));

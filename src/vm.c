@@ -521,7 +521,7 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
 static void run(hby_State* h) {
 #define read_byte() (*h->frame->ip++)
 #define read_short() \
-  (h->frame->ip += 2, (u16)((h->frame->ip[-2] << 8) | h->frame->ip[-1]))
+  (h->frame->ip += 2, (uint16_t)((h->frame->ip[-2] << 8) | h->frame->ip[-1]))
 #define read_const() (h->frame->fn.hby->fn->chunk.consts.items[read_byte()])
 #define read_str() as_str(read_const())
 #define bin_op(op) \
@@ -549,7 +549,7 @@ static void run(hby_State* h) {
       (int)(h->frame->ip - h->frame->fn.hby->fn->chunk.code));
 #endif
 
-    u8 bc;
+    uint8_t bc;
 
     switch (bc = read_byte()) {
       case bc_pop: pop(h); break;
@@ -568,22 +568,22 @@ static void run(hby_State* h) {
         break;
       }
       case bc_get_local: {
-        u8 slot = read_byte();
+        uint8_t slot = read_byte();
         push(h, h->frame->base[slot]);
         break;
       }
       case bc_set_local: {
-        u8 slot = read_byte();
+        uint8_t slot = read_byte();
         h->frame->base[slot] = peek(h, 0);
         break;
       }
       case bc_get_upval: {
-        u8 slot = read_byte();
+        uint8_t slot = read_byte();
         push(h, *h->frame->fn.hby->upvals[slot]->loc);
         break;
       }
       case bc_set_upval: {
-        u8 slot = read_byte();
+        uint8_t slot = read_byte();
         *h->frame->fn.hby->upvals[slot]->loc = peek(h, 0);
         break;
       }
@@ -811,7 +811,7 @@ static void run(hby_State* h) {
         break;
       case bc_not: push(h, create_bool(is_false(pop(h)))); break;
       case bc_ineq_jmp: {
-        u16 jmp = read_short();
+        uint16_t jmp = read_short();
         Val b = pop(h);
         Val a = peek(h, 0);
         if (!vals_eql(a, b)) {
@@ -820,19 +820,19 @@ static void run(hby_State* h) {
         break;
       }
       case bc_false_jmp: {
-        u16 jmp = read_short();
+        uint16_t jmp = read_short();
         if (is_false(peek(h, 0))) {
           h->frame->ip += jmp;
         }
         break;
       }
       case bc_jmp: {
-        u16 jmp = read_short();
+        uint16_t jmp = read_short();
         h->frame->ip += jmp;
         break;
       }
       case bc_loop: {
-        u16 jmp = read_short();
+        uint16_t jmp = read_short();
         h->frame->ip -= jmp;
         break;
       }
@@ -857,8 +857,8 @@ static void run(hby_State* h) {
         push(h, create_obj(closure));
         
         for (int i = 0; i < fn->upvalc; i++) {
-          u8 is_local = read_byte();
-          u8 idx = read_byte();
+          uint8_t is_local = read_byte();
+          uint8_t idx = read_byte();
           if (is_local) {
             closure->upvals[i] = capture_upval(h, h->frame->base + idx);
           } else {
@@ -910,7 +910,7 @@ static void run(hby_State* h) {
         pop(h);
         push(h, create_obj(_enum));
 
-        u8 count = read_byte();
+        uint8_t count = read_byte();
         for (int i = 0; i < count; i++) {
           GcStr* name = read_str();
           push(h, create_obj(name));

@@ -4,7 +4,7 @@
 
 #define map_max_load 0.75
 
-static u32 hash_val(Val* val) {
+static uint32_t hash_val(Val* val) {
   if (is_str(*val)) {
     return as_str(*val)->hash;
   }
@@ -12,7 +12,7 @@ static u32 hash_val(Val* val) {
 }
 
 static MapItem* find_item(MapItem* items, int cap, Val k) {
-  u32 idx = hash_val(&k) & (cap - 1);
+  uint32_t idx = hash_val(&k) & (cap - 1);
 
   MapItem* tombstone = NULL;
 

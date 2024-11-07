@@ -22,7 +22,7 @@ void free_table(hby_State* h, Table* table) {
 }
 
 static TableItem* find_item(TableItem* items, int cap, GcStr* k) {
-  u32 idx = k->hash & (cap - 1);
+  uint32_t idx = k->hash & (cap - 1);
   TableItem* tombstone = NULL;
   while (true) {
     TableItem* item = &items[idx];
@@ -123,12 +123,12 @@ void copy_table(struct hby_State* h, Table* src, Table* dst) {
   }
 }
 
-GcStr* find_str_table(Table* table, const char* chars, int len, u32 hash) {
+GcStr* find_str_table(Table* table, const char* chars, int len, uint32_t hash) {
   if (table->itemc == 0) {
     return NULL;
   }
 
-  u32 idx = hash & (table->item_cap - 1);
+  uint32_t idx = hash & (table->item_cap - 1);
 
   while (true) {
     TableItem* item = &table->items[idx];

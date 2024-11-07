@@ -50,9 +50,11 @@ HBY_CORE_C = \
 	src/lib_math.c src/lib_rng.c src/lib_str.c src/lib_sys.c src/map.c \
 	src/table.c src/mem.c src/obj.c src/state.c src/tostr.c src/val.c src/vm.c
 HBY_CORE_O = $(HBY_CORE_C:src/%.c=bin/%.o)
+HBY_CORE_D = $(HBY_CORE_O:%.o=%.d)
 
 HBY_EXE_C = src/main.c
 HBY_EXE_O = $(HBY_EXE_C:src/%.c=bin/%.o)
+HBY_EXE_D = $(HBY_EXE_O:%.o=%.d)
 
 .PHONY: default all clean clangd_compile_flags
 
@@ -86,5 +88,5 @@ clangd_compile_flags:
 	@echo "" > compile_flags.txt
 	@$(foreach flag,$(CFLAGS),echo $(flag) >> compile_flags.txt;)
 
--include $(HBY_DEPENDS)
--include $(HBY_EXE_DEPENDS)
+-include $(HBY_CORE_D)
+-include $(HBY_EXE_D)

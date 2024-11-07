@@ -3,8 +3,6 @@
 
 #include "common.h"
 
-struct hby_State;
-
 typedef struct GcObj GcObj;
 typedef struct GcStr GcStr;
 

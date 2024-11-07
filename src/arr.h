@@ -14,11 +14,11 @@ typedef struct {
 } VArr;
 
 void init_varr(VArr* arr);
-void push_varr(struct hby_State* h, VArr* arr, Val val);
-void insert_varr(struct hby_State* h, VArr* arr, Val val, int idx);
-void rem_varr(struct hby_State* h, VArr* arr, int idx);
-void clear_varr(struct hby_State* h, VArr* arr);
-void free_varr(struct hby_State* h, VArr* arr);
+void push_varr(hby_State* h, VArr* arr, Val val);
+void insert_varr(hby_State* h, VArr* arr, Val val, int idx);
+void rem_varr(hby_State* h, VArr* arr, int idx);
+void clear_varr(hby_State* h, VArr* arr);
+void free_varr(hby_State* h, VArr* arr);
 
 inline int get_idx(hby_State* h, int len, int given) {
   if (given < 0) {

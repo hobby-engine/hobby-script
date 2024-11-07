@@ -114,7 +114,7 @@ bool rem_table(Table* table, GcStr* k) {
   return true;
 }
 
-void copy_table(struct hby_State* h, Table* src, Table* dst) {
+void copy_table(hby_State* h, Table* src, Table* dst) {
   for (int i = 0; i < src->item_cap; i++) {
     TableItem* item = &src->items[i];
     if (item->key != NULL) {
@@ -154,7 +154,7 @@ void mark_table(hby_State* h, Table* table) {
   }
 }
 
-void rem_black_table(struct hby_State* h, Table* table) {
+void rem_black_table(hby_State* h, Table* table) {
   for (int i = 0; i < table->item_cap; i++) {
     TableItem* item = &table->items[i];
     if (item->key != NULL && !item->key->obj.marked) {

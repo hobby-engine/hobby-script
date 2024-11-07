@@ -5,6 +5,7 @@
 #include "hby.h"
 
 bool open_arr(hby_State* h, int argc);
+bool open_map(hby_State* h, int argc);
 bool open_core(hby_State* h, int argc);
 bool open_ease(hby_State* h, int argc);
 bool open_io(hby_State* h, int argc);

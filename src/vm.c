@@ -168,6 +168,8 @@ bool invoke(hby_State* h, GcStr* name, int argc) {
       }
       case obj_arr:
         return builtin_invoke(h, h->array_struct, name, argc);
+      case obj_map:
+        return builtin_invoke(h, h->map_struct, name, argc);
       case obj_str:
         return builtin_invoke(h, h->string_struct, name, argc);
       case obj_udata: {

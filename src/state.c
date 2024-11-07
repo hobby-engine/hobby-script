@@ -45,6 +45,7 @@ hby_State* create_state() {
   // TODO: Add a way to call API functions outside of the runtime
   // This all should be deferred until the VM starts.
   hby_open_lib(h, open_arr);
+  hby_open_lib(h, open_map);
   hby_open_lib(h, open_core);
   hby_open_lib(h, open_ease);
   hby_open_lib(h, open_io);

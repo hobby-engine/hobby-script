@@ -22,10 +22,10 @@ void free_table(hby_State* h, Table* table) {
 }
 
 static TableItem* find_item(TableItem* items, int cap, GcStr* k) {
-  uint32_t idx = k->hash & (cap - 1);
+  uint32_t index = k->hash & (cap - 1);
   TableItem* tombstone = NULL;
   while (true) {
-    TableItem* item = &items[idx];
+    TableItem* item = &items[index];
     if (item->key == NULL) {
       if (is_null(item->val)) {
         // This entry is empty. Return result.
@@ -39,7 +39,7 @@ static TableItem* find_item(TableItem* items, int cap, GcStr* k) {
       return item;
     }
 
-    idx = (idx + 1) & (cap - 1);
+    index = (index + 1) & (cap - 1);
   }
 }
 
@@ -128,10 +128,10 @@ GcStr* find_str_table(Table* table, const char* chars, int len, uint32_t hash) {
     return NULL;
   }
 
-  uint32_t idx = hash & (table->item_cap - 1);
+  uint32_t index = hash & (table->item_cap - 1);
 
   while (true) {
-    TableItem* item = &table->items[idx];
+    TableItem* item = &table->items[index];
     if (item->key == NULL) {
       if (is_null(item->val)) {
         // We reached the end.
@@ -142,7 +142,7 @@ GcStr* find_str_table(Table* table, const char* chars, int len, uint32_t hash) {
       return item->key;
     }
 
-    idx = (idx + 1) & (table->item_cap - 1);
+    index = (index + 1) & (table->item_cap - 1);
   }
 }
 

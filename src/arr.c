@@ -20,17 +20,17 @@ void push_varr(hby_State* h, VArr* arr, Val val) {
   arr->items[arr->len++] = val;
 }
 
-void insert_varr(hby_State* h, VArr* arr, Val val, int idx) {
+void insert_varr(hby_State* h, VArr* arr, Val val, int index) {
   ensure_len(h, arr, arr->len + 1);
   arr->len++;
-  for (int i = arr->len; i > idx; i--) {
+  for (int i = arr->len; i > index; i--) {
     arr->items[i] = arr->items[i - 1];
   }
-  arr->items[idx] = val;
+  arr->items[index] = val;
 }
 
-void rem_varr(hby_State* h, VArr* arr, int idx) {
-  for (int i = idx; i < arr->len - 1; i++) {
+void rem_varr(hby_State* h, VArr* arr, int index) {
+  for (int i = index; i < arr->len - 1; i++) {
     arr->items[i] = arr->items[i + 1];
   }
   arr->len--;

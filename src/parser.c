@@ -191,15 +191,15 @@ static int write_jmp(Parser* p, uint8_t byte) {
   return cur_chunk(p)->len - 2;
 }
 
-static void patch_jmp(Parser* p, int idx) {
-  int jmp = cur_chunk(p)->len - idx - 2;
+static void patch_jmp(Parser* p, int index) {
+  int jmp = cur_chunk(p)->len - index - 2;
 
   if (jmp > UINT16_MAX) {
     err(p, err_msg_big_jmp);
   }
 
-  cur_chunk(p)->code[idx] = (jmp >> 8) & 0xFF;
-  cur_chunk(p)->code[idx+1] = jmp & 0xFF;
+  cur_chunk(p)->code[index] = (jmp >> 8) & 0xFF;
+  cur_chunk(p)->code[index+1] = jmp & 0xFF;
 }
 
 static void write_ret(Parser* p) {
@@ -302,9 +302,9 @@ static void end_loop(Parser* p) {
   Loop* loop = p->compiler->loop;
 
   for (int i = 0; i < loop->breakc; i++) {
-    int break_idx = loop->breaks[i];
-    cur_chunk(p)->code[break_idx - 1] = bc_jmp;
-    patch_jmp(p, break_idx);
+    int break_index = loop->breaks[i];
+    cur_chunk(p)->code[break_index - 1] = bc_jmp;
+    patch_jmp(p, break_index);
   }
 
   p->compiler->loop = loop->enclosing;

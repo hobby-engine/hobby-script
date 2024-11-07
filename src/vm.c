@@ -243,17 +243,17 @@ static bool subscript_get(hby_State* h, Val container, Val k) {
           return false;
         }
 
-        int idx = (int)as_num(k);
+        int index = (int)as_num(k);
         GcArr* arr = as_arr(container);
-        if (idx < 0) {
-          idx += arr->varr.len;
+        if (index < 0) {
+          index += arr->varr.len;
         }
 
-        if (idx < 0 || idx >= arr->varr.len) {
+        if (index < 0 || index >= arr->varr.len) {
           hby_err(h, err_msg_index_out_of_bounds);
           return false;
         }
-        push(h, arr->varr.items[idx]);
+        push(h, arr->varr.items[index]);
         return true;
       }
       case obj_map: {
@@ -271,17 +271,17 @@ static bool subscript_get(hby_State* h, Val container, Val k) {
           hby_err(h, err_msg_bad_operand("number"));
           return false;
         }
-        int idx = (int)as_num(k);
+        int index = (int)as_num(k);
         GcStr* str = as_str(container);
-        if (idx < 0) {
-          idx += str->len;
+        if (index < 0) {
+          index += str->len;
         }
 
-        if (idx < 0 || idx >= str->len) {
+        if (index < 0 || index >= str->len) {
           hby_err(h, err_msg_index_out_of_bounds);
           return false;
         }
-        push(h, create_obj(copy_str(h, &str->chars[idx], 1)));
+        push(h, create_obj(copy_str(h, &str->chars[index], 1)));
         return true;
       }
       default:
@@ -302,17 +302,17 @@ static bool subscript_set(hby_State* h, Val container, Val k, Val val) {
           return false;
         }
 
-        int idx = (int)as_num(k);
+        int index = (int)as_num(k);
         GcArr* arr = as_arr(container);
-        if (idx < 0) {
-          idx += arr->varr.len;
+        if (index < 0) {
+          index += arr->varr.len;
         }
 
-        if (idx < 0 || idx >= arr->varr.len) {
+        if (index < 0 || index >= arr->varr.len) {
           hby_err(h, err_msg_index_out_of_bounds);
           return false;
         }
-        arr->varr.items[idx] = val;
+        arr->varr.items[index] = val;
         return true;
       }
       case obj_map: {
@@ -674,7 +674,7 @@ static void run(hby_State* h) {
         break;
       }
       case bc_destruct_array: {
-        int idx = read_byte();
+        int index = read_byte();
 
         if (is_null(peek(h, 0))) {
           push(h, create_null());
@@ -688,12 +688,12 @@ static void run(hby_State* h) {
 
         GcArr* arr = as_arr(peek(h, 0));
 
-        if (idx >= arr->varr.len) {
+        if (index >= arr->varr.len) {
           hby_err(h, err_msg_bad_destruct_len);
           return;
         }
 
-        push(h, arr->varr.items[idx]);
+        push(h, arr->varr.items[index]);
         break;
       }
       case bc_get_static: {
@@ -858,11 +858,11 @@ static void run(hby_State* h) {
         
         for (int i = 0; i < fn->upvalc; i++) {
           uint8_t is_local = read_byte();
-          uint8_t idx = read_byte();
+          uint8_t index = read_byte();
           if (is_local) {
-            closure->upvals[i] = capture_upval(h, h->frame->base + idx);
+            closure->upvals[i] = capture_upval(h, h->frame->base + index);
           } else {
-            closure->upvals[i] = h->frame->fn.hby->upvals[idx];
+            closure->upvals[i] = h->frame->fn.hby->upvals[index];
           }
         }
         break;

@@ -65,7 +65,7 @@ static bool str_rem(hby_State* h, int argc) {
   size_t str_len;
   const char* str = hby_get_str(h, 0, &str_len);
 
-  int start = get_idx(h, str_len, hby_get_num(h, 1));
+  int start = get_index(h, str_len, hby_get_num(h, 1));
   int len = hby_get_num(h, 2);
   if (len < 0) {
     len += str_len - start + 1;

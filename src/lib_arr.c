@@ -34,16 +34,16 @@ static bool arr_insert(hby_State* h, int argc) {
   GcArr* arr = self(h);
 
   // For insert, you're allowed to pass in `arr.len()`, to put an element at the
-  // end of the array. So we can't use `get_idx()`, which disallows this.
-  int idx = hby_get_num(h, 1);
-  if (idx < 0) {
-    idx += len;
+  // end of the array. So we can't use `get_index()`, which disallows this.
+  int index = hby_get_num(h, 1);
+  if (index < 0) {
+    index += len;
   }
-  if (idx < 0 || idx > len) {
+  if (index < 0 || index > len) {
     hby_err(h, err_msg_index_out_of_bounds);
   }
 
-  insert_varr(h, &arr->varr, *(h->frame->base + 2), idx);
+  insert_varr(h, &arr->varr, *(h->frame->base + 2), index);
   return false;
 }
 
@@ -51,9 +51,9 @@ static bool arr_rem(hby_State* h, int argc) {
   int len = hby_len(h, 0);
 
   GcArr* arr = self(h);
-  int idx = get_idx(h, len, hby_get_num(h, 1));
+  int index = get_index(h, len, hby_get_num(h, 1));
 
-  rem_varr(h, &arr->varr, idx);
+  rem_varr(h, &arr->varr, index);
   return false;
 }
 
@@ -61,10 +61,10 @@ static bool arr_swaprem(hby_State* h, int argc) {
   int len = hby_len(h, 0);
 
   GcArr* arr = self(h);
-  int idx = get_idx(h, len, hby_get_num(h, 1));
+  int index = get_index(h, len, hby_get_num(h, 1));
 
   VArr* varr = &arr->varr;
-  varr->items[idx] = varr->items[varr->len - 1];
+  varr->items[index] = varr->items[varr->len - 1];
   varr->len--;
   return false;
 }
@@ -80,13 +80,13 @@ static int find(VArr* arr, Val val) {
 
 static bool arr_erase(hby_State* h, int argc) {
   GcArr* arr = self(h);
-  int idx = find(&arr->varr, *(h->frame->base + 1));
-  if (idx == -1) {
+  int index = find(&arr->varr, *(h->frame->base + 1));
+  if (index == -1) {
     hby_push_bool(h, false);
     return true;
   }
 
-  rem_varr(h, &arr->varr, idx);
+  rem_varr(h, &arr->varr, index);
   hby_push_bool(h, true);
   return true;
 }

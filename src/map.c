@@ -12,12 +12,12 @@ static uint32_t hash_val(Val* val) {
 }
 
 static MapItem* find_item(MapItem* items, int cap, Val k) {
-  uint32_t idx = hash_val(&k) & (cap - 1);
+  uint32_t index = hash_val(&k) & (cap - 1);
 
   MapItem* tombstone = NULL;
 
   while (true) {
-    MapItem* item = &items[idx];
+    MapItem* item = &items[index];
     if (is_null(item->key)) {
       if (is_null(item->val)) {
         return tombstone != NULL ? tombstone : item;
@@ -30,7 +30,7 @@ static MapItem* find_item(MapItem* items, int cap, Val k) {
       return item;
     }
 
-    idx = (idx + 1) & (cap - 1);
+    index = (index + 1) & (cap - 1);
   }
 }
 

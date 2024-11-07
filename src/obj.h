@@ -62,16 +62,16 @@ typedef struct {
   GcObj obj; // Object header
   GcStr* name; // Struct name
   
-  Map vals;
+  Table vals;
 } GcEnum;
 
 typedef struct GcStruct {
   GcObj obj; // Object header
   GcStr* name; // Struct name
 
-  Map staticm; // Static methods
-  Map members; // Variables defined by the struct. Copied down to instances
-  Map methods; // Methods defined by the struct. Referenced by instances
+  Table staticm; // Static methods
+  Table members; // Variables defined by the struct. Copied down to instances
+  Table methods; // Methods defined by the struct. Referenced by instances
 } GcStruct;
 
 typedef struct GcArr {
@@ -82,7 +82,7 @@ typedef struct GcArr {
 typedef struct {
   GcObj obj; // Object header
   GcStruct* _struct; // The struct this instance is a child of
-  Map fields; // Struct members
+  Table fields; // Struct members
 } GcInst;
 
 typedef struct {

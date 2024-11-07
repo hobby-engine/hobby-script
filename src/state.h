@@ -3,7 +3,7 @@
 
 #include <setjmp.h>
 #include "hby.h"
-#include "map.h"
+#include "table.h"
 #include "val.h"
 
 #define frames_max 64
@@ -48,10 +48,10 @@ struct hby_State {
   Val stack[stack_size];
   Val* top;
 
-  Map globals;
-  Map global_consts;
-  Map strs;
-  Map files;
+  Table globals;
+  Table global_consts;
+  Table strs;
+  Table files;
   struct GcUpval* open_upvals;
   struct GcArr* args;
 

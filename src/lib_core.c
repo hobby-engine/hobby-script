@@ -38,7 +38,7 @@ static bool core_import(hby_State* h, int argc) {
   push(h, create_obj(key));
 
   Val val;
-  if (get_map(&h->files, key, &val)) {
+  if (get_table(&h->files, key, &val)) {
     push(h, val);
   } else {
     int errc = hby_compile_file(h, path);
@@ -47,7 +47,7 @@ static bool core_import(hby_State* h, int argc) {
     }
 
     hby_call(h, 0);
-    set_map(h, &h->files, key, h->top[-1]);
+    set_table(h, &h->files, key, h->top[-1]);
   }
   return true;
 }

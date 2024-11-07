@@ -745,7 +745,7 @@ static void named_var(Parser* p, Tok name, bool can_assign) {
         arg = ident_const(p, &names[i]);
         GcStr* name = as_str(p->compiler->fn->chunk.consts.items[arg]);
         Val v;
-        if (get_map(&p->h->global_consts, name, &v)) {
+        if (get_table(&p->h->global_consts, name, &v)) {
           err(p, err_msg_assign_const);
         }
         setter = bc_get_global;

@@ -1,7 +1,7 @@
 #include "arr.h"
 #include "hby.h"
 #include "lib.h"
-#include "map.h"
+#include "table.h"
 #include "mem.h"
 #include "obj.h"
 #include "tostr.h"

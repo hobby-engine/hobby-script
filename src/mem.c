@@ -55,15 +55,15 @@ static void free_obj(hby_State* h, GcObj* obj) {
     }
     case obj_struct: {
       GcStruct* s = (GcStruct*)obj;
-      free_map(h, &s->staticm);
-      free_map(h, &s->methods);
-      free_map(h, &s->members);
+      free_table(h, &s->staticm);
+      free_table(h, &s->methods);
+      free_table(h, &s->members);
       release(h, GcStruct, obj);
       break;
     }
     case obj_inst: {
       GcInst* inst = (GcInst*)obj;
-      free_map(h, &inst->fields);
+      free_table(h, &inst->fields);
       release(h, GcInst, obj);
       break;
     }
@@ -87,7 +87,7 @@ static void free_obj(hby_State* h, GcObj* obj) {
     }
     case obj_enum: {
       GcEnum* _enum = (GcEnum*)obj;
-      free_map(h, &_enum->vals);
+      free_table(h, &_enum->vals);
       release(h, GcEnum, obj);
       break;
     }
@@ -160,15 +160,15 @@ static void blacken_obj(hby_State* h, GcObj* obj) {
     case obj_struct: {
       GcStruct* s = (GcStruct*)obj;
       mark_obj(h, (GcObj*)s->name);
-      mark_map(h, &s->staticm);
-      mark_map(h, &s->methods);
-      mark_map(h, &s->members);
+      mark_table(h, &s->staticm);
+      mark_table(h, &s->methods);
+      mark_table(h, &s->members);
       break;
     }
     case obj_inst: {
       GcInst* inst = (GcInst*)obj;
       mark_obj(h, (GcObj*)inst->_struct);
-      mark_map(h, &inst->fields);
+      mark_table(h, &inst->fields);
       break;
     }
     case obj_closure: {
@@ -192,7 +192,7 @@ static void blacken_obj(hby_State* h, GcObj* obj) {
     case obj_enum: {
       GcEnum* _enum = (GcEnum*)obj;
       mark_obj(h, (GcObj*)_enum->name);
-      mark_map(h, &_enum->vals);
+      mark_table(h, &_enum->vals);
       break;
     }
     case obj_arr:
@@ -231,9 +231,9 @@ static void mark_roots(hby_State* h) {
     mark_obj(h, (GcObj*)upval);
   }
 
-  mark_map(h, &h->globals);
-  mark_map(h, &h->global_consts);
-  mark_map(h, &h->files);
+  mark_table(h, &h->globals);
+  mark_table(h, &h->global_consts);
+  mark_table(h, &h->files);
   mark_obj(h, (GcObj*)h->args);
   mark_compiler_roots(h->parser);
 }
@@ -293,7 +293,7 @@ void gc(hby_State* h) {
 
   mark_roots(h);
   trace_refs(h);
-  rem_black_map(h, &h->strs);
+  rem_black_table(h, &h->strs);
 
   finalize_udata(h, true);
 

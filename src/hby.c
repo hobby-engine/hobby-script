@@ -135,13 +135,13 @@ void hby_set_global(hby_State* h, const char* name, int index) {
 
   GcStr* sname = get_name_or(h, val, name);
   push(h, create_obj(sname));
-  set_map(h, &h->globals, sname, val);
+  set_table(h, &h->globals, sname, val);
   pop(h);
 }
 
 bool hby_get_global(hby_State* h, const char* name) {
   Val val;
-  if (get_map(&h->globals, copy_str(h, name, strlen(name)), &val)) {
+  if (get_table(&h->globals, copy_str(h, name, strlen(name)), &val)) {
     push(h, val);
     return true;
   }
@@ -186,10 +186,10 @@ bool hby_has_prop(hby_State* h, const char* name, int index) {
       case obj_inst: {
         GcInst* inst = as_inst(val);
         Val val;
-        if (get_map(&inst->fields, str_name, &val)) {
+        if (get_table(&inst->fields, str_name, &val)) {
           return true;
         }
-        if (get_map(&inst->_struct->methods, str_name, &val)) {
+        if (get_table(&inst->_struct->methods, str_name, &val)) {
           return true;
         }
         return false;
@@ -197,7 +197,7 @@ bool hby_has_prop(hby_State* h, const char* name, int index) {
       case obj_udata: {
         GcUData* udata = as_udata(val);
         Val val;
-        if (get_map(&udata->metastruct->methods, str_name, &val)) {
+        if (get_table(&udata->metastruct->methods, str_name, &val)) {
           return true;
         }
         return false;
@@ -220,12 +220,12 @@ bool hby_get_prop(hby_State* h, const char* name, int index) {
       case obj_inst: {
         GcInst* inst = as_inst(val);
         Val val;
-        if (get_map(&inst->fields, str_name, &val)) {
+        if (get_table(&inst->fields, str_name, &val)) {
           push(h, val);
           return true;
         }
 
-        if (get_map(&inst->_struct->methods, str_name, &val)) {
+        if (get_table(&inst->_struct->methods, str_name, &val)) {
           push(h, val);
           return true;
         }
@@ -235,7 +235,7 @@ bool hby_get_prop(hby_State* h, const char* name, int index) {
       case obj_udata: {
         GcUData* udata = as_udata(val);
         Val val;
-        if (get_map(&udata->metastruct->methods, str_name, &val)) {
+        if (get_table(&udata->metastruct->methods, str_name, &val)) {
           push(h, val);
           return true;
         }
@@ -491,7 +491,7 @@ void hby_struct_add_const(hby_State* h, const char* name, int index) {
   Val val = val_at(h, -1);
   GcStr* str_name = get_name_or(h, val, name);
   push(h, create_obj(str_name));
-  set_map(h, &s->staticm, str_name, val);
+  set_table(h, &s->staticm, str_name, val);
   pop(h); // str_name
   pop(h); // constant
 }
@@ -505,7 +505,7 @@ void hby_struct_get_const(hby_State* h, const char* name) {
   push(h, create_obj(str_name));
 
   Val val;
-  get_map(&s->staticm, str_name, &val);
+  get_table(&s->staticm, str_name, &val);
 
   pop(h); // str_name
   push(h, val);
@@ -520,11 +520,11 @@ void hby_struct_add_member(hby_State* h, hby_MethodType type, int index) {
   
   switch (type) {
     case hby_static_fn: {
-      set_map(h, &s->staticm, cfn->name, create_obj(cfn));
+      set_table(h, &s->staticm, cfn->name, create_obj(cfn));
       break;
     }
     case hby_method: {
-      set_map(h, &s->methods, cfn->name, create_obj(cfn));
+      set_table(h, &s->methods, cfn->name, create_obj(cfn));
       break;
     }
   }
@@ -581,7 +581,7 @@ void hby_add_enum(hby_State* h, const char* name, int index) {
   GcStr* sname = copy_str(h, name, strlen(name));
   push(h, create_obj(sname));
   int i = e->vals.count;
-  if (!set_map(h, &e->vals, sname, create_num(i))) {
+  if (!set_table(h, &e->vals, sname, create_num(i))) {
     hby_err(h, err_msg_shadow_prev_enum, name);
   }
   pop(h); // sname

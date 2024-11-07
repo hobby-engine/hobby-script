@@ -10,7 +10,7 @@
 #include "common.h"
 #include "errmsg.h"
 #include "hby.h"
-#include "map.h"
+#include "table.h"
 #include "mem.h"
 #include "obj.h"
 #include "state.h"
@@ -133,7 +133,7 @@ bool call_val(hby_State* h, Val val, int argc) {
 
 bool builtin_invoke(hby_State* h, GcStruct* _struct, GcStr* name, int argc) {
   Val method;
-  if (!get_map(&_struct->methods, name, &method)) {
+  if (!get_table(&_struct->methods, name, &method)) {
     hby_err(h, err_msg_undef_prop, name->chars);
     return false;
   }
@@ -149,13 +149,13 @@ bool invoke(hby_State* h, GcStr* name, int argc) {
         GcInst* inst = as_inst(reciever);
 
         Val val;
-        if (get_map(&inst->fields, name, &val)) {
+        if (get_table(&inst->fields, name, &val)) {
           h->top[-argc - 1] = val;
           return call_val(h, val, argc);
         }
 
         Val method;
-        if (!get_map(&inst->_struct->methods, name, &method)) {
+        if (!get_table(&inst->_struct->methods, name, &method)) {
           hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
@@ -178,7 +178,7 @@ bool invoke(hby_State* h, GcStr* name, int argc) {
         }
         
         Val cfn;
-        if (!get_map(&udata->metastruct->methods, name, &cfn)) {
+        if (!get_table(&udata->metastruct->methods, name, &cfn)) {
           hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
@@ -201,7 +201,7 @@ static bool static_access(hby_State* h, Val val, GcStr* prop) {
         GcStruct* s = as_struct(val);
 
         Val val;
-        if (get_map(&s->staticm, prop, &val)) {
+        if (get_table(&s->staticm, prop, &val)) {
           pop(h); // Struct
           push(h, val);
           return true;
@@ -214,7 +214,7 @@ static bool static_access(hby_State* h, Val val, GcStr* prop) {
         GcEnum* e = as_enum(val);
 
         Val val;
-        if (get_map(&e->vals, prop, &val)) {
+        if (get_table(&e->vals, prop, &val)) {
           pop(h); // Enum
           push(h, val);
           return true;
@@ -313,7 +313,7 @@ static bool subscript_set(hby_State* h, Val container, Val k, Val val) {
 
 static bool bind_method(hby_State* h, GcStruct* _struct, GcStr* name) {
   Val val;
-  if (!get_map(&_struct->methods, name, &val)) {
+  if (!get_table(&_struct->methods, name, &val)) {
     hby_err(h, err_msg_undef_prop, name->chars);
     return false;
   }
@@ -367,7 +367,7 @@ static void close_upvals(hby_State* h, Val* last) {
 static void define_method(hby_State* h, GcStr* name) {
   Val method = peek(h, 0);
   GcStruct* s = as_struct(peek(h, 1));
-  set_map(h, &s->methods, name, method);
+  set_table(h, &s->methods, name, method);
   pop(h);
 }
 
@@ -443,7 +443,7 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
         GcInst* inst = as_inst(owner);
 
         Val val;
-        if (get_map(&inst->fields, name, &val)) {
+        if (get_table(&inst->fields, name, &val)) {
           pop(h);
           push(h, val);
           return true;
@@ -456,7 +456,7 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
       }
       case obj_arr: {
         Val cfn;
-        if (!get_map(&h->array_struct->methods, name, &cfn)) {
+        if (!get_table(&h->array_struct->methods, name, &cfn)) {
           hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
@@ -475,7 +475,7 @@ static bool get_property(hby_State* h, Val owner, GcStr* name) {
         }
         
         Val cfn;
-        if (!get_map(&udata->metastruct->methods, name, &cfn)) {
+        if (!get_table(&udata->metastruct->methods, name, &cfn)) {
           hby_err(h, err_msg_undef_prop, name->chars);
           return false;
         }
@@ -542,7 +542,7 @@ static void run(hby_State* h) {
       case bc_get_global: {
         GcStr* name = read_str();
         Val v;
-        if (!get_map(&h->globals, name, &v)) {
+        if (!get_table(&h->globals, name, &v)) {
           hby_err(h, err_msg_undef_var, name->chars);
           return;
         }
@@ -581,7 +581,7 @@ static void run(hby_State* h) {
         GcStr* name = read_str();
 
         Val val;
-        if (get_map(&inst->fields, name, &val)) {
+        if (get_table(&inst->fields, name, &val)) {
           push(h, val);
           break;
         }
@@ -607,7 +607,7 @@ static void run(hby_State* h) {
 
         GcInst* inst = as_inst(peek(h, 1));
         GcStr* name = read_str();
-        if (set_map(h, &inst->fields, name, peek(h, 0))) {
+        if (set_table(h, &inst->fields, name, peek(h, 0))) {
           hby_err(h, err_msg_undef_prop, name->chars);;
           return;
         }
@@ -622,7 +622,7 @@ static void run(hby_State* h) {
         // This value being an instance is already verified by `bc_inst`
         GcInst* inst = as_inst(peek(h, 1));
         GcStr* name = read_str();
-        if (set_map(h, &inst->fields, name, peek(h, 0))) {
+        if (set_table(h, &inst->fields, name, peek(h, 0))) {
           hby_err(h, err_msg_undef_prop, name->chars);
           return;
         }
@@ -856,7 +856,7 @@ static void run(hby_State* h) {
       case bc_def_static: {
         Val val = peek(h, 0);
         GcStruct* s = as_struct(peek(h, 1));
-        set_map(h, &s->staticm, read_str(), val);
+        set_table(h, &s->staticm, read_str(), val);
         pop(h);
         break;
       }
@@ -867,7 +867,7 @@ static void run(hby_State* h) {
       case bc_member: {
         Val val = peek(h, 0);
         GcStruct* s = as_struct(peek(h, 1));
-        set_map(h, &s->members, read_str(), val);
+        set_table(h, &s->members, read_str(), val);
         pop(h);
         break;
       }
@@ -882,7 +882,7 @@ static void run(hby_State* h) {
         for (int i = 0; i < count; i++) {
           GcStr* name = read_str();
           push(h, create_obj(name));
-          if (!set_map(h, &_enum->vals, name, create_num(i))) {
+          if (!set_table(h, &_enum->vals, name, create_num(i))) {
             hby_err(h, err_msg_shadow_prev_enum, name->chars);
             return;
           }

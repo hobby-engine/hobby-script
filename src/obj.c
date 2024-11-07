@@ -6,7 +6,7 @@
 #include "arr.h"
 #include "val.h"
 #include "mem.h"
-#include "map.h"
+#include "table.h"
 
 #define alloc_obj(h, ctype, hbytype) (ctype*)alloc_obj_impl(h, sizeof(ctype), hbytype)
 
@@ -44,8 +44,8 @@ GcInst* create_inst(hby_State* h, GcStruct* s) {
   inst->_struct = s;
 
   push(h, create_obj(inst));
-  init_map(&inst->fields);
-  copy_map(h, &s->members, &inst->fields);
+  init_table(&inst->fields);
+  copy_table(h, &s->members, &inst->fields);
   pop(h);
   return inst;
 }
@@ -53,9 +53,9 @@ GcInst* create_inst(hby_State* h, GcStruct* s) {
 GcStruct* create_struct(hby_State* h, GcStr* name) {
   GcStruct* s = alloc_obj(h, GcStruct, obj_struct);
   s->name = name;
-  init_map(&s->staticm);
-  init_map(&s->methods);
-  init_map(&s->members);
+  init_table(&s->staticm);
+  init_table(&s->methods);
+  init_table(&s->members);
   return s;
 }
 
@@ -101,7 +101,7 @@ GcFn* create_fn(hby_State* h, GcStr* file_path) {
 GcEnum* create_enum(hby_State* h, GcStr* name) {
   GcEnum* _enum = alloc_obj(h, GcEnum, obj_enum);
   _enum->name = name;
-  init_map(&_enum->vals);
+  init_table(&_enum->vals);
   return _enum;
 }
 
@@ -138,7 +138,7 @@ static GcStr* alloc_str(hby_State* h, char* chars, int len, u32 hash) {
   str->hash = hash;
 
   push(h, create_obj(str));
-  set_map(h, &h->strs, str, create_null());
+  set_table(h, &h->strs, str, create_null());
   pop(h);
   return str;
 }
@@ -154,7 +154,7 @@ static uint32_t hash_str(const char* key, int length) {
 
 GcStr* copy_str(hby_State* h, const char* chars, int len) {
   u32 hash = hash_str(chars, len);
-  GcStr* interned = find_str_map(&h->strs, chars, len, hash);
+  GcStr* interned = find_str_table(&h->strs, chars, len, hash);
   if (interned != NULL) {
     return interned;
   }
@@ -167,7 +167,7 @@ GcStr* copy_str(hby_State* h, const char* chars, int len) {
 
 GcStr* take_str(hby_State* h, char* chars, int len) {
   u32 hash = hash_str(chars, len);
-  GcStr* interned = find_str_map(&h->strs, chars, len, hash);
+  GcStr* interned = find_str_table(&h->strs, chars, len, hash);
   if (interned != NULL) {
     release_arr(h, char, chars, len + 1);
     return interned;

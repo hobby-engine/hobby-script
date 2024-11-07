@@ -50,7 +50,7 @@ HBY_SO = libhobbyc.so
 HBY_SRC = \
 	src/hby.c src/arr.c src/chunk.c src/parser.c src/debug.c src/lexer.c \
 	src/lib_arr.c src/lib_core.c src/lib_ease.c src/lib_io.c src/lib_math.c \
-	src/lib_rng.c src/lib_str.c src/lib_sys.c src/map.c src/mem.c src/obj.c \
+	src/lib_rng.c src/lib_str.c src/lib_sys.c src/table.c src/mem.c src/obj.c \
 	src/state.c src/tostr.c src/val.c src/vm.c
 
 HBY_OBJ = $(HBY_SRC:%.c=%.o)
@@ -61,8 +61,9 @@ HBY_EXE_OBJ = $(HBY_EXE_SRC:%.c=%.o)
 HBY_EXE_DEPENDS = $(HBY_EXE_OBJ:.o=.d)
 
 ALL_OBJ = $(HBY_OBJ) $(HBY_EXE_OBJ)
+ALL_DEPENDS = $(HBY_DEPENDS) $(HBY_EXE_DEPENDS)
 ALL_TARGETS = $(HBY_EXE) $(HBY_SO)
-ALL_GEN = $(ALL_OBJ) $(ALL_TARGETS)
+ALL_GEN = $(ALL_OBJ) $(ALL_TARGETS) $(ALL_DEPENDS)
 
 .PHONY: default all clean clangd_compile_flags
 

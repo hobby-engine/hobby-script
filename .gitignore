@@ -2,4 +2,7 @@
 *.o
 *.so
 *.a
+*.exe
+*.dll
+*.lib
 hobbyc

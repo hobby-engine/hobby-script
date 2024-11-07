@@ -108,7 +108,7 @@ bool rem_map(hby_State* h, GcMap* map, Val k) {
 void mark_map(hby_State* h, GcMap* map) {
   for (int i = 0; i < map->item_cap; i++) {
     MapItem* item = &map->items[i];
-    mark_obj(h, (GcObj*)item->key);
+    mark_val(h, item->key);
     mark_val(h, item->val);
   }
 }

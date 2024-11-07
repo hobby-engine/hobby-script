@@ -25,7 +25,7 @@ static bool core_tonum(hby_State* h, int argc) {
       hby_push_num(h, 0);
       return true;
     default:
-      hby_err(h, "Cannot convert given value to number");
+      hby_err(h, err_msg_cannot_convert("number"));
       break;
   }
   return false;
@@ -76,7 +76,7 @@ static bool core_pcall(hby_State* h, int argc) {
   hby_ValueType type = hby_get_type(h, 1);
   if (type != hby_type_function && type != hby_type_cfunction) {
     hby_err(
-      h, "expected '%s' or '%s', got '%s'",
+      h, err_msg_expect_2types,
       hby_get_type_name(hby_type_function, NULL),
       hby_get_type_name(hby_type_cfunction, NULL),
       hby_get_type_name(type, NULL));

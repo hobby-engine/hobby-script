@@ -3,6 +3,7 @@
 #include <math.h>
 #include <time.h>
 #include "common.h"
+#include "errmsg.h"
 #include "hby.h"
 
 typedef struct {
@@ -57,7 +58,7 @@ static bool rng_seed(hby_State* h, int argc) {
   if (argc == 1) {
     seed = hby_get_num(h, 1);
   } else if (argc > 1) {
-    hby_err(h, "Expected 0-1 arguments.");
+    hby_err(h, err_msg_expect_arg_range("0", "1"));
   }
 
   Rng* rng = (Rng*)hby_get_udata(h, 0);

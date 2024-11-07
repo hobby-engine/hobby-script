@@ -26,6 +26,19 @@
 #define err_msg_bad_operands(type) "operands must be " type
 #define err_msg_bad_operand(type) "operand must be a " type
 
+// C API
+#define err_msg_invalid_stack_access "invalid stack access of slot %d (C API)"
+#define err_msg_provide_name "must provide a name for function (C API)"
+#define err_msg_expect_type_from_callback(type, callback) \
+  "expected type '" type "' to be returned from '" callback "'"
+#define err_msg_inaccessible_type \
+  "internal value type which should not be accessible. report this error (C API)"
+
+// STD
+#define err_msg_expect_arg_range(s, e) "expected " s "-" e "arguments"
+#define err_msg_cannot_convert(type) "cannot convert given value to " type
+#define err_msg_expect_2types "expected '%s' or '%s', got '%s'"
+
 // Compile errors
 #define err_msg_invalid_char "unexpected character"
 #define err_msg_escape_str "invalid escape code"

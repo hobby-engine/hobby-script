@@ -14,7 +14,7 @@ static Val val_at(hby_State* h, int index) {
   if (index >= 0) {
     Val* val = h->frame->base + index;
     if (val > h->top) {
-      hby_err(h, "Invalid stack access of slot %d (C API)", index);
+      hby_err(h, err_msg_invalid_stack_access, index);
     }
     return *val;
   }
@@ -35,7 +35,7 @@ static GcStr* get_name_or(hby_State* h, Val val, const char* name) {
     }
   }
 
-  hby_err(h, "Must provide a name for function (C API)");
+  hby_err(h, err_msg_provide_name);
   return NULL;
 }
 
@@ -46,7 +46,7 @@ static GcStr* obj_to_string(hby_State* h, int index) {
     hby_push(h, index);
     hby_callon(h, "tostr", 0);
     if (!hby_is_str(h, -1)) {
-      hby_err(h, "expected string to be returned from 'tostr'");
+      hby_err(h, err_msg_expect_type_from_callback("string", "tostr"));
     }
 
     return as_str(pop(h));
@@ -57,7 +57,7 @@ static GcStr* obj_to_string(hby_State* h, int index) {
     hby_callon(h, "tostr", 0);
 
     if (!hby_is_str(h, -1)) {
-      hby_err(h, "expected string to be returned from 'tostr'");
+      hby_err(h, err_msg_expect_type_from_callback("string", "tostr"));
     }
 
     return as_str(pop(h));
@@ -173,7 +173,7 @@ hby_ValueType hby_get_type(hby_State* h, int index) {
     }
   }
 
-  hby_err(h, "Internal value type which should not be accessible (C API)");
+  hby_err(h, err_msg_inaccessible_type);
   return 0;
 }
 
@@ -207,8 +207,6 @@ bool hby_has_prop(hby_State* h, const char* name, int index) {
         break;
     }
   }
-
-  hby_err(h, "Expected instance or udata for call to 'hby_get_prop'");
   return false;
 }
 

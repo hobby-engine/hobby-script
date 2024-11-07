@@ -37,7 +37,7 @@ ifeq (release,$(config))
 	CFLAG += -O2
 else
 	config = debug
-	CFLAG += -O2 -g
+	CFLAG += -O2 -g -Dhby_stress_gc
 	ifeq (Linux,$(HOST_SYS))
 		CFLAG += -fsanitize=address -fsanitize=address
 	endif

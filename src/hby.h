@@ -34,6 +34,7 @@ typedef enum {
   hby_type_function,
   hby_type_cfunction,
   hby_type_array,
+  hby_type_map,
   hby_type_udata,
   hby_type_count, // How many types there are
 } hby_ValueType;
@@ -196,6 +197,7 @@ hby_api void hby_add_enum(hby_State* h, const char* name, int index);
 #define hby_is_cfunction(h, index)    (hby_get_type(h, index) == hby_type_cfunction)
 #define hby_is_udata(h, index)        (hby_get_type(h, index) == hby_type_udata)
 #define hby_is_array(h, index)        (hby_get_type(h, index) == hby_type_array)
+#define hby_is_map(h, index)          (hby_get_type(h, index) == hby_type_map)
 
 #define hby_expect_num(h, index)       hby_expect_type(h, index, hby_type_number);
 #define hby_expect_bool(h, index)      hby_expect_type(h, index, hby_type_bool);
@@ -208,5 +210,6 @@ hby_api void hby_add_enum(hby_State* h, const char* name, int index);
 #define hby_expect_cfunction(h, index) hby_expect_type(h, index, hby_type_cfunction);
 #define hby_expect_udata(h, index)     hby_expect_type(h, index, hby_type_udata);
 #define hby_expect_array(h, index)     hby_expect_type(h, index, hby_type_array);
+#define hby_expect_map(h, index)       hby_expect_type(h, index, hby_type_map);
 
 #endif // __HBY_H

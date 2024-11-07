@@ -168,6 +168,7 @@ hby_ValueType hby_get_type(hby_State* h, int index) {
       case obj_inst: return hby_type_instance;
       case obj_udata: return hby_type_udata;
       case obj_arr: return hby_type_array;
+      case obj_map: return hby_type_map;
       default: break;
     }
   }

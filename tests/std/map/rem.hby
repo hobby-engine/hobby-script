@@ -1,0 +1,10 @@
+var map = {
+  "a" -> 1,
+  "b" -> 2,
+  134 -> 3,
+  "c" -> 4,
+};
+
+io:print(map.keys()); // expect: [134, "c", "a", "b"]
+map.rem(134);
+io:print(map.keys()); // expect: ["c", "a", "b"]

@@ -1,0 +1,9 @@
+var map = {
+  "a" -> 1,
+  "b" -> 2,
+  "c" -> 3,
+};
+
+io:print(map.keys().len()); // expect: 3
+map.clear();
+io:print(map.keys().len()); // expect: 0

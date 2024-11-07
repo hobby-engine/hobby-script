@@ -1,0 +1,10 @@
+var map = {
+  "a" -> 1,
+  "b" -> 2,
+  "c" -> 3,
+};
+
+io:print(map.has("a")); // expect: true
+io:print(map.has("b")); // expect: true
+io:print(map.has("c")); // expect: true
+io:print(map.has("d")); // expect: false

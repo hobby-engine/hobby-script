@@ -1,0 +1,8 @@
+var map = {
+  "a" -> 1,
+  "b" -> 2,
+  "c" -> 3,
+};
+
+io:print(map.keys()); // expect: ["c", "a", "b"]
+

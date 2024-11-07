@@ -162,7 +162,7 @@ hby_api void hby_pccall(hby_State* h, hby_CFn fn, int argc); // TODO
 // Call a method on a value
 hby_api void hby_callon(hby_State* h, const char* mname, int argc);
 // Open a library
-hby_api void hby_open_lib(hby_State* h, hby_CFn fn);
+hby_api bool hby_open_lib(hby_State* h, hby_CFn fn);
 
 // Add a static constant to a struct
 hby_api void hby_struct_add_const(hby_State* h, const char* name, int _struct);

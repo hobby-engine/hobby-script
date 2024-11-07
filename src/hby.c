@@ -288,34 +288,34 @@ const char* hby_get_tostr(hby_State* h, int index, size_t* len_out) {
   return str->chars;
 }
 
-hby_api void* hby_get_udata(hby_State* h, int index) {
+void* hby_get_udata(hby_State* h, int index) {
   hby_expect_udata(h, index);
   return as_udata(val_at(h, index))->data;
 }
 
 
-hby_api double hby_opt_num(hby_State* h, int index, double opt) {
+double hby_opt_num(hby_State* h, int index, double opt) {
   if (hby_is_null(h, index)) {
     return opt;
   }
   return hby_get_num(h, index);
 }
 
-hby_api bool hby_opt_bool(hby_State* h, int index, bool opt) {
+bool hby_opt_bool(hby_State* h, int index, bool opt) {
   if (hby_is_null(h, index)) {
     return opt;
   }
   return hby_get_num(h, index);
 }
 
-hby_api hby_CFn hby_opt_cfunc(hby_State* h, int index, hby_CFn opt) {
+hby_CFn hby_opt_cfunc(hby_State* h, int index, hby_CFn opt) {
   if (hby_is_null(h, index)) {
     return opt;
   }
   return hby_get_cfunc(h, index);
 }
 
-hby_api const char* hby_opt_str(
+const char* hby_opt_str(
     hby_State* h, int index, size_t* len_out, const char* opt) {
   if (hby_is_null(h, index)) {
     return opt;
@@ -476,10 +476,11 @@ void hby_callon(hby_State* h, const char* mname, int argc) {
   vm_invoke(h, copy_str(h, mname, strlen(mname)), argc);
 }
 
-void hby_open_lib(hby_State* h, hby_CFn fn) {
+bool hby_open_lib(hby_State* h, hby_CFn fn) {
   hby_push_cfunc(h, "open_lib", fn, 0);
-  hby_call(h, 0);
+  bool res = hby_pcall(h, 0);
   hby_pop(h, 1);
+  return res;
 }
 
 

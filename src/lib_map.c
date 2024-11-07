@@ -6,6 +6,7 @@
 #include "hby.h"
 #include "obj.h"
 #include "map.h"
+#include "mem.h"
 
 static bool map_rem(hby_State* h, int argc) {
   GcMap* map = as_map(h->frame->base[0]);
@@ -42,10 +43,20 @@ static bool map_keys(hby_State* h, int argc) {
   return true;
 }
 
+static bool map_clear(hby_State* h, int argc) {
+  GcMap* map = as_map(h->frame->base[0]);
+  release_arr(h, MapItem, map->items, map->item_cap);
+  map->items = NULL;
+  map->itemc = 0;
+  map->item_cap = 0;
+  return false;
+}
+
 hby_StructMethod map_methods[] = {
   {"rem", map_rem, 1, hby_method},
   {"has", map_has, 1, hby_method},
   {"keys", map_keys, 0, hby_method},
+  {"clear", map_clear, 0, hby_method},
   {NULL, NULL, 0, 0},
 };
 

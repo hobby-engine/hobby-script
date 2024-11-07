@@ -49,6 +49,7 @@
 #define err_msg_use_break "cannot use 'break' outside of a loop"
 #define err_msg_use_continue "cannot use 'continue' outside of a loop"
 #define err_msg_assign_const "cannot assign to a constant variable"
+#define err_msg_assign_global "cannot assign to an undefined or global variable"
 #define err_msg_global_const "constants cannot be global"
 #define err_msg_bad_global "expected global declaration"
 #define err_msg_bad_loop_label "could not resolve loop label"

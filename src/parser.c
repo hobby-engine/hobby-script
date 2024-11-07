@@ -727,7 +727,7 @@ static void check_const(Parser* p, uint8_t setter, int arg) {
       }
       break;
     case bc_get_global:
-      err(p, err_msg_assign_const);
+      err(p, err_msg_assign_global);
     default:
       break;
   }

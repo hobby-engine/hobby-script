@@ -25,12 +25,13 @@
 #define err_msg_expected_char "Expected char (string with a length of 1)"
 #define err_msg_bad_operands(type) "operands must be " type
 #define err_msg_bad_operand(type) "operand must be a " type
+#define err_msg_expect_type_from_callback(type, callback) \
+  "expected type '" type "' to be returned from '" callback "'"
 
 // C API
 #define err_msg_invalid_stack_access "invalid stack access of slot %d (C API)"
-#define err_msg_provide_name "must provide a name for function (C API)"
-#define err_msg_expect_type_from_callback(type, callback) \
-  "expected type '" type "' to be returned from '" callback "'"
+#define err_msg_provide_name \
+  "unable to infer name. must provide a name for function (C API)"
 #define err_msg_inaccessible_type \
   "internal value type which should not be accessible. report this error (C API)"
 

@@ -14,7 +14,21 @@ var tallies = {
   "I" -> 1,
 };
 
-var ordered_numerals = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
+var ordered_numerals = [
+  "M",
+  "CM",
+  "D",
+  "CD",
+  "C",
+  "XC",
+  "L",
+  "XL",
+  "X",
+  "IX",
+  "V",
+  "IV",
+  "I"
+];
 
 fn arabic_to_roman(d) {
   var roman = "";

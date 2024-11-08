@@ -66,19 +66,19 @@ all: $(HBY_SO) $(HBY_EXE) $(HBY_A)
 	@echo "LDFLAG: $(LDFLAG)"
 
 $(HBY_EXE): $(HBY_A) $(HBY_EXE_O)
-	@echo "compiling $@"
+	@echo "cc $@"
 	@$(CC) -o $@ $(HBY_EXE_O) $(HBY_A) $(CFLAGS) $(LDFLAG)
 
 $(HBY_SO): $(HBY_CORE_O)
-	@echo "compiling $@"
+	@echo "cc $@"
 	@$(CC) -o $@ $(HBY_CORE_O) $(CFLAGS) -shared $(SHARED_FLAG) $(LDFLAG)
 
 $(HBY_A): $(HBY_CORE_O)
-	@echo "compiling $@"
+	@echo "ar $@"
 	@$(AR) $@ $?
 
 bin/%.o: src/%.c
-	@echo "compiling $< -> $@"
+	@echo "cc $< -> $@"
 	@$(CC) -o $@ -c $< $(CFLAGS) -MMD -MD
 
 clean:

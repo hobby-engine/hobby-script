@@ -12,6 +12,7 @@ is standalone as well.
 ## Building
 It should be as easy as cloning the repo and going:
 ```shell
+mkdir bin
 make
 ```
 Requires MinGW on Windows.

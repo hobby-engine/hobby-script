@@ -171,6 +171,18 @@ static bool arr_eqls(hby_State* h, int argc) {
   return true;
 }
 
+static bool arr_copy(hby_State* h, int argc) {
+  hby_push_array(h);
+
+  int len = hby_len(h, 0);
+  for (int i = 0; i < len; i++) {
+    hby_array_get_index(h, 0, i);
+    hby_array_add(h, -2);
+  }
+
+  return true;
+}
+
 
 hby_StructMethod arr_methods[] = {
   {"len", arr_len, 0, hby_method},
@@ -183,6 +195,7 @@ hby_StructMethod arr_methods[] = {
   {"join", arr_join, 0, hby_method},
   {"clear", arr_clear, 0, hby_method},
   {"eqls", arr_eqls, 1, hby_method},
+  {"copy", arr_copy, 0, hby_method},
   {NULL, NULL, 0, 0},
 };
 

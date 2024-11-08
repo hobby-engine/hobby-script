@@ -1,0 +1,4 @@
+const arr = [1, 2, 3, 4];
+var joined = arr.join();
+io:print(joined); // expect: 1234
+io:print(joined is String); // expect: true

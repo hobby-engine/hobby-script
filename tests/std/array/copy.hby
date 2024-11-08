@@ -1,0 +1,8 @@
+const arr = [1, 2, 3, 4];
+const copy = arr.copy();
+
+io:print(arr); // expect: [1, 2, 3, 4]
+io:print(copy); // expect: [1, 2, 3, 4]
+io:print(arr == copy); // expect: false
+io:print(arr == arr); // expect: true
+io:print(copy == copy); // expect: true

@@ -3,9 +3,10 @@
 
 #include "common.h"
 #include "chunk.h"
-#include "state.h"
 #include "val.h"
+#include "hby.h"
 #include "arr.h"
+#include "table.h"
 
 typedef enum {
   obj_str,

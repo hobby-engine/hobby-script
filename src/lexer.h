@@ -1,7 +1,8 @@
 #ifndef __HBY_TOKENIZER_H
 #define __HBY_TOKENIZER_H
 
-#include "state.h"
+#include "hby.h"
+#include "val.h"
 
 #define max_strfmt_braces 4
 

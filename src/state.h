@@ -5,6 +5,8 @@
 #include "hby.h"
 #include "table.h"
 #include "val.h"
+#include "obj.h"
+#include "parser.h"
 
 #define frames_max 64
 #define stack_size (frames_max * uint8_count)
@@ -34,11 +36,11 @@ typedef struct {
   bool can_gc;
   size_t alloced;
   size_t next_gc;
-  struct GcObj* objs;
-  struct GcObj* udata;
+  GcObj* objs;
+  GcObj* udata;
   int grayc;
   int gray_cap;
-  struct GcObj** gray_stack;
+  GcObj** gray_stack;
 } GcState;
 
 struct hby_State {
@@ -52,21 +54,22 @@ struct hby_State {
   Table global_consts;
   Table strs;
   Table files;
-  struct GcUpval* open_upvals;
-  struct GcArr* args;
 
-  struct GcStruct* number_struct;
-  struct GcStruct* boolean_struct;
-  struct GcStruct* function_struct;
-  struct GcStruct* string_struct;
-  struct GcStruct* array_struct;
-  struct GcStruct* map_struct;
-  struct GcStruct* udata_struct;
+  GcUpval* open_upvals;
+  GcArr* args;
+
+  GcStruct* number_struct;
+  GcStruct* boolean_struct;
+  GcStruct* function_struct;
+  GcStruct* string_struct;
+  GcStruct* array_struct;
+  GcStruct* map_struct;
+  GcStruct* udata_struct;
 
   GcState gc;
   LongJmp* err_jmp;
 
-  struct Parser* parser;
+  Parser* parser;
 };
 
 void reset_stack(hby_State* h);

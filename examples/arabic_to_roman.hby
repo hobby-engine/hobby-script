@@ -16,7 +16,7 @@ var tallies = {
 
 var ordered_numerals = ["M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"];
 
-fn dec2roman(d) {
+fn arabic_to_roman(d) {
   var roman = "";
   for (i = 0; i < ordered_numerals.len(); i++) {
     const numeral = ordered_numerals[i];
@@ -29,15 +29,15 @@ fn dec2roman(d) {
   return roman;
 }
 
-var longest_dec = 0;
-var longest = "";
+var longesta = 0;
+var longestr = "";
 for (i = 1; i <= 1000; i++) {
-  const roman = dec2roman(i);
-  if (roman.len() > longest.len()) {
-    longest_dec = i;
-    longest = roman;
+  const roman = arabic_to_roman(i);
+  if (roman.len() > longestr.len()) {
+    longesta = i;
+    longestr = roman;
   }
   io:print(i, roman);
 }
 
-io:print($"Longest numeral <= 1000 is {longest}, or {longest_dec}");
+io:print($"Longest numeral <= 1000 is {longestr}, or {longesta}");

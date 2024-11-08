@@ -1,0 +1,6 @@
+io:print(String:chr(48)); // expect: 0
+io:print(String:chr(57)); // expect: 9
+io:print(String:chr(97)); // expect: a
+io:print(String:chr(122)); // expect: z
+io:print(String:chr(65)); // expect: A
+io:print(String:chr(90)); // expect: Z

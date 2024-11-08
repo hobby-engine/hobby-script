@@ -10,6 +10,28 @@ static bool is_whitespace(char c) {
   return c == ' ' || c == '\t' || c == '\r' || c == '\n';
 }
 
+static bool str_chr(hby_State* h, int argc) {
+  int ascii = hby_get_num(h, 1);
+  if (ascii > UINT8_MAX || ascii < 0) {
+    hby_err(h, err_msg_invalid_ascii, ascii);
+  }
+
+  hby_push_lstrcpy(h, (char*)&ascii, 1);
+  return true;
+}
+
+static bool str_ord(hby_State* h, int argc) {
+  size_t len;
+  const char* chars = hby_get_str(h, 0, &len);
+  if (len > 1 || len == 0) {
+    hby_push_num(h, 0);
+    return true;
+  }
+
+  hby_push_num(h, (int)chars[0]);
+  return true;
+}
+
 static bool str_len(hby_State* h, int argc) {
   hby_push_num(h, hby_len(h, 0));
   return true;
@@ -359,6 +381,8 @@ static bool str_isalphanum(hby_State* h, int argc) {
 
 
 hby_StructMethod str_methods[] = {
+  {"chr", str_chr, 1, hby_static_fn},
+  {"ord", str_ord, 0, hby_method},
   {"len", str_len, 0, hby_method},
   {"find", str_find, 1, hby_method},
   {"rem", str_rem, 2, hby_method},

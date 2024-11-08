@@ -39,6 +39,7 @@
 #define err_msg_expect_arg_range(s, e) "expected " s "-" e "arguments"
 #define err_msg_cannot_convert(type) "cannot convert given value to " type
 #define err_msg_expect_2types "expected '%s' or '%s', got '%s'"
+#define err_msg_invalid_ascii "invalid ascii code %d"
 
 // Compile errors
 #define err_msg_invalid_char "unexpected character"

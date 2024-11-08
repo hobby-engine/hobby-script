@@ -1,0 +1,6 @@
+io:print('0'.ord()); // expect: 48
+io:print('9'.ord()); // expect: 57
+io:print('a'.ord()); // expect: 97
+io:print('z'.ord()); // expect: 122
+io:print('A'.ord()); // expect: 65
+io:print('Z'.ord()); // expect: 90

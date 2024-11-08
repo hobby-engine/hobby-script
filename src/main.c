@@ -37,8 +37,11 @@ static void repl(hby_State* h) {
       break;
     }
 
-    bool compiled_ok = hby_compile(h, "<repl>", line);
-    if (!compiled_ok) {
+    int errc = hby_compile(h, "<repl>", line);
+    if (errc > 0) {
+      for (int i = errc - 1; i >= 0; i--) {
+        fprintf(stderr, "[error] %s\n", hby_get_str(h, -1 - i, NULL));
+      }
       continue;
     }
 

@@ -15,19 +15,19 @@ else
 endif
 
 ifeq (Linux,$(HOST_SYS))
-	CFLAG += -Dhby_linux
-	CFLAG += -Dhby_posix
+	CFLAGS += -Dhby_linux
+	CFLAGS += -Dhby_posix
 endif
 ifeq (Darwin,$(HOST_SYS))
-	CFLAG += -Dhby_apple
-	CFLAG += -Dhby_posix
+	CFLAGS += -Dhby_apple
+	CFLAGS += -Dhby_posix
 endif
 ifeq (iOS,$(HOST_SYS))
-	CFLAG += -Dhby_apple
-	CFLAG += -Dhby_posix
+	CFLAGS += -Dhby_apple
+	CFLAGS += -Dhby_posix
 endif
 ifeq (Windows,$(HOST_SYS))
-	CFLAG += -Dhby_windows
+	CFLAGS += -Dhby_windows
 endif
 
 ifeq (release,$(config))
@@ -62,7 +62,7 @@ default: all
 
 all: $(HBY_SO) $(HBY_EXE) $(HBY_A)
 	@echo "CC: $(CC)"
-	@echo "CFLAG: $(CFLAG)"
+	@echo "CFLAGS: $(CFLAGS)"
 	@echo "LDFLAG: $(LDFLAG)"
 
 $(HBY_EXE): $(HBY_A) $(HBY_EXE_O)

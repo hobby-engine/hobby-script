@@ -1,0 +1,12 @@
+fn variadic(a, b, c, args...) {
+  io:print(a);
+  io:print(b);
+  io:print(c);
+  io:print(args);
+}
+
+// expect: 1
+// expect: 2
+// expect: 3
+// expect: [3, 4, 5]
+variadic(1, 2, 3, 3, 4, 5);

@@ -1048,6 +1048,15 @@ static void function(Parser* p, FnType type, bool is_lambda) {
       p->compiler->fn->arity++;
       parse_var(p, err_msg_expect_ident, false);
       mark_init(p);
+
+      if (consume(p, tok_dot3)) {
+        if (!check(p, tok_rparen)) {
+          err(p, err_msg_expect(")"));
+        }
+
+        p->compiler->fn->arity--;
+        p->compiler->fn->variadic = true;
+      }
     } while (consume(p, tok_comma));
   }
   expect(p, tok_rparen, err_msg_expect(")"));

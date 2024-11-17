@@ -40,6 +40,7 @@ typedef struct GcUpval {
 typedef struct GcFn {
   GcObj obj; // Object header
   int arity; // Number of arguments
+  bool variadic; // Can this function take any number of args
   Chunk chunk; // Code
   GcStr* name; // Name of this function
   GcStr* path; // The path to the file that contains this function

@@ -66,8 +66,31 @@ static Val peek(hby_State* h, int dist) {
   return h->top[-1 - dist];
 }
 
+static void collect(hby_State* h, int from) {
+  GcArr* arr = create_arr(h);
+  push(h, create_obj(arr));
+
+  for (int i = from; i > 0; i--) {
+    push_varr(h, &arr->varr, peek(h, i));
+  }
+
+  h->top -= from + 1;
+  push(h, create_obj(arr));
+}
+
 static bool call_fn(hby_State* h, GcClosure* closure, int argc) {
-  if (argc != closure->fn->arity) {
+  if (closure->fn->variadic) {
+    if (argc < closure->fn->arity) {
+      hby_err(h, err_msg_bad_argc, closure->fn->arity, argc);
+      return false;
+    }
+
+    collect(h, argc - closure->fn->arity);
+    argc -= closure->fn->arity - 1;
+    if (closure->fn->arity == 0) {
+      argc = 1;
+    }
+  } else if (argc != closure->fn->arity) {
     hby_err(h, err_msg_bad_argc, closure->fn->arity, argc);
     return false;
   }

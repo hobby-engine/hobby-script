@@ -91,6 +91,7 @@ GcCFn* create_c_fn(hby_State* h, GcStr* name, hby_CFn fn, int arity) {
 GcFn* create_fn(hby_State* h, GcStr* file_path) {
   GcFn* fn = alloc_obj(h, GcFn, obj_fn);
   fn->arity = 0;
+  fn->variadic = false;
   fn->name = NULL;
   fn->path = file_path;
   fn->upvalc = 0;

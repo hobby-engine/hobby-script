@@ -22,7 +22,7 @@ typedef enum {
 
   tok_eql_eql, tok_bang_eql, tok_gte, // == != >=
   tok_lte, tok_and, tok_or, // <= && ||
-  tok_rarrow, tok_dot_dot, // => ..
+  tok_rarrow, tok_dot_dot, tok_dot3, // => .. ...
   tok_plus_plus, tok_minus_minus, // ++ --
 
   tok_str, tok_strfmt, tok_strfmt_end,

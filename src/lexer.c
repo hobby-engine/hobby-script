@@ -321,7 +321,14 @@ Tok next_token(Lexer* l) {
       if (is_digit(peek(l))) {
         return num(l);
       }
-      return create_tok(l, match(l, '.') ? tok_dot_dot : tok_dot);
+
+      if (match(l, '.')) {
+        if (match(l, '.')) {
+          return create_tok(l, tok_dot3);
+        }
+        return create_tok(l, tok_dot_dot);
+      }
+      return create_tok(l, tok_dot);
     case '+':
       if (match(l, '+')) {
         return create_tok(l, tok_plus_plus);

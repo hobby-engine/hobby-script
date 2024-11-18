@@ -471,7 +471,15 @@ void hby_call(hby_State* h, int argc) {
 bool hby_pcall(hby_State* h, int callback, int argc) {
   GcAnyFn fn;
   switch (hby_get_type(h, callback)) {
-    case hby_type_function: fn.hby = as_closure(val_at(h, callback)); break;
+    case hby_type_function: {
+      GcClosure* closure = as_closure(val_at(h, callback));
+      if (!closure->fn->variadic) {
+        hby_err(h, err_msg_expected_variadic);
+        return false;
+      }
+      fn.hby = closure;
+      break;
+    }
     case hby_type_cfunction: fn.c = as_c_fn(val_at(h, callback)); break;
     default:
       hby_err(h, err_msg_expected_type("pcall", "function", "callback"));

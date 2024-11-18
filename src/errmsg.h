@@ -36,6 +36,7 @@
   "internal value type which should not be accessible. report this error (C API)"
 #define err_msg_expected_type(fn, type, param) \
   "'" fn "()' expected type '" type "' for parameter '" param "' (C API)"
+#define err_msg_expected_variadic "expected variadic function for 'pcall'"
 
 // STD
 #define err_msg_expect_arg_range(s, e) "expected " s "-" e "arguments"

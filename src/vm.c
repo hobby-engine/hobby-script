@@ -22,44 +22,81 @@
 # include "debug.h"
 #endif
 
-static void show_err(hby_State* h, const char* fmt, va_list args) {
-  fprintf(stderr, "Stack trace (error source is first):\n");
+static int fmt_frame(hby_State* h, CallFrame* frame, char* out, int len) {
+  switch (frame->type) {
+    case call_type_c:
+      return snprintf(out, len, "[C] %s()", frame->fn.c->name->chars);
+    case call_type_hby:
+    case call_type_capi: {
+      GcFn* fn = frame->fn.hby->fn;
+      size_t bc = frame->ip - fn->chunk.code - 1;
 
-  for (CallFrame* frame = h->frame; frame > h->frame_stack; frame--) {
-    switch (frame->type) {
-      case call_type_c:
-        fprintf(stderr, "\t[C] %s()\n", frame->fn.c->name->chars);
-        break;
-      case call_type_hby:
-      case call_type_capi: {
-        GcFn* fn = frame->fn.hby->fn;
-        size_t bc = frame->ip - fn->chunk.code - 1;
-        fprintf(stderr, "\t%s:%d in ", fn->path->chars, fn->chunk.lines[bc]);
-
-        if (fn->name != NULL) {
-          fprintf(stderr, "%s()\n", fn->name->chars);
-        } else {
-          fprintf(stderr, "script\n");
-        }
-        break;
+      if (fn->name != NULL) {
+        return snprintf(
+          out, len,
+          "%s:%d in %s()",
+          fn->path->chars, fn->chunk.lines[bc], fn->name->chars);
       }
+
+      return snprintf(
+        out, len,
+        "%s:%d in script",
+        fn->path->chars, fn->chunk.lines[bc]);
     }
   }
 
-  fputs("[error] ", stderr);
-  vfprintf(stderr, fmt, args);
-  fputc('\n', stderr);
-
-  reset_stack(h);
+  return 0;
 }
 
 void hby_err(hby_State* h, const char* fmt, ...) {
+  bool unprotected = true;
+
+  if (h->pcall != NULL && h->pcall->callback.hby != NULL) {
+    unprotected = false;
+    push(h, create_obj(h->pcall->callback.hby));
+  }
+
   va_list args;
   va_start(args, fmt);
-  show_err(h, fmt, args);
+
+  va_list len_args;
+  va_copy(len_args, args);
+  int err_len = vsnprintf(NULL, 0, fmt, len_args);
+  va_end(len_args);
+
+  char* err_chars = allocate(h, char, err_len + 1);
+  vsnprintf(err_chars, err_len + 1, fmt, args);
   va_end(args);
 
-  longjmp(h->err_jmp->buf, hby_res_runtime_err);
+  if (unprotected) {
+    fprintf(stderr, "Unprotected call to C API: %s\n", err_chars);
+    release_arr(h, char, err_chars, err_len + 1);
+    return;
+  }
+
+  push(h, create_obj(take_str(h, err_chars, err_len)));
+
+  int argc = 1;
+  for (CallFrame* frame = h->frame; frame > h->frame_stack; frame--) {
+    int len = fmt_frame(h, frame, NULL, 0);
+    char* chars = allocate(h, char, len + 1);
+    fmt_frame(h, frame, chars, len + 1);
+
+    push(h, create_obj(take_str(h, chars, len)));
+
+    argc++;
+  }
+
+  GcAnyFn callback;
+  callback.hby = NULL;
+  if (h->pcall->prev != NULL) {
+    callback = h->pcall->prev->callback;
+  }
+  vm_pcall(h, callback, create_obj(h->pcall->callback.hby), argc);
+
+  reset_stack(h);
+
+  longjmp(h->pcall->buf, hby_res_runtime_err);
 }
 
 static Val peek(hby_State* h, int dist) {
@@ -86,10 +123,7 @@ static bool call_fn(hby_State* h, GcClosure* closure, int argc) {
     }
 
     collect(h, argc - closure->fn->arity);
-    argc -= closure->fn->arity - 1;
-    if (closure->fn->arity == 0) {
-      argc = 1;
-    }
+    argc = closure->fn->arity + 1;
   } else if (argc != closure->fn->arity) {
     hby_err(h, err_msg_bad_argc, closure->fn->arity, argc);
     return false;
@@ -142,7 +176,7 @@ bool call_val(hby_State* h, Val val, int argc) {
       case obj_method: {
         GcMethod* method = as_method(val);
         h->top[-argc - 1] = method->owner;
-        if (method_type(method) == obj_closure)
+        if (anyfn_type(method->fn) == obj_closure)
           return call_fn(h, method->fn.hby, argc);
         return call_c(h, method->fn.c, argc);
       }
@@ -984,10 +1018,11 @@ void vm_call(hby_State* h, Val val, int argc) {
   }
 }
 
-hby_Res vm_pcall(hby_State* h, Val val, int argc) {
-  LongJmp jmp;
-  jmp.prev = h->err_jmp;
-  h->err_jmp = &jmp;
+hby_Res vm_pcall(hby_State* h, GcAnyFn callback, Val val, int argc) {
+  PCall jmp;
+  jmp.prev = h->pcall;
+  jmp.callback = callback;
+  h->pcall = &jmp;
 
   CallFrame* old_frame = h->frame;
 
@@ -1001,13 +1036,13 @@ hby_Res vm_pcall(hby_State* h, Val val, int argc) {
     }
 
     // No error
-    h->err_jmp = jmp.prev;
+    h->pcall = jmp.prev;
     return res;
   }
 
   // Error
   h->frame = old_frame;
-  h->err_jmp = jmp.prev;
+  h->pcall = jmp.prev;
 
   push(h, create_null());
   return res;

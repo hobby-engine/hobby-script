@@ -82,12 +82,12 @@ static bool core_pcall(hby_State* h, int argc) {
       hby_get_type_name(type, NULL));
   }
 
-  hby_push(h, 1);
-  for (int i = 2; i <= argc; i++) {
+  hby_push(h, 2);
+  for (int i = 3; i <= argc; i++) {
     hby_push(h, i);
   }
 
-  hby_pcall(h, argc - 1);
+  hby_pcall(h, 1, argc - 2);
   return true;
 }
 

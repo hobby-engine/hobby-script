@@ -108,14 +108,15 @@ typedef struct {
   size_t size;
 } GcUData;
 
-// TODO: Allow this to work with C functions too
+typedef union {
+  GcClosure* hby;
+  GcCFn* c;
+} GcAnyFn;
+
 typedef struct {
   GcObj obj; // Object header
   Val owner; // The owner of this function
-  union {
-    GcClosure* hby;
-    GcCFn* c;
-  } fn; // The wrapped function
+  GcAnyFn fn; // The wrapped function
 } GcMethod;
 
 struct GcStr {
@@ -130,7 +131,7 @@ static inline bool obj_of_type(Val val, ObjType type) {
 }
 
 #define obj_type(v) (as_obj(v)->type)
-#define method_type(m) (m->fn.hby->obj.type)
+#define anyfn_type(fn) (fn.hby->obj.type)
 
 #define is_struct(v)  obj_of_type(v, obj_struct)
 #define is_method(v)  obj_of_type(v, obj_method)

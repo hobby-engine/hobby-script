@@ -98,7 +98,7 @@ GcStr* to_str(hby_State* h, Val val) {
     return fn_to_str(h, as_closure(val)->fn);
   } else if (is_method(val)) {
     GcMethod* m = as_method(val);
-    switch (method_type(m)) {
+    switch (anyfn_type(m->fn)) {
       case obj_closure:
         return fn_to_str(h, m->fn.hby->fn);
       case obj_c_fn:

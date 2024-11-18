@@ -28,8 +28,19 @@ typedef struct {
   const char** args;
 } Args;
 
+bool on_error(hby_State* h, int argc) {
+  const char* err_msg = hby_get_str(h, 1, NULL);
+  fprintf(stderr, "stack trace:\n");
+  for (int i = 2; i <= argc; i++) {
+    fprintf(stderr, "\t%s\n", hby_get_str(h, i, NULL));
+  }
+  fprintf(stderr, "[error] %s\n", err_msg);
+  return false;
+}
+
 static void repl(hby_State* h) {
   char line[1024];
+  hby_push_cfunc(h, "on_error", on_error, -1);
   while (true) {
     printf(">");
     if (!fgets(line, sizeof(line), stdin)) {
@@ -45,7 +56,7 @@ static void repl(hby_State* h) {
       continue;
     }
 
-    hby_pcall(h, 0);
+    hby_pcall(h, -2, 0);
   }
 }
 
@@ -119,16 +130,6 @@ static Args collect_args(int argc, const char* args[]) {
   return collected;
 }
 
-bool on_error(hby_State* h, int argc) {
-  const char* err_msg = hby_get_str(h, 1, NULL);
-  fprintf(stderr, "stack trace:\n");
-  for (int i = 2; i < argc; i++) {
-    fprintf(stderr, "\t%s\n", hby_get_str(h, i, NULL));
-  }
-  fprintf(stderr, "[error] %s\n", err_msg);
-  return false;
-}
-
 int main(int argc, const char* args[]) {
   Args collected = collect_args(argc, args);
 
@@ -150,6 +151,7 @@ int main(int argc, const char* args[]) {
   hby_State* h = create_state();
   hby_cli_args(h, collected.argc, collected.args);
 
+  hby_push_cfunc(h, "on_error", on_error, -1);
   if (collected.flags & doexpr_flag) {
     int errc = hby_compile(h, "<cli>", collected.doexpr_str);
     if (errc > 0) {
@@ -159,7 +161,7 @@ int main(int argc, const char* args[]) {
       free_state(h);
       return 65;
     }
-    bool is_ok = hby_pcall(h, 0);
+    bool is_ok = hby_pcall(h, -2, 0);
     if (!is_ok) {
       free_state(h);
       return 70;
@@ -177,7 +179,7 @@ int main(int argc, const char* args[]) {
       return 65;
     }
     
-    bool is_ok = hby_pcall(h, 0);
+    bool is_ok = hby_pcall(h, -2, 0);
     if (!is_ok) {
       free_state(h);
       return 70;

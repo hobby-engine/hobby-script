@@ -468,8 +468,16 @@ void hby_call(hby_State* h, int argc) {
   vm_call(h, h->top[-1 - argc], argc);
 }
 
-bool hby_pcall(hby_State* h, int argc) {
-  return vm_pcall(h, h->top[-1 - argc], argc) == hby_res_ok;
+bool hby_pcall(hby_State* h, int callback, int argc) {
+  GcAnyFn fn;
+  switch (hby_get_type(h, callback)) {
+    case hby_type_function: fn.hby = as_closure(val_at(h, callback)); break;
+    case hby_type_cfunction: fn.c = as_c_fn(val_at(h, callback)); break;
+    default:
+      hby_err(h, err_msg_expected_type("pcall", "function", "callback"));
+      return false;
+  }
+  return vm_pcall(h, fn, h->top[-1 - argc], argc) == hby_res_ok;
 }
 
 void hby_callon(hby_State* h, const char* mname, int argc) {
@@ -478,7 +486,7 @@ void hby_callon(hby_State* h, const char* mname, int argc) {
 
 bool hby_open_lib(hby_State* h, hby_CFn fn) {
   hby_push_cfunc(h, "open_lib", fn, 0);
-  bool res = hby_pcall(h, 0);
+  bool res = hby_pcall(h, -1, 0);
   hby_pop(h, 1);
   return res;
 }

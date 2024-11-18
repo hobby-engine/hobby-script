@@ -18,19 +18,17 @@ typedef enum {
 } CallType;
 
 typedef struct {
-  union {
-    struct GcClosure* hby;
-    struct GcCFn* c;
-  } fn;
+  GcAnyFn fn;
   uint8_t* ip;
   Val* base;
   CallType type;
 } CallFrame;
 
-typedef struct LongJmp {
-  struct LongJmp* prev;
+typedef struct PCall {
+  struct PCall* prev;
+  GcAnyFn callback;
   jmp_buf buf;
-} LongJmp;
+} PCall;
 
 typedef struct {
   bool can_gc;
@@ -67,7 +65,7 @@ struct hby_State {
   GcStruct* udata_struct;
 
   GcState gc;
-  LongJmp* err_jmp;
+  PCall* pcall;
 
   Parser* parser;
 };

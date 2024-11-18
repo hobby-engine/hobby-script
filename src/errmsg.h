@@ -34,6 +34,8 @@
   "unable to infer name. must provide a name for function (C API)"
 #define err_msg_inaccessible_type \
   "internal value type which should not be accessible. report this error (C API)"
+#define err_msg_expected_type(fn, type, param) \
+  "'" fn "()' expected type '" type "' for parameter '" param "' (C API)"
 
 // STD
 #define err_msg_expect_arg_range(s, e) "expected " s "-" e "arguments"

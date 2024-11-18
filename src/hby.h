@@ -156,7 +156,7 @@ hby_api void hby_push_typestruct(hby_State* h, int index);
 // Stack must look like: [func] [args]
 hby_api void hby_call(hby_State* h, int argc);
 // Call a protected function
-hby_api bool hby_pcall(hby_State* h, int argc);
+hby_api bool hby_pcall(hby_State* h, int callback, int argc);
 // Call a protected C function
 hby_api void hby_pccall(hby_State* h, hby_CFn fn, int argc); // TODO
 // Call a method on a value

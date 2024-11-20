@@ -148,7 +148,7 @@ int main(int argc, const char* args[]) {
     return 0;
   }
 
-  hby_State* h = create_state();
+  hby_State* h = hby_create_state();
   hby_cli_args(h, collected.argc, collected.args);
 
   hby_push_cfunc(h, "on_error", on_error, -1);
@@ -158,12 +158,12 @@ int main(int argc, const char* args[]) {
       for (int i = errc - 1; i >= 0; i--) {
         fprintf(stderr, "[error] %s\n", hby_get_str(h, -1 - i, NULL));
       }
-      free_state(h);
+      hby_free_state(h);
       return 65;
     }
     bool is_ok = hby_pcall(h, -2, 0);
     if (!is_ok) {
-      free_state(h);
+      hby_free_state(h);
       return 70;
     }
     // hby_run_str(h, "<cli>", collected.doexpr_str);
@@ -175,13 +175,13 @@ int main(int argc, const char* args[]) {
       for (int i = errc - 1; i >= 0; i--) {
         fprintf(stderr, "[error] %s\n", hby_get_str(h, -1 - i, NULL));
       }
-      free_state(h);
+      hby_free_state(h);
       return 65;
     }
     
     bool is_ok = hby_pcall(h, -2, 0);
     if (!is_ok) {
-      free_state(h);
+      hby_free_state(h);
       return 70;
     }
 
@@ -190,6 +190,6 @@ int main(int argc, const char* args[]) {
     }
   }
 
-  free_state(h);
+  hby_free_state(h);
   return 0;
 }

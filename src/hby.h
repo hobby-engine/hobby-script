@@ -1,6 +1,10 @@
 #ifndef __HBY_H
 #define __HBY_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -58,9 +62,9 @@ typedef struct {
 } hby_CFnArgs;
 
 // Create a Hobbyscript state
-hby_api hby_State* create_state();
+hby_api hby_State* hby_create_state();
 // Free a Hobbyscript state
-hby_api void free_state(hby_State* h);
+hby_api void hby_free_state(hby_State* h);
 
 // Set the CLI arguments
 hby_api void hby_cli_args(hby_State* h, int argc, const char** args);
@@ -211,5 +215,9 @@ hby_api void hby_add_enum(hby_State* h, const char* name, int index);
 #define hby_expect_udata(h, index)     hby_expect_type(h, index, hby_type_udata);
 #define hby_expect_array(h, index)     hby_expect_type(h, index, hby_type_array);
 #define hby_expect_map(h, index)       hby_expect_type(h, index, hby_type_map);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __HBY_H

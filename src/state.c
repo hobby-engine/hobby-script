@@ -11,7 +11,7 @@
 #include "hby.h"
 #include "lib.h"
 
-hby_State* create_state() {
+hby_State* hby_create_state() {
   hby_State* h = (hby_State*)malloc(sizeof(hby_State));
 
   // FIXME: The frame stack should be interfaced with the same as the normal
@@ -57,7 +57,7 @@ hby_State* create_state() {
   return h;
 }
 
-void free_state(hby_State* h) {
+void hby_free_state(hby_State* h) {
   release(h, Parser, h->parser);
   free_table(h, &h->globals);
   free_table(h, &h->global_consts);

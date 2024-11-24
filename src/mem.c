@@ -245,6 +245,7 @@ static void mark_roots(hby_State* h) {
   mark_table(h, &h->global_consts);
   mark_table(h, &h->files);
   mark_obj(h, (GcObj*)h->args);
+  mark_obj(h, (GcObj*)h->registry);
   mark_compiler_roots(h->parser);
 }
 

@@ -31,6 +31,7 @@ hby_State* hby_create_state() {
   h->gc.gray_cap = 0;
   h->gc.gray_stack = NULL;
 
+  h->registry = create_map(h);
   h->args = create_arr(h);
 
   init_table(&h->globals);

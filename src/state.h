@@ -53,6 +53,8 @@ struct hby_State {
   Table strs;
   Table files;
 
+  GcMap* registry;
+
   GcUpval* open_upvals;
   GcArr* args;
 

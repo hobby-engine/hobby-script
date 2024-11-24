@@ -16,6 +16,8 @@ extern "C" {
 
 #define hby_version "0.1.0"
 
+#define hby_registry_index -10000
+
 typedef struct hby_State hby_State;
 typedef bool (*hby_CFn)(hby_State* h, int argc);
 
@@ -142,6 +144,8 @@ hby_api void hby_push_str(hby_State* h, char* chars);
 hby_api void* hby_push_udata(hby_State* h, size_t size);
 // Push an array to the top of the stack
 hby_api void hby_push_array(hby_State* h);
+// Push an map to the top of the stack
+hby_api void hby_push_map(hby_State* h);
 // Create an instance from the struct at `index`
 hby_api void hby_instance(hby_State* h, int index);
 
@@ -186,6 +190,9 @@ hby_api void hby_udata_set_finalizer(hby_State* h, hby_CFn fn);
 hby_api void hby_array_add(hby_State* h, int index);
 // Push the value at `index` in the array at `array_index` to the top of the stack
 hby_api void hby_array_get_index(hby_State* h, int array_index, int index);
+
+hby_api void hby_map_set(hby_State* h, int map_index, int key_index);
+hby_api bool hby_map_get(hby_State* h, int map_index, int key_index);
 
 // Add a value to an enum at `index`
 hby_api void hby_add_enum(hby_State* h, const char* name, int index);

@@ -9,8 +9,13 @@
 #include "val.h"
 #include "obj.h"
 #include "tostr.h"
+#include "map.h"
 
 static Val val_at(hby_State* h, int index) {
+  if (index == hby_registry_index) {
+    return create_obj(h->registry);
+  }
+
   if (index >= 0) {
     Val* val = h->frame->base + index;
     if (val > h->top) {
@@ -386,6 +391,10 @@ void hby_push_array(hby_State* h) {
   push(h, create_obj(create_arr(h)));
 }
 
+void hby_push_map(hby_State* h) {
+  push(h, create_obj(create_map(h)));
+}
+
 void hby_instance(hby_State* h, int index) {
   hby_expect_struct(h, index);
   push(h, create_obj(create_inst(h, as_struct(val_at(h, index)))));
@@ -582,6 +591,28 @@ void hby_array_add(hby_State* h, int index) {
   GcArr* arr = as_arr(val_at(h, index));
   push_varr(h, &arr->varr, val_at(h, -1));
   pop(h);
+}
+
+void hby_map_set(hby_State* h, int map_index, int key_index) {
+  hby_expect_map(h, map_index);
+  GcMap* map = as_map(val_at(h, map_index));
+  set_map(h, map, val_at(h, key_index), val_at(h, -1));
+  pop(h); // value
+}
+
+bool hby_map_get(hby_State* h, int map_index, int key_index) {
+  hby_expect_map(h, map_index);
+  GcMap* map = as_map(val_at(h, map_index));
+  Val key = val_at(h, key_index);
+
+  Val val;
+  bool has = get_map(map, key, &val);
+  if (!has) {
+    push(h, create_null());
+  } else {
+    push(h, val);
+  }
+  return has;
 }
 
 void hby_array_get_index(hby_State* h, int array_index, int index) {

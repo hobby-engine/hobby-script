@@ -8,3 +8,8 @@ io:print('\''); // expect: '
 io:print("a\nb");
 
 io:print("\\"); // expect: \
+
+// expect: hello
+// expect: world
+io:print("hello\
+world");

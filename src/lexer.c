@@ -144,6 +144,7 @@ static Tok str(Lexer* l, bool is_fmt, bool closing_fmt) {
       c = peek(l);
 
       switch (c) {
+        case '\n':
         case 'n':  c = '\n'; break;
         case 't':  c = '\t'; break;
         case 'r':  c = '\r'; break;
@@ -171,16 +172,17 @@ static Tok str(Lexer* l, bool is_fmt, bool closing_fmt) {
 
   advance(l); // Get the closing quote
 
-fmtd_str:
-  Tok str_tok;
-  str_tok.type = type;
-  str_tok.start = l->start;
-  str_tok.len = (int)(l->cur - l->start);
-  str_tok.line = l->line;
-  str_tok.val = create_obj(copy_str(l->h, chars, len));
+fmtd_str: {
+    Tok str_tok;
+    str_tok.type = type;
+    str_tok.start = l->start;
+    str_tok.len = (int)(l->cur - l->start);
+    str_tok.line = l->line;
+    str_tok.val = create_obj(copy_str(l->h, chars, len));
 
-  release_arr(l->h, char, chars, cap);
-  return str_tok;
+    release_arr(l->h, char, chars, cap);
+    return str_tok;
+  }
 }
 
 static Tok num(Lexer* l) {

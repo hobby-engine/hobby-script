@@ -5,11 +5,11 @@ enum Error {
 }
 
 fn error_to_str(error) {
-  switch (error) {
-    case Error:ok -> return "ok";
-    case Error:expected_expr -> return "expected expression";
-    case Error:expected_rparen -> return "expected ')'";
-  }
+  return switch (error) {
+    case Error:ok -> "ok";
+    case Error:expected_expr -> "expected expression";
+    case Error:expected_rparen -> "expected ')'";
+  };
 }
 
 enum TokType {
@@ -57,14 +57,14 @@ struct BinNode {
   }
 
   fn execute() {
-    switch (self.op) {
-      case '+' -> return self.lhs.execute() + self.rhs.execute();
-      case '-' -> return self.lhs.execute() - self.rhs.execute();
-      case '*' -> return self.lhs.execute() * self.rhs.execute();
-      case '/' -> return self.lhs.execute() / self.rhs.execute();
-      case '%' -> return self.lhs.execute() % self.rhs.execute();
+    return switch (self.op) {
+      case '+' -> self.lhs.execute() + self.rhs.execute();
+      case '-' -> self.lhs.execute() - self.rhs.execute();
+      case '*' -> self.lhs.execute() * self.rhs.execute();
+      case '/' -> self.lhs.execute() / self.rhs.execute();
+      case '%' -> self.lhs.execute() % self.rhs.execute();
       else -> err("Invalid binary operator");
-    }
+    };
   }
 
   fn tostr() -> $"(bin {tostr(self.lhs)} {self.op} {tostr(self.rhs)})";
@@ -82,10 +82,10 @@ struct UnNode {
   }
 
   fn execute() {
-    switch (self.op) {
-      case '-' -> return -self.operand.execute();
+    return switch (self.op) {
+      case '-' -> -self.operand.execute();
       else -> err("Invalid unary operator");
-    }
+    };
   }
 
   fn tostr() -> $"(un {self.op} {self.operand})";
@@ -162,16 +162,16 @@ struct Lexer {
 
     self.advance();
 
-    switch (c) {
-      case '(' -> return Tok:new(TokType:lparen, '(');
-      case ')' -> return Tok:new(TokType:rparen, ')');
-      case '+' -> return Tok:new(TokType:add, '+');
-      case '-' -> return Tok:new(TokType:minus, '-');
-      case '*' -> return Tok:new(TokType:mult, '*');
-      case '/' -> return Tok:new(TokType:div, '/');
-      case '%' -> return Tok:new(TokType:mod, '%');
-      else -> return Tok:new(TokType:error, $"unexpected character '{c}'");
-    }
+    return switch (c) {
+      case '(' -> Tok:new(TokType:lparen, '(');
+      case ')' -> Tok:new(TokType:rparen, ')');
+      case '+' -> Tok:new(TokType:add, '+');
+      case '-' -> Tok:new(TokType:minus, '-');
+      case '*' -> Tok:new(TokType:mult, '*');
+      case '/' -> Tok:new(TokType:div, '/');
+      case '%' -> Tok:new(TokType:mod, '%');
+      else -> Tok:new(TokType:error, $"unexpected character '{c}'");
+    };
   }
 }
 

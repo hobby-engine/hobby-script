@@ -29,6 +29,7 @@ typedef enum {
   Prec_primary,
 } Prec;
 
+typedef void (*SwitchCaseFn)(Parser* p);
 typedef void (*ParseFn)(Parser* p, bool can_assign);
 
 typedef struct {
@@ -172,6 +173,20 @@ static void write_2bc(Parser* p, uint8_t byte1, uint8_t byte2) {
   write_bc(p, byte2);
 }
 
+static uint8_t create_const(Parser* p, Val val) {
+  int c = add_const_chunk(p->h, cur_chunk(p), val);
+  if (c > UINT8_MAX) {
+    err(p, err_msg_max_consts);
+    return 0;
+  }
+  return (uint8_t)c;
+}
+
+static void write_err(Parser* p, const char* msg) {
+  write_bc(p, bc_err);
+  write_bc(p, create_const(p, create_obj(copy_str(p->h, msg, strlen(msg)))));
+}
+
 static void write_loop(Parser* p, int loop_start) {
   write_bc(p, bc_loop);
 
@@ -205,15 +220,6 @@ static void patch_jmp(Parser* p, int index) {
 static void write_ret(Parser* p) {
   write_bc(p, bc_null);
   write_bc(p, bc_ret);
-}
-
-static uint8_t create_const(Parser* p, Val val) {
-  int c = add_const_chunk(p->h, cur_chunk(p), val);
-  if (c > UINT8_MAX) {
-    err(p, err_msg_max_consts);
-    return 0;
-  }
-  return (uint8_t)c;
 }
 
 static void write_const(Parser* p, Val val) {
@@ -847,6 +853,21 @@ static void self_expr(Parser* p, bool can_assign) {
   var_expr(p, false);
 }
 
+static void switch_body(Parser* p, SwitchCaseFn case_fn);
+
+static void switch_expr_case(Parser* p) {
+  expr(p);
+  expect(p, tok_semicolon, err_msg_expect(";"));
+}
+
+static void switch_expr(Parser* p, bool can_assign) {
+  expect(p, tok_lparen, err_msg_expect("("));
+  expr(p);
+  expect(p, tok_rparen, err_msg_expect(")"));
+
+  switch_body(p, switch_expr_case);
+}
+
 static void ternary_expr(Parser* p, bool can_assign) {
   expect(p, tok_lparen, err_msg_expect("("));
   expr(p);
@@ -930,7 +951,7 @@ ParseRule rules[] = {
   [tok_return]      = {NULL, NULL, Prec_none},
   [tok_var]         = {NULL, NULL, Prec_none},
   [tok_const]       = {NULL, NULL, Prec_none},
-  [tok_switch]      = {NULL, NULL, Prec_none},
+  [tok_switch]      = {switch_expr, NULL, Prec_none},
   [tok_case]        = {NULL, NULL, Prec_none},
   [tok_break]       = {NULL, NULL, Prec_none},
   [tok_continue]    = {NULL, NULL, Prec_none},
@@ -1460,11 +1481,7 @@ static void return_stat(Parser* p) {
   }
 }
 
-static void switch_stat(Parser* p) {
-  expect(p, tok_lparen, err_msg_expect("("));
-  expr(p);
-  expect(p, tok_rparen, err_msg_expect(")"));
-
+static void switch_body(Parser* p, SwitchCaseFn case_fn) {
   int cases[UINT8_MAX];
   int casec = 0;
 
@@ -1478,7 +1495,7 @@ static void switch_stat(Parser* p) {
       write_bc(p, bc_pop); // switch expression
 
       expect(p, tok_rarrow, err_msg_expect("->"));
-      stat(p);
+      case_fn(p);
 
       if (casec == UINT8_MAX) {
         err(p, err_msg_max_cases);
@@ -1492,11 +1509,18 @@ static void switch_stat(Parser* p) {
   if (consume(p, tok_else)) {
     expect(p, tok_rarrow, err_msg_expect("->"));
     write_bc(p, bc_pop); // switch expression
-    stat(p);
+    case_fn(p);
+  } else {
+    write_err(p, err_msg_unhandled_case);
   }
 
   if (consume(p, tok_case)) {
     err(p, err_msg_bad_else_case);
+    // TODO: Correctly ignore inner scopes
+    // switch (abc) {
+    //   else -> 2 + 2;
+    //   case a -> {} // Found incorrect end of switch
+    // } // ERROR: Unexpected '}'
     while (!consume(p, tok_rbrace)) advance(p);
   }
 
@@ -1505,6 +1529,14 @@ static void switch_stat(Parser* p) {
   }
 
   expect(p, tok_rbrace, err_msg_expect("}"));
+}
+
+static void switch_stat(Parser* p) {
+  expect(p, tok_lparen, err_msg_expect("("));
+  expr(p);
+  expect(p, tok_rparen, err_msg_expect(")"));
+
+  switch_body(p, stat);
 }
 
 static void sync(Parser* p) {

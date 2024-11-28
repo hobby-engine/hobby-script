@@ -1,0 +1,13 @@
+fn color_to_emotion(c) {
+  switch (c) {
+    case "red" -> io:print("red is mad");
+    case "blue" -> io:print("blue is sad");
+    case "green" -> io:print("green is happy");
+    else -> io:print(c .. " is emotionless");
+  }
+}
+
+color_to_emotion("blue"); // expect: blue is sad
+color_to_emotion("red"); // expect: red is mad
+color_to_emotion("green"); // expect: green is happy
+color_to_emotion("white"); // expect: white is emotionless

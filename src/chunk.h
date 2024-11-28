@@ -60,6 +60,7 @@ typedef enum {
   bc_member,
   bc_enum,
   bc_inst,
+  bc_err,
   // Not used in final bytecode
   bc_break,
 } Bc;

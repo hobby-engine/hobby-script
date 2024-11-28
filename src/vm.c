@@ -990,6 +990,11 @@ static void run(hby_State* h) {
         h->top[-1] = create_obj(create_inst(h, s));
         break;
       }
+      case bc_err: {
+        GcStr* msg = read_str();
+        hby_err(h, "%s", msg->chars);
+        return;
+      }
     }
   }
 

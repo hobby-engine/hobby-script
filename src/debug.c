@@ -140,6 +140,7 @@ int print_bc(hby_State* h, Chunk *c, int index) {
     }
     case bc_def_static: return const_bc(h, "def_static", c, index);
     case bc_inst: return simple_bc("inst", index);
+    case bc_err: return const_bc(h, "err", c, index);
     case bc_break: return simple_bc("break", index);
   }
 

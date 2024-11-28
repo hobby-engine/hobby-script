@@ -1,0 +1,5 @@
+var x = switch (4) {
+  case 1 -> io:print("AAAAGH");
+};
+
+// expect runtime error: unhandled value in switch statement

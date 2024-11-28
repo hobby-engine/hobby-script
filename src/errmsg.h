@@ -27,6 +27,7 @@
 #define err_msg_bad_operand(type) "operand must be a " type
 #define err_msg_expect_type_from_callback(type, callback) \
   "expected type '" type "' to be returned from '" callback "'"
+#define err_msg_unhandled_case "unhandled value in switch statement"
 
 // C API
 #define err_msg_invalid_stack_access "invalid stack access of slot %d (C API)"

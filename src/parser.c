@@ -901,6 +901,10 @@ static void unary_expr(Parser* p, bool can_assign) {
   }
 }
 
+static void unreachable_expr(Parser* p, bool can_assign) {
+  write_err(p, err_msg_unreachable_reached);
+}
+
 ParseRule rules[] = {
   [tok_lparen]      = {grouping_expr, call_expr, Prec_call},
   [tok_rparen]      = {NULL, NULL, Prec_none},
@@ -955,6 +959,7 @@ ParseRule rules[] = {
   [tok_case]        = {NULL, NULL, Prec_none},
   [tok_break]       = {NULL, NULL, Prec_none},
   [tok_continue]    = {NULL, NULL, Prec_none},
+  [tok_unreachable] = {unreachable_expr, NULL, Prec_none},
   [tok_plus_eql]    = {NULL, NULL, Prec_none},
   [tok_minus_eql]   = {NULL, NULL, Prec_none},
   [tok_star_eql]    = {NULL, NULL, Prec_none},
@@ -1506,13 +1511,10 @@ static void switch_body(Parser* p, SwitchCaseFn case_fn) {
     } while (consume(p, tok_case));
   }
 
-  if (consume(p, tok_else)) {
-    expect(p, tok_rarrow, err_msg_expect("->"));
-    write_bc(p, bc_pop); // switch expression
-    case_fn(p);
-  } else {
-    write_err(p, err_msg_unhandled_case);
-  }
+  expect(p, tok_else, err_msg_expect("else"));
+  expect(p, tok_rarrow, err_msg_expect("->"));
+  write_bc(p, bc_pop); // switch expression
+  case_fn(p);
 
   if (consume(p, tok_case)) {
     err(p, err_msg_bad_else_case);

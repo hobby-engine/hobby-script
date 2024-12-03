@@ -28,6 +28,7 @@
 #define err_msg_expect_type_from_callback(type, callback) \
   "expected type '" type "' to be returned from '" callback "'"
 #define err_msg_unhandled_case "unhandled value in switch statement"
+#define err_msg_unreachable_reached "reached code marked as unreachable"
 
 // C API
 #define err_msg_invalid_stack_access "invalid stack access of slot %d (C API)"

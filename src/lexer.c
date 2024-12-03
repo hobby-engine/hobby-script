@@ -273,6 +273,7 @@ static TokType get_keyword(Lexer* l) {
       }
       break;
     case 't': return check_keyword(l, 1, 3, "rue", tok_true);
+    case 'u': return check_keyword(l, 1, 10, "nreachable", tok_unreachable);
     case 'v': return check_keyword(l, 1, 2, "ar", tok_var);
     case 'w': return check_keyword(l, 1, 4, "hile", tok_while);
   }
